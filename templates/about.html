@@ -1,0 +1,168 @@
+{% extends "layout.html" %}
+
+{% block title %}About - NO Dynamics Simulator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>About the NO Dynamics Simulator
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="feature-icon mx-auto mb-3 text-primary">
+                        <i class="fas fa-flask"></i>
+                    </div>
+                    <h2 class="mb-3">NO Dynamics Simulator</h2>
+                    <p class="lead text-muted">A comprehensive tool for simulating nitrite, cGMP, and vasodilation dynamics</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Overview</h5>
+                    <p>
+                        The NO Dynamics Simulator is a scientific application designed for Dr. Nathan Bryan's clinical trials
+                        to model plasma nitrite (NO₂⁻) dynamics after sodium nitrite supplementation.
+                        This tool provides detailed pharmacokinetic simulations of nitrite metabolism,
+                        cGMP formation, and subsequent vasodilation effects.
+                    </p>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Scientific Background</h5>
+                    <p>
+                        Nitric oxide (NO) plays a critical role in cardiovascular health by regulating
+                        blood pressure, reducing platelet aggregation, and improving endothelial function.
+                        Nitrite (NO₂⁻) serves as an important storage pool for NO, particularly under
+                        hypoxic conditions where it can be reduced to generate NO.
+                    </p>
+                    <p>
+                        The simulation models the following key processes:
+                    </p>
+                    <ul>
+                        <li>Absorption and distribution of oral nitrite supplements</li>
+                        <li>Metabolism and clearance through renal filtration</li>
+                        <li>Red blood cell scavenging effects</li>
+                        <li>Conversion to NO and activation of soluble guanylate cyclase</li>
+                        <li>Production of cyclic guanosine monophosphate (cGMP)</li>
+                        <li>Resulting vasodilation effects</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Mathematical Model</h5>
+                    <p>
+                        The simulation uses an ordinary differential equation (ODE) model to represent
+                        the plasma nitrite concentration over time:
+                    </p>
+                    <div class="bg-dark p-3 rounded">
+                        <code>dC/dt = Input - (k_clear + k_rbc) * C</code>
+                    </div>
+                    <p class="mt-2">Where:</p>
+                    <ul>
+                        <li><code>C</code> = plasma nitrite concentration</li>
+                        <li><code>Input</code> = nitrite input function (e.g., oral administration)</li>
+                        <li><code>k_clear</code> = renal clearance rate</li>
+                        <li><code>k_rbc</code> = red blood cell scavenging rate</li>
+                    </ul>
+                    <p>
+                        The model parameters are derived from clinical studies and can be customized
+                        to represent different physiological conditions and supplement formulations.
+                    </p>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Customizable Parameters</h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Description</th>
+                                    <th>Typical Range</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Baseline</td>
+                                    <td>Baseline plasma nitrite concentration</td>
+                                    <td>0.1-0.5 µM</td>
+                                </tr>
+                                <tr>
+                                    <td>Peak</td>
+                                    <td>Peak plasma nitrite concentration</td>
+                                    <td>1.0-10.0 µM</td>
+                                </tr>
+                                <tr>
+                                    <td>Time to Peak</td>
+                                    <td>Time to reach peak concentration</td>
+                                    <td>0.2-2.0 hours</td>
+                                </tr>
+                                <tr>
+                                    <td>Half-life</td>
+                                    <td>Elimination half-life</td>
+                                    <td>0.3-1.5 hours</td>
+                                </tr>
+                                <tr>
+                                    <td>eGFR</td>
+                                    <td>Estimated glomerular filtration rate</td>
+                                    <td>30-150 mL/min</td>
+                                </tr>
+                                <tr>
+                                    <td>RBC Count</td>
+                                    <td>Red blood cell count</td>
+                                    <td>3.5-6.0 × 10⁶/µL</td>
+                                </tr>
+                                <tr>
+                                    <td>Dose</td>
+                                    <td>Nitrite dose administered</td>
+                                    <td>5-100 mg</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Clinical Applications</h5>
+                    <p>
+                        This simulator can be used for a variety of clinical research applications:
+                    </p>
+                    <ul>
+                        <li>Predict plasma nitrite levels after supplementation</li>
+                        <li>Optimize dosing regimens for clinical trials</li>
+                        <li>Investigate the impact of physiological factors on nitrite metabolism</li>
+                        <li>Study differences between immediate release and sustained release formulations</li>
+                        <li>Explore the relationship between nitrite levels and physiological responses</li>
+                        <li>Model special populations (e.g., renal impairment, cardiovascular disease)</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Author</h5>
+                    <p>
+                        This simulation tool was developed by Dustin Salinas for Dr. Nathan Bryan's
+                        clinical research programs in nitric oxide therapeutics.
+                    </p>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>License</h5>
+                    <p>
+                        This software is provided under the MIT License. See the LICENSE file for
+                        complete license information.
+                    </p>
+                </div>
+                
+                <div class="mt-4 text-center">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Simulator
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

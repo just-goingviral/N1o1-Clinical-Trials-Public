@@ -1,0 +1,467 @@
+{% extends "layout.html" %}
+
+{% block title %}NO Dynamics Simulator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>NO Dynamics Simulation
+                </h4>
+                <div>
+                    <button id="downloadCsv" class="btn btn-outline-secondary btn-sm" disabled>
+                        <i class="fas fa-download me-1"></i>Export CSV
+                    </button>
+                    <button id="runSimulation" class="btn btn-primary btn-sm">
+                        <i class="fas fa-play me-1"></i>Run Simulation
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="loading" class="text-center p-5 d-none">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Running simulation...</p>
+                </div>
+                <div id="simulationResults">
+                    <div class="text-center pb-3">
+                        <p class="text-muted">Configure parameters and click "Run Simulation" to start</p>
+                    </div>
+                    <div id="chartContainer" class="d-none">
+                        <ul class="nav nav-tabs" id="resultTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart-content" type="button" role="tab" aria-controls="chart-content" aria-selected="true">Interactive Chart</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="static-tab" data-bs-toggle="tab" data-bs-target="#static-content" type="button" role="tab" aria-controls="static-content" aria-selected="false">Static Plot</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content p-3 border border-top-0 rounded-bottom" id="resultTabsContent">
+                            <div class="tab-pane fade show active" id="chart-content" role="tabpanel" aria-labelledby="chart-tab">
+                                <canvas id="simulationChart" width="400" height="300"></canvas>
+                            </div>
+                            <div class="tab-pane fade" id="static-content" role="tabpanel" aria-labelledby="static-tab">
+                                <img id="staticPlot" class="img-fluid" src="" alt="Static simulation plot">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Metrics Card -->
+        <div class="card shadow-sm mb-4 d-none" id="metricsCard">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-calculator me-2"></i>Simulation Metrics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-dark">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Plasma NO₂⁻</h6>
+                                <p class="h3 text-primary mb-0" id="no2Peak">--</p>
+                                <p class="small text-muted">Peak (µM)</p>
+                                <p class="small text-muted">Time to peak: <span id="no2TimeToPeak">--</span> min</p>
+                                <p class="small text-muted">AUC: <span id="no2Auc">--</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-dark">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">cGMP Response</h6>
+                                <p class="h3 text-success mb-0" id="cgmpPeak">--</p>
+                                <p class="small text-muted">Peak (a.u.)</p>
+                                <p class="small text-muted">Time to peak: <span id="cgmpTimeToPeak">--</span> min</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-dark">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Vasodilation</h6>
+                                <p class="h3 text-info mb-0" id="vasoPeak">--</p>
+                                <p class="small text-muted">Peak (%)</p>
+                                <p class="small text-muted">Time to peak: <span id="vasoTimeToPeak">--</span> min</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-sliders-h me-2"></i>Simulation Parameters
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="simulationForm">
+                    <!-- Dose Parameters -->
+                    <div class="mb-3">
+                        <label for="dose" class="form-label">Dose (mg)</label>
+                        <input type="number" class="form-control" id="dose" name="dose" min="0.1" max="100" step="0.1" value="30.0">
+                        <div class="form-text">Amount of nitrite administered</div>
+                    </div>
+                    
+                    <!-- Baseline & Peak -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="baseline" class="form-label">Baseline (µM)</label>
+                            <input type="number" class="form-control" id="baseline" name="baseline" min="0.01" max="2" step="0.01" value="0.2">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="peak" class="form-label">Peak (µM)</label>
+                            <input type="number" class="form-control" id="peak" name="peak" min="0.5" max="20" step="0.1" value="4.0">
+                        </div>
+                    </div>
+                    
+                    <!-- Time Parameters -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="t_peak" class="form-label">Time to Peak (h)</label>
+                            <input type="number" class="form-control" id="t_peak" name="t_peak" min="0.1" max="3" step="0.1" value="0.5">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="half_life" class="form-label">Half-life (h)</label>
+                            <input type="number" class="form-control" id="half_life" name="half_life" min="0.1" max="5" step="0.1" value="0.5">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="t_max" class="form-label">Simulation Duration (h)</label>
+                        <input type="number" class="form-control" id="t_max" name="t_max" min="1" max="24" step="0.5" value="6.0">
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Physiological Parameters -->
+                    <div class="mb-3">
+                        <label class="form-label" data-bs-toggle="collapse" href="#physiologicalParams" role="button" aria-expanded="false" aria-controls="physiologicalParams">
+                            <i class="fas fa-chevron-down me-1"></i> Physiological Parameters
+                        </label>
+                        <div class="collapse" id="physiologicalParams">
+                            <div class="card card-body bg-dark">
+                                <div class="mb-3">
+                                    <label for="egfr" class="form-label">eGFR (mL/min)</label>
+                                    <input type="number" class="form-control" id="egfr" name="egfr" min="10" max="150" step="1" value="90.0">
+                                    <div class="form-text">Estimated glomerular filtration rate</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="rbc_count" class="form-label">RBC Count (×10⁶/µL)</label>
+                                    <input type="number" class="form-control" id="rbc_count" name="rbc_count" min="2" max="7" step="0.1" value="4.5">
+                                    <div class="form-text">Red blood cell count</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Technical Parameters -->
+                    <div class="mb-3">
+                        <label class="form-label" data-bs-toggle="collapse" href="#technicalParams" role="button" aria-expanded="false" aria-controls="technicalParams">
+                            <i class="fas fa-chevron-down me-1"></i> Technical Parameters
+                        </label>
+                        <div class="collapse" id="technicalParams">
+                            <div class="card card-body bg-dark">
+                                <div class="mb-3">
+                                    <label for="points" class="form-label">Simulation Points</label>
+                                    <input type="number" class="form-control" id="points" name="points" min="50" max="1000" step="10" value="360">
+                                    <div class="form-text">Number of time points to calculate</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Presets Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bookmark me-2"></i>Presets
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary preset-btn" data-preset="standard">
+                        <i class="fas fa-vial me-1"></i>Standard Protocol (30mg)
+                    </button>
+                    <button class="btn btn-outline-primary preset-btn" data-preset="high-dose">
+                        <i class="fas fa-arrow-up me-1"></i>High Dose (60mg)
+                    </button>
+                    <button class="btn btn-outline-primary preset-btn" data-preset="reduced-function">
+                        <i class="fas fa-user-injured me-1"></i>Reduced Renal Function
+                    </button>
+                    <button class="btn btn-outline-primary preset-btn" data-preset="extended">
+                        <i class="fas fa-clock me-1"></i>Extended Duration
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Presets data
+    const presets = {
+        'standard': {
+            baseline: 0.2,
+            peak: 4.0,
+            t_peak: 0.5,
+            half_life: 0.5,
+            t_max: 6.0,
+            egfr: 90.0,
+            rbc_count: 4.5,
+            dose: 30.0,
+            points: 360
+        },
+        'high-dose': {
+            baseline: 0.2,
+            peak: 8.0,
+            t_peak: 0.5,
+            half_life: 0.6,
+            t_max: 6.0,
+            egfr: 90.0,
+            rbc_count: 4.5,
+            dose: 60.0,
+            points: 360
+        },
+        'reduced-function': {
+            baseline: 0.3,
+            peak: 6.0,
+            t_peak: 0.5,
+            half_life: 1.0,
+            t_max: 8.0,
+            egfr: 45.0,
+            rbc_count: 4.0,
+            dose: 30.0,
+            points: 360
+        },
+        'extended': {
+            baseline: 0.2,
+            peak: 4.0,
+            t_peak: 0.5,
+            half_life: 0.5,
+            t_max: 12.0,
+            egfr: 90.0,
+            rbc_count: 4.5,
+            dose: 30.0,
+            points: 720
+        }
+    };
+    
+    // Chart instance
+    let simulationChart = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle preset buttons
+        document.querySelectorAll('.preset-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const presetName = this.dataset.preset;
+                const preset = presets[presetName];
+                
+                if (preset) {
+                    // Set form values
+                    document.getElementById('baseline').value = preset.baseline;
+                    document.getElementById('peak').value = preset.peak;
+                    document.getElementById('t_peak').value = preset.t_peak;
+                    document.getElementById('half_life').value = preset.half_life;
+                    document.getElementById('t_max').value = preset.t_max;
+                    document.getElementById('egfr').value = preset.egfr;
+                    document.getElementById('rbc_count').value = preset.rbc_count;
+                    document.getElementById('dose').value = preset.dose;
+                    document.getElementById('points').value = preset.points;
+                    
+                    // Run simulation
+                    document.getElementById('runSimulation').click();
+                }
+            });
+        });
+        
+        // Run simulation button
+        document.getElementById('runSimulation').addEventListener('click', function() {
+            const formData = new FormData(document.getElementById('simulationForm'));
+            const params = {};
+            
+            for (let [key, value] of formData.entries()) {
+                params[key] = value;
+            }
+            
+            // Special handling for RBC count (convert from millions to absolute)
+            params.rbc_count = params.rbc_count * 1e6;
+            
+            // Show loading indicator
+            document.getElementById('loading').classList.remove('d-none');
+            document.getElementById('chartContainer').classList.add('d-none');
+            document.getElementById('metricsCard').classList.add('d-none');
+            
+            // Run simulation
+            fetch('/api/simulate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(params)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Hide loading indicator
+                    document.getElementById('loading').classList.add('d-none');
+                    
+                    // Show results
+                    document.getElementById('chartContainer').classList.remove('d-none');
+                    
+                    // Update static plot
+                    document.getElementById('staticPlot').src = data.plot_image;
+                    
+                    // Update interactive chart
+                    updateChart(data.chart_data);
+                    
+                    // Update metrics
+                    document.getElementById('metricsCard').classList.remove('d-none');
+                    document.getElementById('no2Peak').textContent = data.metrics.no2_peak.toFixed(2);
+                    document.getElementById('no2TimeToPeak').textContent = data.metrics.no2_time_to_peak.toFixed(1);
+                    document.getElementById('cgmpPeak').textContent = data.metrics.cgmp_peak.toFixed(2);
+                    document.getElementById('cgmpTimeToPeak').textContent = data.metrics.cgmp_time_to_peak.toFixed(1);
+                    document.getElementById('vasoPeak').textContent = data.metrics.vaso_peak.toFixed(1);
+                    document.getElementById('vasoTimeToPeak').textContent = data.metrics.vaso_time_to_peak.toFixed(1);
+                    document.getElementById('no2Auc').textContent = data.metrics.no2_auc.toFixed(2);
+                    
+                    // Enable download button
+                    document.getElementById('downloadCsv').disabled = false;
+                } else {
+                    alert('Error: ' + data.message);
+                    document.getElementById('loading').classList.add('d-none');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while running the simulation.');
+                document.getElementById('loading').classList.add('d-none');
+            });
+        });
+        
+        // CSV download button
+        document.getElementById('downloadCsv').addEventListener('click', function() {
+            window.location.href = '/api/export-csv';
+        });
+    });
+    
+    function updateChart(data) {
+        const ctx = document.getElementById('simulationChart').getContext('2d');
+        
+        // Destroy previous chart if it exists
+        if (simulationChart) {
+            simulationChart.destroy();
+        }
+        
+        // Create new chart
+        simulationChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.time,
+                datasets: [
+                    {
+                        label: 'Plasma NO₂⁻ (µM)',
+                        data: data.no2,
+                        borderColor: 'rgba(128, 0, 128, 1)',
+                        backgroundColor: 'rgba(128, 0, 128, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'cGMP (a.u.)',
+                        data: data.cgmp,
+                        borderColor: 'rgba(0, 128, 0, 1)',
+                        backgroundColor: 'rgba(0, 128, 0, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Vasodilation (%)',
+                        data: data.vasodilation,
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [2, 2],
+                        pointRadius: 0,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time (minutes)'
+                        },
+                        ticks: {
+                            callback: function(value, index, values) {
+                                return data.time[index];
+                            },
+                            maxTicksLimit: 10
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Concentration'
+                        },
+                        min: 0
+                    },
+                    y1: {
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Vasodilation (%)'
+                        },
+                        min: 100,
+                        grid: {
+                            drawOnChartArea: false
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.parsed.y.toFixed(2);
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}
