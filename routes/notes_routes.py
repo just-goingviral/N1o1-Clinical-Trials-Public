@@ -8,7 +8,12 @@ from werkzeug.utils import secure_filename
 import os
 import uuid
 import datetime
+import traceback
 from models import db, ClinicalNote, Patient, Simulation
+from utils.logger import get_module_logger, log_exception
+
+# Configure logger
+logger = get_module_logger('notes_routes')
 
 notes_bp = Blueprint('notes', __name__, url_prefix='/notes')
 
