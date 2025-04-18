@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-NO Dynamics Simulator
+N1O1 Clinical Trials Simulator
 A command-line tool for simulating nitrite, cGMP, and vasodilation dynamics
 
 Author: Dustin Salinas

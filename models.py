@@ -1,5 +1,5 @@
 """
-Database models for Nitrite Dynamics
+Database models for N1O1 Clinical Trials
 A clinical simulator for plasma nitrite levels
 """
 from datetime import datetime

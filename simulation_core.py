@@ -1,5 +1,5 @@
 """
-Core simulation module for nitrite, cGMP and vasodilation dynamics
+Core simulation module for N1O1 Clinical Trials 
 Based on pharmacokinetic models of nitrite metabolism
 Author: Dustin Salinas
 License: MIT

@@ -1,6 +1,6 @@
 
 """
-NO Dynamics Simulator - Main Application
+N1O1 Clinical Trials - Main Application
 """
 from flask import Flask, render_template, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
