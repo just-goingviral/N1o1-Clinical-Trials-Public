@@ -10,7 +10,6 @@ import io
 import json
 from fpdf import FPDF
 from statistical_analysis import StatisticalAnalyzer
-from io import BytesIO
 
 analyzer_bp = Blueprint('analyzer', __name__, url_prefix='/analyzer')
 
