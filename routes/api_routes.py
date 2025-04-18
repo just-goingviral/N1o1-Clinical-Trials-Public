@@ -1,14 +1,16 @@
 """
 API routes for Nitrite Dynamics application
-Includes AI assistant functionality
+Includes AI assistant functionality with conversation history
 """
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 import os
 import json
 import pandas as pd
 import numpy as np
 from openai import OpenAI
-from models import db, Patient, Simulation
+import uuid
+from datetime import datetime
+from models import db, Patient, Simulation, ChatSession, ChatMessage
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -26,17 +28,49 @@ with open("attached_assets/clinical_assistant_knowledge.md", "r") as f:
 
 @api_bp.route('/assistant', methods=['POST'])
 def assistant_response():
-    """Endpoint for N1O1ai assistant"""
+    """Endpoint for N1O1ai assistant with persistent chat history"""
     try:
         data = request.json
         user_message = data.get('message', '')
-        message_history = data.get('history', [])
+        client_session_id = data.get('session_id', None)
+        attachment = data.get('attachment', None)
 
-        if not user_message:
+        if not user_message and not attachment:
             return jsonify({
                 'status': 'error',
-                'message': 'No message provided'
+                'message': 'No message or attachment provided'
             }), 400
+
+        # Get user identifier (use IP address or user ID if available)
+        user_ip = request.remote_addr
+        user_id = session.get('user_id', None)  # If you have user authentication
+        user_identifier = user_id if user_id else user_ip
+
+        # Find or create a chat session
+        chat_session = None
+        if client_session_id:
+            chat_session = ChatSession.query.get(client_session_id)
+        
+        if not chat_session:
+            # Create a new session with UUID
+            session_id = str(uuid.uuid4())
+            chat_session = ChatSession(id=session_id, user_identifier=user_identifier)
+            db.session.add(chat_session)
+            db.session.commit()
+        else:
+            # Update last activity time
+            chat_session.last_activity = datetime.utcnow()
+            db.session.commit()
+
+        # Save user message to database
+        user_chat_message = ChatMessage(
+            session_id=chat_session.id,
+            role='user',
+            content=user_message,
+            attachment=attachment
+        )
+        db.session.add(user_chat_message)
+        db.session.commit()
 
         # Context to help the assistant respond accurately
         system_message = f"""You are N1O1ai, a clinical trial assistant built by JustGoingViral to help Dr. Nathan Bryan understand how to use the Nitrite Dynamics app. You are powered by NitroSynt technology and specialized in nitric oxide research. You help users explore simulation models, patient data, nitric oxide supplementation, and trial outcomes.
@@ -54,22 +88,19 @@ If asked about your underlying technology, say "I'm built on advanced NitroSynt 
 Your initial greeting should be: "Hi, I'm N1O1ai! Would you like help with the clinical trial app or guidance on our nitric oxide therapy tools?"
 """
 
-        # Build messages including history if available
+        # Build messages from database history
         messages = [{"role": "system", "content": system_message}]
-
-        # Add message history if provided
-        if message_history and isinstance(message_history, list):
-            for msg in message_history:
-                if isinstance(msg, dict) and 'role' in msg and 'content' in msg:
-                    # Only use roles that are valid for the API
-                    if msg['role'] in ['user', 'assistant']:
-                        messages.append({
-                            "role": msg['role'],
-                            "content": msg['content']
-                        })
-
-        # Add the current user message
-        messages.append({"role": "user", "content": user_message})
+        
+        # Get previous messages from this session (limit to last 20 for context window)
+        previous_messages = ChatMessage.query.filter_by(session_id=chat_session.id).order_by(
+            ChatMessage.timestamp).limit(20).all()
+        
+        for msg in previous_messages:
+            # Only include relevant message content (not attachments)
+            messages.append({
+                "role": msg.role,
+                "content": msg.content
+            })
 
         # Call the AI assistant API 
         try:
@@ -86,11 +117,21 @@ Your initial greeting should be: "Hi, I'm N1O1ai! Would you like help with the c
                 max_tokens=1000
             )
 
-            assistant_response = response.choices[0].message.content
+            assistant_response_text = response.choices[0].message.content
+            
+            # Save assistant response to database
+            assistant_chat_message = ChatMessage(
+                session_id=chat_session.id,
+                role='assistant',
+                content=assistant_response_text
+            )
+            db.session.add(assistant_chat_message)
+            db.session.commit()
 
             return jsonify({
                 'status': 'success',
-                'response': assistant_response
+                'response': assistant_response_text,
+                'session_id': chat_session.id
             }), 200
 
         except Exception as api_error:
@@ -554,6 +595,55 @@ def get_patients():
         return jsonify({
             'status': 'error',
             'message': f"Failed to retrieve patients: {str(e)}"
+        }), 500
+
+@api_bp.route('/chat-history', methods=['GET'])
+def get_chat_history():
+    """Get chat history for a specific session"""
+    try:
+        session_id = request.args.get('session_id')
+        
+        if not session_id:
+            return jsonify({
+                'status': 'error',
+                'message': 'No session ID provided'
+            }), 400
+            
+        # Verify user has access to this session
+        chat_session = ChatSession.query.get(session_id)
+        
+        if not chat_session:
+            return jsonify({
+                'status': 'error',
+                'message': 'Session not found'
+            }), 404
+            
+        # Get user identifier
+        user_ip = request.remote_addr
+        user_id = session.get('user_id', None)
+        current_user_identifier = user_id if user_id else user_ip
+        
+        # Simple security check - only allow access to sessions created by this user
+        # In a production app, you'd want more robust security
+        if chat_session.user_identifier != current_user_identifier:
+            # For development, we'll allow access anyway, but log a warning
+            # In production, you would return a 403 Forbidden error
+            import logging
+            logging.warning(f"User {current_user_identifier} accessing session created by {chat_session.user_identifier}")
+        
+        # Get messages for this session
+        messages = ChatMessage.query.filter_by(session_id=session_id).order_by(ChatMessage.timestamp).all()
+        
+        return jsonify({
+            'status': 'success',
+            'session_id': session_id,
+            'messages': [msg.to_dict() for msg in messages]
+        }), 200
+            
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
         }), 500
 
 @api_bp.route('/batch-simulate', methods=['POST'])
