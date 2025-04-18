@@ -6,7 +6,7 @@
 {% block content %}
 <div class="container">
     <header class="pb-3 mb-4 border-bottom">
-        <h1 class="display-5 fw-bold">Nitrite Dynamics</h1>
+        <h1 class="display-5 fw-bold">N1O1 Clinical Trials</h1>
         <p class="lead">Advanced NO Metabolism Visualization</p>
     </header>
 
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Multi-Compartment Nitrite Dynamics',
+                    text: 'N1O1 Clinical Trials - Multi-Compartment Analysis',
                     font: {
                         size: 18
                     }
@@ -290,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'nitrite_simulation_{{ simulation.id }}_advanced.csv');
+        link.setAttribute('download', 'n1o1_clinical_trials_{{ simulation.id }}_advanced.csv');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const image = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.href = image;
-        link.download = 'nitrite_simulation_{{ simulation.id }}_advanced.png';
+        link.download = 'n1o1_clinical_trials_{{ simulation.id }}_advanced.png';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
