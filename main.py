@@ -14,14 +14,16 @@ app = Flask(__name__)
 # Configure database
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///no_dynamics.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = True
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_key_for_testing')
 
 # Initialize database
 db.init_app(app)
 
 # Initialize Flask Session
-from flask_session import FlaskSession
-session_extension = FlaskSession(app)
+from flask_session import Session
+session_extension = Session(app)
 
 # Register blueprints
 app.register_blueprint(analyzer_bp)
