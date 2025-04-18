@@ -288,7 +288,7 @@ class NODynamicsSimulator:
         ax.set_ylim(0, max(self.vasodilation) * 1.2)
         ax.set_xlabel('Time (minutes)')
         ax.set_ylabel('Response (relative units)')
-        ax.set_title('N1O1 Simulation – Plasma NO₂⁻, cGMP, Vasodilation')
+        ax.set_title('N1O1 Clinical Trials – Plasma NO₂⁻, cGMP, Vasodilation')
         ax.grid(True)
         ax.legend(loc='upper right')
         
@@ -321,7 +321,7 @@ class NODynamicsSimulator:
         ax.set_ylim(0, max(self.vasodilation) * 1.2)
         ax.set_xlabel('Time (minutes)')
         ax.set_ylabel('Response (relative units)')
-        ax.set_title('N1O1 Simulation – Plasma NO₂⁻, cGMP, Vasodilation')
+        ax.set_title('N1O1 Clinical Trials – Plasma NO₂⁻, cGMP, Vasodilation')
         ax.grid(True)
         ax.legend(loc='upper right')
         
@@ -388,7 +388,7 @@ class NODynamicsSimulator:
         ax.set_ylim(0, max(self.vasodilation) * 1.2)
         ax.set_xlabel('Time (minutes)')
         ax.set_ylabel('Response (relative units)')
-        ax.set_title('N1O1 Simulation – Plasma NO₂⁻, cGMP, Vasodilation')
+        ax.set_title('N1O1 Clinical Trials – Plasma NO₂⁻, cGMP, Vasodilation')
         ax.grid(True)
         ax.legend(loc='upper right')
         
