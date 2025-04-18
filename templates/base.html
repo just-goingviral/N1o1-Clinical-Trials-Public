@@ -33,7 +33,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('simulations.view_simulation') }}">Simulations</a>
                     </li>
-                    {% if current_user.is_authenticated %}
+                    {% if current_user is defined and current_user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('notes.list_notes') }}">
                             <i class="fas fa-sticky-note me-1"></i> Clinical Notes
@@ -43,11 +43,11 @@
                 </ul>
                 
                 <ul class="navbar-nav">
-                    {% if current_user.is_authenticated %}
+                    {% if current_user is defined and current_user.is_authenticated %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-user-circle me-1"></i>
-                            {{ current_user.first_name }} {{ current_user.last_name }}
+                            {{ current_user.first_name|default('User') }} {{ current_user.last_name|default('') }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li>
