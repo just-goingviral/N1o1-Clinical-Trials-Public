@@ -14,8 +14,15 @@ app = Flask(__name__)
 app.config.from_mapping(
     SECRET_KEY=os.environ.get('SECRET_KEY', 'dev_key_for_development_only'),
     SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL'),
-    SQLALCHEMY_TRACK_MODIFICATIONS=False
+    SQLALCHEMY_TRACK_MODIFICATIONS=False,
+    SESSION_TYPE='filesystem',
+    SESSION_PERMANENT=True,
+    PERMANENT_SESSION_LIFETIME=60 * 60 * 24 * 30  # 30 days in seconds
 )
+
+# Initialize Flask Session
+from flask_session import FlaskSession
+FlaskSession(app)
 
 # Initialize the database
 db.init_app(app)

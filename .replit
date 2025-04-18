@@ -64,6 +64,19 @@ mode = "sequential"
 task = "shell.exec"
 args = "python test_chatbot.py"
 
+[[workflows.workflow]]
+name = "Update Database"
+author = 41295187
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "flask db migrate -m \"Add ChatHistory model\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "flask db upgrade"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
