@@ -297,7 +297,7 @@ function createMainWindow(port) {
         {
           label: 'Documentation',
           click: async () => {
-            await shell.openExternal('https://github.com/yourusername/no-dynamics-simulator');
+            await shell.openExternal('https://github.com/JustGoingViral/n1o1clinicaltrials');
           }
         }
       ]

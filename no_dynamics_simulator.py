@@ -11,6 +11,7 @@ import argparse
 import sys
 import os
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from simulation_core import NODynamicsSimulator
 from statistical_analysis import StatisticalAnalyzer
