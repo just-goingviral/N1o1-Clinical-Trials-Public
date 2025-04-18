@@ -6,10 +6,7 @@ from flask import Flask, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import os
 from models import db, Patient, Simulation, init_db
-from routes.analyzer_routes import analyzer_bp
-from routes.api_routes import api_bp
-from routes.patient_routes import patient_bp
-from routes.simulation_routes import simulation_bp
+from routes import analyzer_bp, api_bp, patient_bp, simulation_bp
 
 # Create Flask application
 app = Flask(__name__)

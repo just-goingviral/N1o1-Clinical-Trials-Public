@@ -8,6 +8,11 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 db = SQLAlchemy()
 
+def init_db():
+    """Initialize database tables"""
+    db.create_all()
+    print("Database tables created successfully")
+
 class Patient(db.Model):
     """Patient model for clinical trial participants"""
     __tablename__ = 'patients'
