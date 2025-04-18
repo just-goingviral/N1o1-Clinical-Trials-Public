@@ -26,12 +26,7 @@ migrate = Migrate(app, db)
 # Create a simple index route
 @app.route('/')
 def index():
-    return jsonify({
-        "name": "Nitrite Dynamics API",
-        "version": "1.0.0",
-        "description": "API for simulating nitric oxide levels in clinical trial patients",
-        "docs": "/docs"
-    })
+    return render_template('index.html')
 
 @app.route('/docs')
 def docs():
