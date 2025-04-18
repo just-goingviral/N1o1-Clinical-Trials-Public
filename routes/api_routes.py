@@ -202,6 +202,316 @@ def run_multiple_doses_simulation():
         from simulation_core import NODynamicsSimulator
         
         # Convert parameters for simulator
+
+@api_bp.route('/compare-patients', methods=['POST'])
+def compare_patient_simulations():
+    """Compare multiple patients' nitrite dynamics"""
+    try:
+        data = request.json
+        patient_ids = data.get('patient_ids', [])
+        
+        if not patient_ids or not isinstance(patient_ids, list):
+            return jsonify({
+                'status': 'error',
+                'message': 'Please provide a list of patient IDs'
+            }), 400
+            
+        # Limit to 5 patients maximum for visualization clarity
+        if len(patient_ids) > 5:
+            return jsonify({
+                'status': 'error',
+                'message': 'Please limit comparison to 5 patients maximum'
+            }), 400
+            
+        # Get patient data and run simulations
+        patients = []
+        simulations = []
+        labels = []
+        
+        for patient_id in patient_ids:
+            patient = Patient.query.get(patient_id)
+            if not patient:
+                continue
+                
+            # Get most recent simulation for this patient or create one
+            simulation = Simulation.query.filter_by(patient_id=patient_id).order_by(
+                Simulation.created_at.desc()).first()
+                
+            if simulation:
+                # Convert stored JSON data to DataFrame format
+                time_points = simulation.result_curve['time']
+                nitrite_levels = simulation.result_curve['no2']
+                
+                # Create dataframe from stored results
+                sim_df = pd.DataFrame({
+                    'Time (minutes)': time_points,
+                    'Plasma NO2- (µM)': nitrite_levels
+                })
+                
+                simulations.append(sim_df)
+                patients.append(patient)
+                labels.append(f"Patient #{patient.id}: {patient.name or 'Unnamed'} ({patient.age}y)")
+        
+        if not simulations:
+            return jsonify({
+                'status': 'error',
+                'message': 'No valid simulations found for the provided patient IDs'
+            }), 404
+            
+        # Use the StatisticalAnalyzer to compare simulations
+        from statistical_analysis import StatisticalAnalyzer
+        analyzer = StatisticalAnalyzer()
+        
+        # Get comparison metrics
+        comparison_df = analyzer.compare_simulations(simulations, labels)
+        
+        # Generate comparison plot
+        comparison_plot = analyzer.plot_comparison(simulations, labels, return_base64=True)
+        
+        # Format comparison data for response
+        comparison_data = []
+        for i, row in comparison_df.iterrows():
+            comparison_data.append({
+                'label': row['Label'],
+                'peak_value': float(row['Peak Value']),
+                'time_to_peak': float(row['Time to Peak']),
+                'auc': float(row['AUC']),
+                'half_life': float(row['Half-life']) if not pd.isna(row['Half-life']) else None
+            })
+            
+        return jsonify({
+            'status': 'success',
+            'comparison': comparison_data,
+            'comparison_plot': comparison_plot
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+
+@api_bp.route('/population-analysis', methods=['GET'])
+def population_analysis():
+    """Perform population pharmacokinetic analysis"""
+    try:
+        # Get all simulations with patient data
+        simulations = db.session.query(Simulation, Patient).join(
+            Patient, Simulation.patient_id == Patient.id
+        ).all()
+        
+        if not simulations:
+            return jsonify({
+                'status': 'error',
+                'message': 'No simulation data available for analysis'
+            }), 404
+            
+        # Extract relevant data for analysis
+        pk_data = []
+        for sim, patient in simulations:
+            # Skip simulations without proper parameters
+            if not sim.parameters.get('peak_time') or not sim.parameters.get('half_life'):
+                continue
+                
+            pk_data.append({
+                'patient_id': patient.id,
+                'age': patient.age,
+                'weight': patient.weight_kg,
+                'baseline_no2': patient.baseline_no2,
+                'dose': sim.parameters.get('dose', 30.0),
+                'cmax': sim.parameters.get('peak', 0.0),
+                'tmax': sim.parameters.get('peak_time', 0.0),
+                'half_life': sim.parameters.get('half_life', 0.0),
+                'egfr': sim.parameters.get('egfr', 90.0),
+            })
+            
+        if not pk_data:
+            return jsonify({
+                'status': 'error',
+                'message': 'No valid PK data available for analysis'
+            }), 404
+            
+        # Convert to DataFrame for analysis
+        import pandas as pd
+        import numpy as np
+        from scipy import stats
+        import matplotlib.pyplot as plt
+        import io
+        import base64
+        
+        pk_df = pd.DataFrame(pk_data)
+        
+        # Create correlation matrix
+        corr_matrix = pk_df.corr()
+        
+        # Create age-based analysis of half-life
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+        
+        # Scatter plot of Age vs Half-life
+        ax1.scatter(pk_df['age'], pk_df['half_life'], alpha=0.7)
+        ax1.set_xlabel('Age (years)')
+        ax1.set_ylabel('Half-life (hours)')
+        ax1.set_title('Age vs. Nitrite Half-life')
+        
+        # Fit regression line
+        slope, intercept, r_value, p_value, std_err = stats.linregress(pk_df['age'], pk_df['half_life'])
+        x = np.array([min(pk_df['age']), max(pk_df['age'])])
+        ax1.plot(x, intercept + slope * x, 'r-', label=f'r={r_value:.2f}, p={p_value:.4f}')
+        ax1.legend()
+        
+        # Weight vs Cmax
+        ax2.scatter(pk_df['weight'], pk_df['cmax'], alpha=0.7)
+        ax2.set_xlabel('Weight (kg)')
+        ax2.set_ylabel('Cmax (µM)')
+        ax2.set_title('Weight vs. Peak Nitrite Level')
+        
+        # Fit regression line
+        slope, intercept, r_value, p_value, std_err = stats.linregress(pk_df['weight'], pk_df['cmax'])
+        x = np.array([min(pk_df['weight']), max(pk_df['weight'])])
+        ax2.plot(x, intercept + slope * x, 'r-', label=f'r={r_value:.2f}, p={p_value:.4f}')
+        ax2.legend()
+        
+        plt.tight_layout()
+        
+        # Convert plot to base64
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format='png', dpi=100)
+        buffer.seek(0)
+        plot_data = base64.b64encode(buffer.read()).decode('utf-8')
+        plt.close(fig)
+        
+
+@api_bp.route('/batch-simulate', methods=['POST'])
+def batch_simulate():
+    """Run multiple simulations with varying parameters"""
+    try:
+        data = request.json
+        
+        # Parameter ranges
+        dose_range = data.get('dose_range', [15, 30, 45, 60])
+        age_range = data.get('age_range', [30, 50, 70])
+        weight_range = data.get('weight_range', [60, 75, 90])
+        baseline_range = data.get('baseline_range', [0.1, 0.2, 0.3])
+        
+        # Validate parameters
+        if not all(isinstance(r, list) for r in [dose_range, age_range, weight_range, baseline_range]):
+            return jsonify({
+                'status': 'error',
+                'message': 'Parameter ranges must be lists'
+            }), 400
+        
+        # Limit batch size to avoid overload
+        max_simulations = 50
+        total_combinations = len(dose_range) * len(age_range) * len(weight_range) * len(baseline_range)
+        
+        if total_combinations > max_simulations:
+            return jsonify({
+                'status': 'error',
+                'message': f'Batch size too large: {total_combinations} simulations requested, maximum is {max_simulations}'
+            }), 400
+        
+        # Results storage
+        batch_results = []
+        
+        # Import simulator
+        from simulation_core import NODynamicsSimulator
+        
+        # Run simulations
+        for dose in dose_range:
+            for age in age_range:
+                for weight in weight_range:
+                    for baseline in baseline_range:
+                        # Calculate parameters
+                        half_life_minutes = 30 + (age / 10)
+                        half_life_hours = half_life_minutes / 60
+                        peak_value = baseline + (dose / (weight * 0.1))
+                        
+                        # Create simulator
+                        simulator = NODynamicsSimulator(
+                            baseline=baseline,
+                            peak=peak_value,
+                            t_peak=0.5,  # 30 minutes
+                            half_life=half_life_hours,
+                            t_max=6,
+                            points=361,
+                            egfr=90.0 - (0.5 * (age - 40)) if age > 40 else 90.0,
+                            dose=dose
+                        )
+                        
+                        # Run simulation
+                        sim_df = simulator.simulate()
+                        
+                        # Extract key metrics
+                        peak_info = max(sim_df['Plasma NO2- (µM)'])
+                        auc = np.trapz(sim_df['Plasma NO2- (µM)'], sim_df['Time (hours)'])
+                        
+                        # Store results
+                        batch_results.append({
+                            'dose': dose,
+                            'age': age,
+                            'weight': weight,
+                            'baseline': baseline,
+                            'peak_concentration': float(peak_info),
+                            'half_life_hours': float(half_life_hours),
+                            'auc': float(auc),
+                            'therapeutic_window': sum(1 for val in sim_df['Plasma NO2- (µM)'] if val > 1.0) / len(sim_df['Plasma NO2- (µM)']) * 100
+                        })
+        
+        # Create summary statistics
+        import pandas as pd
+        results_df = pd.DataFrame(batch_results)
+        
+        summary = {
+            'total_simulations': len(batch_results),
+            'dose_effect': results_df.groupby('dose')['peak_concentration'].mean().to_dict(),
+            'age_effect': results_df.groupby('age')['half_life_hours'].mean().to_dict(),
+            'weight_effect': results_df.groupby('weight')['peak_concentration'].mean().to_dict(),
+            'optimal_combinations': results_df.nlargest(5, 'therapeutic_window')[['dose', 'age', 'weight', 'baseline', 'therapeutic_window']].to_dict('records')
+        }
+        
+        return jsonify({
+            'status': 'success',
+            'batch_results': batch_results,
+            'summary': summary
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+        # Calculate summary statistics
+        summary_stats = {
+            'patient_count': len(pk_data),
+            'age_range': [pk_df['age'].min(), pk_df['age'].max()],
+            'weight_range': [pk_df['weight'].min(), pk_df['weight'].max()],
+            'dose_range': [pk_df['dose'].min(), pk_df['dose'].max()],
+            'mean_half_life': pk_df['half_life'].mean(),
+            'mean_cmax': pk_df['cmax'].mean(),
+            'mean_tmax': pk_df['tmax'].mean(),
+            'correlations': {
+                'age_half_life': corr_matrix.loc['age', 'half_life'],
+                'weight_cmax': corr_matrix.loc['weight', 'cmax'],
+                'dose_cmax': corr_matrix.loc['dose', 'cmax'],
+                'baseline_cmax': corr_matrix.loc['baseline_no2', 'cmax']
+            }
+        }
+        
+        return jsonify({
+            'status': 'success',
+            'summary_stats': summary_stats,
+            'correlation_matrix': corr_matrix.to_dict(),
+            'analysis_plot': f'data:image/png;base64,{plot_data}'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
         half_life_minutes = 30 + (age / 10)  # Calculated half-life in minutes
         peak_time = 30  # Peak time in minutes
         half_life_hours = half_life_minutes / 60  # Convert to hours

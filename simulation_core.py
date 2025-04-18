@@ -73,9 +73,60 @@ class NODynamicsSimulator:
         """Calculate renal clearance rate based on eGFR"""
         return 0.1 * (egfr / 60.0)
     
-    def _rbc_scavenging_rate(self, rbc_count):
-        """Calculate RBC scavenging rate based on RBC count"""
-        return 0.02 * (rbc_count / 1.0e6)
+    def _rbc_scavenging_rate(self, rbc_count, oxygen_saturation=0.97):
+        """
+        Calculate RBC scavenging rate based on RBC count and oxygen saturation
+        
+        Parameters:
+        -----------
+        rbc_count : float
+            Red blood cell count (cells/µL)
+        oxygen_saturation : float
+            Blood oxygen saturation (0-1), default 0.97 (normoxia)
+            Lower values represent hypoxic conditions
+        
+        Returns:
+        --------
+        float
+            Scavenging rate constant
+        """
+        # Base scavenging rate
+        base_rate = 0.02 * (rbc_count / 1.0e6)
+        
+        # Hypoxia adjustment factor - RBCs convert less nitrite to NO when oxygenated
+        # and more when deoxygenated (hypoxic conditions)
+        hypoxia_factor = 1 - oxygen_saturation  # Higher in hypoxia
+        
+        # Adjust scavenging rate (higher value = faster scavenging)
+        return base_rate * (1 - 0.5 * hypoxia_factor)
+    
+    def simulate_hypoxia(self, oxygen_saturation=0.8):
+        """
+        Run simulation under hypoxic conditions
+        
+        Parameters:
+        -----------
+        oxygen_saturation : float
+            Blood oxygen saturation (0-1), lower values = more hypoxic
+            
+        Returns:
+        --------
+        pandas.DataFrame
+            Simulation results under hypoxic conditions
+        """
+        # Store original k_rbc
+        original_k_rbc = self.k_rbc
+        
+        # Set hypoxic k_rbc
+        self.k_rbc = self._rbc_scavenging_rate(self.rbc_count, oxygen_saturation)
+        
+        # Run simulation
+        results = self.simulate()
+        
+        # Reset to original value
+        self.k_rbc = original_k_rbc
+        
+        return results
     
     def _dose_input(self, t, dose=30.0, t_IR=0.0, additional_doses=None):
         """
@@ -111,7 +162,12 @@ class NODynamicsSimulator:
         return result
     
     def _no2_ode(self, t, y):
-        """ODE model for nitrite concentration"""
+        """
+        ODE model for nitrite concentration with tissue distribution
+        y[0]: Plasma nitrite concentration (µM)
+        y[1]: Tissue nitrite concentration (µM) - represents muscle, organs, etc.
+        y[2]: Erythrocyte nitrite concentration (µM) - represents RBC-bound nitrite
+        """
         # Adapt absorption rate based on formulation
         dissolution_factor = 1.0
         if self.formulation == "extended-release":
@@ -123,8 +179,22 @@ class NODynamicsSimulator:
             additional_doses=self.additional_doses
         )
         
-        # Physiological clearance
-        clearance = (self.k_clear + self.k_rbc) * y[0]
+        # Transfer rate constants
+        k_plasma_to_tissue = 0.05  # Plasma to tissue transfer rate
+        k_tissue_to_plasma = 0.03  # Tissue to plasma transfer rate
+        k_plasma_to_rbc = self.k_rbc * 0.5  # Plasma to RBC transfer rate
+        k_rbc_to_no = 0.01  # RBC nitrite to NO conversion rate (increases in hypoxia)
+        
+        # Tissue distribution - two-way transfer between plasma and tissues
+        plasma_to_tissue = k_plasma_to_tissue * y[0]
+        tissue_to_plasma = k_tissue_to_plasma * y[1]
+        
+        # RBC interactions
+        plasma_to_rbc = k_plasma_to_rbc * y[0]
+        rbc_to_no = k_rbc_to_no * y[2]
+        
+        # Renal clearance only applies to plasma
+        renal_clearance = self.k_clear * y[0]
         
         # Extended release formulation continues to release drug over time
         if self.formulation == "extended-release":
@@ -132,8 +202,12 @@ class NODynamicsSimulator:
             if t < 4:  # Only contribute during the first 4 hours
                 input_flux += extended_release_rate
         
-        dcdt = input_flux - clearance
-        return [dcdt]
+        # Differential equations for each compartment
+        dplasma_dt = input_flux + tissue_to_plasma - plasma_to_tissue - plasma_to_rbc - renal_clearance
+        dtissue_dt = plasma_to_tissue - tissue_to_plasma
+        drbc_dt = plasma_to_rbc - rbc_to_no
+        
+        return [dplasma_dt, dtissue_dt, drbc_dt]
     
     def _calculate_cgmp(self, no2_array):
         """Calculate cGMP levels based on nitrite concentration"""
@@ -144,23 +218,36 @@ class NODynamicsSimulator:
         return 100 + 50 * (cgmp_array / max(cgmp_array)) if max(cgmp_array) > 0 else 100 * np.ones_like(cgmp_array)
     
     def simulate(self):
-        """Run the simulation with current parameters"""
+        """Run the simulation with current parameters using multi-compartment model"""
         self.t_eval = np.linspace(0, self.t_max, self.points)
+        
+        # Initial conditions for all compartments
+        # [plasma, tissue, RBC]
+        initial_conditions = [self.baseline, self.baseline * 0.5, self.baseline * 0.2]
         
         # Solve the ODE system
         sol = solve_ivp(
             lambda t, y: self._no2_ode(t, y), 
             [0, self.t_max], 
-            [self.baseline], 
+            initial_conditions, 
             t_eval=self.t_eval,
             method='RK45',
             rtol=1e-6
         )
         
+        # Extract solutions for each compartment
         self.plasma_no2 = sol.y[0]
+        self.tissue_no2 = sol.y[1]
+        self.rbc_no2 = sol.y[2]
         
-        # Calculate derived outputs
-        self.cgmp_levels = self._calculate_cgmp(self.plasma_no2)
+        # Calculate total body nitrite (weighted sum)
+        self.total_body_no2 = 0.7 * self.plasma_no2 + 0.2 * self.tissue_no2 + 0.1 * self.rbc_no2
+        
+        # Calculate bioactive NO (proportional to RBC nitrite in our model)
+        self.bioactive_no = 0.5 * self.rbc_no2
+        
+        # Calculate derived physiological outputs
+        self.cgmp_levels = self._calculate_cgmp(self.bioactive_no)
         self.vasodilation = self._calculate_vasodilation(self.cgmp_levels)
         
         # Create a pandas DataFrame with the results
@@ -168,6 +255,10 @@ class NODynamicsSimulator:
             'Time (hours)': self.t_eval,
             'Time (minutes)': self.t_eval * 60,
             'Plasma NO2- (µM)': self.plasma_no2,
+            'Tissue NO2- (µM)': self.tissue_no2,
+            'RBC NO2- (µM)': self.rbc_no2,
+            'Total Body NO2- (µM)': self.total_body_no2,
+            'Bioactive NO (a.u.)': self.bioactive_no,
             'cGMP (a.u.)': self.cgmp_levels,
             'Vasodilation (%)': self.vasodilation
         })

@@ -71,3 +71,13 @@ def view_simulation():
             'status': 'error',
             'message': str(e)
         }), 500
+@simulation_bp.route('/advanced-view')
+def advanced_visualization():
+    """Advanced visualization with multiple compartments"""
+    simulation_id = request.args.get('id')
+    
+    if simulation_id:
+        simulation = Simulation.query.get_or_404(simulation_id)
+        return render_template('advanced_visualization.html', simulation=simulation)
+    
+    return render_template('advanced_visualization.html')

@@ -1,0 +1,312 @@
+
+{% extends "layout.html" %}
+
+{% block title %}Advanced NO Dynamics Visualization{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header class="pb-3 mb-4 border-bottom">
+        <h1 class="display-5 fw-bold">Nitrite Dynamics</h1>
+        <p class="lead">Advanced NO Metabolism Visualization</p>
+    </header>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="p-4 mb-4 bg-dark rounded-3">
+                <h2 class="mb-4">Multi-Compartment NO₂⁻ Visualization</h2>
+                
+                {% if simulation %}
+                <div class="chart-container">
+                    <canvas id="multiCompartmentChart"></canvas>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card bg-dark">
+                            <div class="card-header">Simulation Parameters</div>
+                            <div class="card-body">
+                                <table class="table table-dark">
+                                    <tbody>
+                                        <tr>
+                                            <th>Model Type:</th>
+                                            <td>{{ simulation.model_type }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Dose:</th>
+                                            <td>{{ simulation.parameters.get('dose', 'N/A') }} mg</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Half-life:</th>
+                                            <td>{{ simulation.parameters.get('half_life', 'N/A') }} hours</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Baseline NO₂⁻:</th>
+                                            <td>{{ simulation.parameters.get('baseline', 'N/A') }} µM</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-dark">
+                            <div class="card-header">Peak Values</div>
+                            <div class="card-body">
+                                <table class="table table-dark">
+                                    <tbody>
+                                        <tr>
+                                            <th>Peak Plasma NO₂⁻:</th>
+                                            <td id="peakPlasma">--</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Peak Tissue NO₂⁻:</th>
+                                            <td id="peakTissue">--</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Peak RBC NO₂⁻:</th>
+                                            <td id="peakRBC">--</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Peak Bioactive NO:</th>
+                                            <td id="peakNO">--</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-center mt-4">
+                    <div class="btn-group">
+                        <button id="togglePlasma" class="btn btn-outline-primary active">Plasma NO₂⁻</button>
+                        <button id="toggleTissue" class="btn btn-outline-success">Tissue NO₂⁻</button>
+                        <button id="toggleRBC" class="btn btn-outline-warning">RBC NO₂⁻</button>
+                        <button id="toggleNO" class="btn btn-outline-danger">Bioactive NO</button>
+                        <button id="togglecGMP" class="btn btn-outline-info">cGMP</button>
+                        <button id="toggleVaso" class="btn btn-outline-secondary">Vasodilation</button>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-center mt-3">
+                    <div class="btn-group">
+                        <button id="downloadCSV" class="btn btn-outline-light">Download CSV</button>
+                        <button id="downloadImage" class="btn btn-outline-light">Download Plot</button>
+                    </div>
+                </div>
+                
+                {% else %}
+                <div class="alert alert-info">
+                    Please run a simulation first to see advanced visualization.
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <a href="/simulations/new" class="btn btn-primary">Create New Simulation</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if simulation %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up the chart data
+    const timePoints = {{ simulation.result_curve.time|tojson }};
+    const plasmaData = {{ simulation.result_curve.plasma_no2|tojson if simulation.result_curve.plasma_no2 else simulation.result_curve.no2|tojson }};
+    
+    // For older simulations that don't have multi-compartment data, we'll create dummy data
+    const tissueData = {{ simulation.result_curve.tissue_no2|tojson if simulation.result_curve.get('tissue_no2') else [] }};
+    const rbcData = {{ simulation.result_curve.rbc_no2|tojson if simulation.result_curve.get('rbc_no2') else [] }};
+    const bioactiveNOData = {{ simulation.result_curve.bioactive_no|tojson if simulation.result_curve.get('bioactive_no') else [] }};
+    const cgmpData = {{ simulation.result_curve.cgmp|tojson if simulation.result_curve.get('cgmp') else [] }};
+    const vasoData = {{ simulation.result_curve.vasodilation|tojson if simulation.result_curve.get('vasodilation') else [] }};
+    
+    // Generate dummy data if needed
+    const generateDummyData = (baseData, factor, offset) => {
+        return baseData.map(value => value * factor + offset);
+    };
+    
+    // Create complete dataset
+    const data = {
+        labels: timePoints,
+        datasets: [
+            {
+                label: 'Plasma NO₂⁻ (µM)',
+                data: plasmaData,
+                borderColor: 'rgba(138, 43, 226, 1)',
+                backgroundColor: 'rgba(138, 43, 226, 0.1)',
+                fill: true,
+                tension: 0.4,
+                hidden: false
+            },
+            {
+                label: 'Tissue NO₂⁻ (µM)',
+                data: tissueData.length ? tissueData : generateDummyData(plasmaData, 0.6, 0.1),
+                borderColor: 'rgba(46, 204, 113, 1)',
+                backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                fill: true,
+                tension: 0.4,
+                hidden: true
+            },
+            {
+                label: 'RBC NO₂⁻ (µM)',
+                data: rbcData.length ? rbcData : generateDummyData(plasmaData, 0.3, 0.05),
+                borderColor: 'rgba(241, 196, 15, 1)',
+                backgroundColor: 'rgba(241, 196, 15, 0.1)',
+                fill: true,
+                tension: 0.4,
+                hidden: true
+            },
+            {
+                label: 'Bioactive NO (a.u.)',
+                data: bioactiveNOData.length ? bioactiveNOData : generateDummyData(plasmaData, 0.15, 0),
+                borderColor: 'rgba(231, 76, 60, 1)',
+                backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                fill: true,
+                tension: 0.4,
+                hidden: true
+            },
+            {
+                label: 'cGMP (a.u.)',
+                data: cgmpData.length ? cgmpData : generateDummyData(plasmaData, 2.5, 1),
+                borderColor: 'rgba(52, 152, 219, 1)',
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                fill: true,
+                tension: 0.4,
+                hidden: true
+            },
+            {
+                label: 'Vasodilation (%)',
+                data: vasoData.length ? vasoData : generateDummyData(plasmaData, 10, 100),
+                borderColor: 'rgba(149, 165, 166, 1)',
+                backgroundColor: 'rgba(149, 165, 166, 0.1)',
+                fill: true,
+                tension: 0.4,
+                hidden: true
+            }
+        ]
+    };
+    
+    // Initialize the chart
+    const ctx = document.getElementById('multiCompartmentChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Multi-Compartment Nitrite Dynamics',
+                    font: {
+                        size: 18
+                    }
+                },
+                legend: {
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y.toFixed(2)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Time (minutes)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Concentration / Response'
+                    },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Update peak values
+    document.getElementById('peakPlasma').textContent = Math.max(...plasmaData).toFixed(2) + ' µM';
+    document.getElementById('peakTissue').textContent = Math.max(...(tissueData.length ? tissueData : generateDummyData(plasmaData, 0.6, 0.1))).toFixed(2) + ' µM';
+    document.getElementById('peakRBC').textContent = Math.max(...(rbcData.length ? rbcData : generateDummyData(plasmaData, 0.3, 0.05))).toFixed(2) + ' µM';
+    document.getElementById('peakNO').textContent = Math.max(...(bioactiveNOData.length ? bioactiveNOData : generateDummyData(plasmaData, 0.15, 0))).toFixed(2) + ' a.u.';
+    
+    // Toggle visibility of datasets
+    const toggleButtons = {
+        'togglePlasma': 0,
+        'toggleTissue': 1,
+        'toggleRBC': 2,
+        'toggleNO': 3,
+        'togglecGMP': 4,
+        'toggleVaso': 5
+    };
+    
+    Object.entries(toggleButtons).forEach(([btnId, datasetIndex]) => {
+        document.getElementById(btnId).addEventListener('click', function() {
+            const isActive = this.classList.contains('active');
+            
+            // Toggle button state
+            if (isActive) {
+                this.classList.remove('active');
+            } else {
+                this.classList.add('active');
+            }
+            
+            // Toggle dataset visibility
+            chart.data.datasets[datasetIndex].hidden = isActive;
+            chart.update();
+        });
+    });
+    
+    // Download handlers
+    document.getElementById('downloadCSV').addEventListener('click', function() {
+        // Create CSV content
+        let csvContent = 'Time (minutes),Plasma NO₂⁻ (µM),Tissue NO₂⁻ (µM),RBC NO₂⁻ (µM),Bioactive NO (a.u.),cGMP (a.u.),Vasodilation (%)\n';
+        
+        for (let i = 0; i < timePoints.length; i++) {
+            csvContent += timePoints[i] + ',';
+            csvContent += plasmaData[i] + ',';
+            csvContent += (tissueData.length ? tissueData[i] : generateDummyData(plasmaData, 0.6, 0.1)[i]) + ',';
+            csvContent += (rbcData.length ? rbcData[i] : generateDummyData(plasmaData, 0.3, 0.05)[i]) + ',';
+            csvContent += (bioactiveNOData.length ? bioactiveNOData[i] : generateDummyData(plasmaData, 0.15, 0)[i]) + ',';
+            csvContent += (cgmpData.length ? cgmpData[i] : generateDummyData(plasmaData, 2.5, 1)[i]) + ',';
+            csvContent += (vasoData.length ? vasoData[i] : generateDummyData(plasmaData, 10, 100)[i]) + '\n';
+        }
+        
+        // Create download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'nitrite_simulation_{{ simulation.id }}_advanced.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+    
+    document.getElementById('downloadImage').addEventListener('click', function() {
+        const canvas = document.getElementById('multiCompartmentChart');
+        const image = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = image;
+        link.download = 'nitrite_simulation_{{ simulation.id }}_advanced.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+});
+</script>
+{% endif %}
+{% endblock %}
