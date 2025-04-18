@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nitrite Dynamics - Simulation Visualization</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+        .parameter-card {
+            border-left: 4px solid var(--bs-info);
+            margin-bottom: 1rem;
+        }
+        .patient-info {
+            background-color: rgba(13, 110, 253, 0.1);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .no-data {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            background-color: rgba(128, 128, 128, 0.1);
+            border-radius: 0.5rem;
+            font-size: 1.5rem;
+            color: var(--bs-secondary);
+        }
+    </style>
+</head>
+<body data-bs-theme="dark">
+    <div class="container">
+        <header class="pb-3 mb-4 border-bottom">
+            <h1 class="display-5 fw-bold">Nitrite Dynamics</h1>
+            <p class="lead">Nitric Oxide (NO) Plasma Level Simulation</p>
+        </header>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="p-4 mb-4 bg-dark rounded-3">
+                    <h2 class="mb-4">Nitrite Level Simulation</h2>
+                    
+                    {% if simulation %}
+                    <div class="chart-container">
+                        <canvas id="nitriteChart"></canvas>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="p-3 parameter-card">
+                                <h4>Kinetic Parameters</h4>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item bg-transparent">Baseline NO₂⁻: {{ simulation.parameters.baseline }} µM</li>
+                                    <li class="list-group-item bg-transparent">Peak NO₂⁻: {{ simulation.parameters.peak|round(2) }} µM</li>
+                                    <li class="list-group-item bg-transparent">Time to Peak: {{ simulation.parameters.peak_time }} minutes</li>
+                                    <li class="list-group-item bg-transparent">Half-life: {{ simulation.parameters.half_life|round(2) }} hours</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 parameter-card">
+                                <h4>Simulation Settings</h4>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item bg-transparent">Model Type: {{ simulation.model_type }}</li>
+                                    <li class="list-group-item bg-transparent">Dose: {{ simulation.parameters.dose }} mg</li>
+                                    <li class="list-group-item bg-transparent">Simulation ID: {{ simulation.id }}</li>
+                                    <li class="list-group-item bg-transparent">Created: {{ simulation.created_at.strftime('%Y-%m-%d %H:%M') }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h4>Download Options</h4>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-info" id="downloadCSV">CSV Data</button>
+                            <button type="button" class="btn btn-outline-info" id="downloadImage">Chart Image</button>
+                            <button type="button" class="btn btn-outline-info" id="downloadReport">Full Report</button>
+                        </div>
+                    </div>
+                    
+                    {% else %}
+                    <div class="no-data">
+                        <div class="text-center">
+                            <p>No simulation data available.</p>
+                            <a href="/api/simulate" class="btn btn-primary mt-3">Run a Simulation</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                {% if patient %}
+                <div class="p-4 mb-4 bg-dark rounded-3">
+                    <h3>Patient Information</h3>
+                    <div class="patient-info">
+                        <h4>{{ patient.name }}</h4>
+                        <ul class="list-unstyled">
+                            <li><strong>Age:</strong> {{ patient.age }} years</li>
+                            <li><strong>Weight:</strong> {{ patient.weight_kg }} kg</li>
+                            <li><strong>Baseline NO₂⁻:</strong> {{ patient.baseline_no2 }} µM</li>
+                        </ul>
+                        <p><small>{{ patient.notes }}</small></p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="p-4 mb-4 bg-dark rounded-3">
+                    <h3>Simulation Controls</h3>
+                    <form action="/api/simulate" method="post" id="simulationForm">
+                        <div class="mb-3">
+                            <label for="patientSelect" class="form-label">Patient</label>
+                            <select class="form-select" id="patientSelect" name="patient_id">
+                                <option value="">-- Custom Simulation --</option>
+                                <!-- Will be populated via API -->
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="modelType" class="form-label">Model Type</label>
+                            <select class="form-select" id="modelType" name="model_type">
+                                <option value="1-compartment PK">1-Compartment PK</option>
+                                <option value="2-compartment PK">2-Compartment PK</option>
+                                <option value="HillTau">HillTau</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="dose" class="form-label">Dose (mg)</label>
+                            <input type="number" class="form-control" id="dose" name="dose" value="30" min="0" max="1000">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">Run Simulation</button>
+                    </form>
+                </div>
+
+                <div class="p-4 mb-4 bg-dark rounded-3">
+                    <h3>Need Help?</h3>
+                    <p>Ask the N1O1ai Assistant about simulation parameters or how to interpret results.</p>
+                    <a href="/docs#chat" class="btn btn-outline-info w-100">Ask N1O1ai</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load patients for the dropdown
+            fetch('/patients/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const patientSelect = document.getElementById('patientSelect');
+                        data.data.forEach(patient => {
+                            const option = document.createElement('option');
+                            option.value = patient.id;
+                            option.textContent = `${patient.name} (${patient.age}y, ${patient.weight_kg}kg)`;
+                            patientSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error loading patients:', error));
+            
+            // Handle form submission via AJAX
+            const simulationForm = document.getElementById('simulationForm');
+            if (simulationForm) {
+                simulationForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const formData = {
+                        patient_id: document.getElementById('patientSelect').value,
+                        model_type: document.getElementById('modelType').value,
+                        dose: parseFloat(document.getElementById('dose').value)
+                    };
+                    
+                    if (formData.patient_id === '') {
+                        delete formData.patient_id;
+                    } else {
+                        formData.patient_id = parseInt(formData.patient_id);
+                    }
+                    
+                    fetch('/api/simulate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success' && data.data.simulation_id) {
+                            window.location.href = `/simulations/view?id=${data.data.simulation_id}`;
+                        } else {
+                            alert('Simulation was successful, but no simulation ID was returned.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('There was an error running the simulation.');
+                    });
+                });
+            }
+            
+            // Initialize the chart if we have simulation data
+            {% if simulation %}
+            const ctx = document.getElementById('nitriteChart').getContext('2d');
+            
+            // Extract data from the simulation
+            const timePoints = JSON.parse('{{ simulation.result_curve.time|tojson }}');
+            const nitriteValues = JSON.parse('{{ simulation.result_curve.no2|tojson }}');
+            
+            // Create the chart
+            const nitriteChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timePoints,
+                    datasets: [{
+                        label: 'Plasma NO₂⁻ (µM)',
+                        data: nitriteValues,
+                        fill: true,
+                        backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                        borderColor: 'rgba(13, 110, 253, 1)',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (minutes)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Plasma NO₂⁻ (µM)'
+                            },
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Nitrite Dynamics Simulation',
+                            font: {
+                                size: 18
+                            }
+                        },
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `NO₂⁻: ${context.parsed.y.toFixed(2)} µM`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Handle download buttons
+            document.getElementById('downloadCSV').addEventListener('click', function() {
+                // Create CSV content
+                let csvContent = 'Time (minutes),Plasma NO₂⁻ (µM)\n';
+                for (let i = 0; i < timePoints.length; i++) {
+                    csvContent += `${timePoints[i]},${nitriteValues[i]}\n`;
+                }
+                
+                // Create download link
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'nitrite_simulation_{{ simulation.id }}.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+            
+            document.getElementById('downloadImage').addEventListener('click', function() {
+                const canvas = document.getElementById('nitriteChart');
+                const image = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = image;
+                link.download = 'nitrite_simulation_{{ simulation.id }}.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+            
+            document.getElementById('downloadReport').addEventListener('click', function() {
+                alert('Full report generation is coming soon!');
+            });
+            {% endif %}
+        });
+    </script>
+</body>
+</html>

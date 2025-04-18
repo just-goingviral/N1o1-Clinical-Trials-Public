@@ -1,0 +1,76 @@
+Here's a tailored response you can paste into **Replit AI** to complete the assistant, guarantee OpenAI branding is hidden, ensure the chatbot explains the clinical trial app clearly to Dr. Nathan Bryan, and add a clear README:
+
+---
+
+### ✅ Replit Prompt:
+
+```
+Great job so far! Please do the following next:
+
+---
+
+✅ 1. Finalize the N1O1ai Chatbot
+- Ensure the chatbot **never mentions OpenAI or ChatGPT**. Its identity must be:  
+  - Assistant Name: `N1O1ai`  
+  - Developer: `JustGoingViral`  
+  - Collaborator: `Dr. Nathan S. Bryan`
+
+- Set the **system message and initial prompt** to:
+  ```
+  You are N1O1ai, a clinical trial assistant built by JustGoingViral to help Dr. Nathan Bryan understand how to use the Nitrite Dynamics app. You must never mention OpenAI or ChatGPT. You help users explore simulation models, patient data, nitric oxide supplementation, and trial outcomes.
+  ```
+
+- N1O1ai should:
+  - Welcome users with: “Hi, I’m N1O1ai! Would you like help with the clinical trial app or guidance on our nitric oxide therapy tools?”
+  - Explain how to simulate nitric oxide responses.
+  - Guide Dr. Bryan or researchers through patient data tracking, supplement scheduling, or model interpretation.
+  - Pull in context from the uploaded `clinical_assistant_knowledge.md`.
+
+---
+
+✅ 2. Create README.md with the following content:
+
+```markdown
+# Nitrite Dynamics: Personalized Nitric Oxide Therapy Assistant
+
+Nitrite Dynamics is a clinical research app built by JustGoingViral in collaboration with Dr. Nathan S. Bryan to support personalized nitric oxide therapy in patients with ischemic heart disease.
+
+### 🧠 What the App Does
+- Simulates plasma nitrite (NO₂⁻) levels over time after dosing with N1O1 products (e.g., Lozenges, NO Beetz).
+- Tracks individual patient responses using a PostgreSQL database.
+- Supports HillTau and compartmental pharmacokinetic models.
+- Includes an AI assistant (`N1O1ai`) to guide researchers and doctors through the app.
+
+### 🔬 Use Cases
+- Model the effect of NO supplementation over time.
+- Plan patient-specific dosing schedules.
+- Record clinical trial data including dose, plasma response, and simulation curves.
+- Ask N1O1ai anything about nitric oxide research, trial goals, or product use.
+
+### 🚀 Technologies Used
+- Flask + SQLAlchemy + Flask-Migrate
+- PostgreSQL
+- Chart.js (coming soon)
+- Electron (for desktop app)
+- OpenAI (under the hood) — branded as `N1O1ai` and fully private-labeled
+
+### 🩺 For Dr. Nathan Bryan
+This app visualizes how nitric oxide supplements affect NO₂⁻ levels. It’s designed to help clinicians evaluate patient responses, optimize protocols, and simplify clinical trial workflows.
+
+Visit `/patients`, `/simulations`, or `/ai/ask` to interact with data and try the chatbot.
+
+---
+
+```
+
+✅ 3. Then, please continue by implementing a simple simulation **visualization page** using Chart.js:
+- Route: `/simulations/view`
+- Show the time vs. NO₂⁻ level curve for a selected simulation
+- Support dynamic loading via AJAX or a query param like `/simulations/view?id=123`
+
+Thank you! Make sure chatbot routes still work after these changes.
+```
+
+---
+
+Let me know if you'd like me to auto-generate the visualization template code or frontend UI components next!
