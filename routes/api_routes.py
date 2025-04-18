@@ -22,6 +22,49 @@ if not N1O1_API_KEY:
 
 client = OpenAI(api_key=N1O1_API_KEY) if N1O1_API_KEY else None  # Client initialization
 
+
+@api_bp.route('/patients', methods=['GET'])
+def get_patients():
+    """Get list of patients in JSON or HTML format"""
+    try:
+        format_type = request.args.get('format', 'json')
+        patients = Patient.query.order_by(Patient.created_at.desc()).limit(5).all()
+        
+        if format_type == 'html':
+            # Return HTML for dashboard display
+            if not patients:
+                return '<div class="alert alert-info">No patients registered yet.</div>'
+            
+            html = '<div class="list-group patient-list">'
+            for patient in patients:
+                html += f'''
+                <a href="/patients/{patient.id}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">{patient.name}</h6>
+                        <small>{patient.age} years, {patient.weight_kg} kg</small>
+                    </div>
+                    <small class="d-block text-truncate">NO₂⁻: {patient.baseline_no2} µM</small>
+                </a>
+                '''
+            html += '</div>'
+            html += '<div class="mt-2 text-center"><a href="/patients/new" class="btn btn-sm btn-primary"><i class="fas fa-plus"></i> Add New Patient</a></div>'
+            return html
+        else:
+            # Return JSON
+            return jsonify({
+                'status': 'success',
+                'data': [patient.to_dict() for patient in patients]
+            }), 200
+            
+    except Exception as e:
+        if format_type == 'html':
+            return '<div class="alert alert-danger">Error loading patient data.</div>'
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': str(e)
+            }), 500
+
 # Load knowledge base content
 with open("attached_assets/clinical_assistant_knowledge.md", "r") as f:
     KNOWLEDGE_BASE = f.read()
