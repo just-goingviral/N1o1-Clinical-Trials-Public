@@ -1,7 +1,7 @@
 """
-Authentication routes for Nitrite Dynamics application
+Authentication routes for N1O1 Clinical Trials application
 """
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.security import generate_password_hash
 from models import db, User, ClinicalNote
@@ -66,8 +66,7 @@ def login():
     """Handle user login"""
     # Check if already logged in
     if current_user.is_authenticated:
-        # Use absolute URL to prevent potential loop
-        return redirect(url_for('index', _external=True))
+        return redirect(url_for('patients.list_patients'))  # Redirect to patients list
     
     # Create demo user if it doesn't exist
     demo_user = create_demo_user()
@@ -90,14 +89,15 @@ def login():
         user.last_login = db.func.now()
         db.session.commit()
         
+        # Reset redirect counter to prevent loops
+        if 'redirect_count' in session:
+            session['redirect_count'] = 0
+        
         next_page = request.args.get('next')
         # Enhanced validation to prevent redirect loops
         if not next_page or not next_page.startswith('/') or 'login' in next_page:
-            next_page = url_for('index', _external=True)
-        elif not next_page.startswith('http'):
-            # Make sure we're using an absolute URL
-            next_page = request.host_url.rstrip('/') + next_page
-            
+            next_page = url_for('patients.list_patients')  # Default to patients list
+        
         return redirect(next_page)
     
     return render_template('auth/login.html', 

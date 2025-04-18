@@ -53,6 +53,16 @@ app.register_blueprint(simulation_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(notes_bp)
 
+# Add redirect loop protection
+@app.before_request
+def prevent_redirect_loops():
+    if 'redirect_count' not in session:
+        session['redirect_count'] = 0
+    session['redirect_count'] += 1
+    if session['redirect_count'] > 5:
+        session['redirect_count'] = 0
+        return "Redirect loop detected. Please try clearing your cookies or contact support.", 500
+
 # Main routes
 @app.route('/')
 def index():
