@@ -353,6 +353,12 @@ def compare_patient_simulations():
             'comparison': comparison_data,
             'comparison_plot': comparison_plot
         }), 200
+    
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
         
     except Exception as e:
         return jsonify({
