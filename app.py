@@ -23,6 +23,16 @@ db.init_app(app)
 # Initialize migrations
 migrate = Migrate(app, db)
 
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+@app.route('/analysis')
+def analysis():
+    return render_template('analysis.html')
+
+
 # Create a simple index route
 @app.route('/')
 def index():
