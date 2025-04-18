@@ -2,7 +2,7 @@
 """
 NO Dynamics Simulator - Main Application
 """
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 import os
 from models import db, Patient, Simulation, init_db
@@ -19,9 +19,13 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev_key_for_testing')
 # Initialize database
 db.init_app(app)
 
+# Initialize Flask Session
+from flask_session import FlaskSession
+session_extension = FlaskSession(app)
+
 # Register blueprints
 app.register_blueprint(analyzer_bp)
-app.register_blueprint(api_bp, name='api_main')  # Provide a unique name
+app.register_blueprint(api_bp, url_prefix='/api')
 app.register_blueprint(patient_bp)
 app.register_blueprint(simulation_bp)
 
@@ -40,6 +44,7 @@ def patients_redirect():
 # Initialize database and create tables if needed
 with app.app_context():
     init_db()
+    print("Database tables created successfully")
 
 # Run the application
 if __name__ == '__main__':

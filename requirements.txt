@@ -15,3 +15,5 @@ flask-migrate
 flask-sqlalchemy
 requests
 flask-session
+fpdf
+uuid
