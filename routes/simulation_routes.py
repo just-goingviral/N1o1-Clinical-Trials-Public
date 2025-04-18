@@ -113,3 +113,82 @@ def advanced_visualization():
 def new_simulation():
     """Create a new simulation"""
     return render_template('simulation_form.html')
+
+@simulation_bp.route('/capture', methods=['POST'])
+def capture_research_data():
+    """Capture research documentation including screenshot and simulation data"""
+    try:
+        import os
+        import base64
+        import json
+        from datetime import datetime
+        
+        data = request.json
+        simulation_id = data.get('simulation_id')
+        screenshot_data = data.get('screenshot')
+        notes = data.get('notes', '')
+        
+        if not simulation_id:
+            return jsonify({
+                'status': 'error',
+                'message': 'Simulation ID is required'
+            }), 400
+            
+        # Get the simulation data
+        simulation = Simulation.query.get_or_404(simulation_id)
+        
+        # Create a directory to store research documentation if it doesn't exist
+        doc_dir = os.path.join('static', 'research_docs')
+        os.makedirs(doc_dir, exist_ok=True)
+        
+        # Generate a timestamp for the filenames
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        base_filename = f"simulation_{simulation_id}_{timestamp}"
+        
+        # Save the screenshot if provided
+        screenshot_path = None
+        if screenshot_data and screenshot_data.startswith('data:image'):
+            # Extract the base64 data
+            image_data = screenshot_data.split(',')[1]
+            screenshot_path = os.path.join(doc_dir, f"{base_filename}.png")
+            
+            # Save the image
+            with open(screenshot_path, 'wb') as f:
+                f.write(base64.b64decode(image_data))
+        
+        # Save the simulation data to a JSON file
+        simulation_data = simulation.to_dict()
+        simulation_data_path = os.path.join(doc_dir, f"{base_filename}.json")
+        
+        with open(simulation_data_path, 'w') as f:
+            json.dump(simulation_data, f, indent=2, default=str)
+        
+        # Save the notes if provided
+        if notes:
+            notes_path = os.path.join(doc_dir, f"{base_filename}_notes.txt")
+            with open(notes_path, 'w') as f:
+                f.write(notes)
+        
+        # Update the simulation with the documentation paths
+        simulation.notes = notes
+        db.session.commit()
+        
+        # Return the paths to the frontend
+        return jsonify({
+            'status': 'success',
+            'message': 'Research documentation captured successfully',
+            'data': {
+                'simulation_id': simulation_id,
+                'timestamp': timestamp,
+                'screenshot_path': screenshot_path.replace('static/', '/static/') if screenshot_path else None,
+                'simulation_data_path': simulation_data_path.replace('static/', '/static/'),
+                'notes': notes
+            }
+        }), 200
+    except Exception as e:
+        import logging
+        logging.error(f"Capture error: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
