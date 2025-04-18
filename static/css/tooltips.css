@@ -1,0 +1,64 @@
+/**
+ * N1O1 Clinical Trials - Scientific Terminology Tooltips Styling
+ */
+
+/* Basic styling for scientific terms */
+.scientific-term {
+    border-bottom: 1px dotted var(--bs-info);
+    cursor: help;
+    display: inline;
+    position: relative;
+    color: var(--bs-info);
+}
+
+/* Increase the size of the tooltip */
+.tooltip-inner {
+    max-width: 300px;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    background-color: rgba(33, 37, 41, 0.95);
+    border: 1px solid var(--bs-info);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Style for different categories of terms */
+.scientific-term[data-category="basic"] {
+    border-bottom-color: var(--bs-info);
+    color: var(--bs-info);
+}
+
+.scientific-term[data-category="advanced"] {
+    border-bottom-color: var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+.scientific-term[data-category="product"] {
+    border-bottom-color: var(--bs-success);
+    color: var(--bs-success);
+}
+
+/* Add a subtle highlight effect on hover */
+.scientific-term:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+    transition: background-color 0.2s ease;
+}
+
+/* Adjustments for dark mode */
+[data-bs-theme="dark"] .scientific-term {
+    border-bottom-color: var(--bs-info);
+}
+
+[data-bs-theme="dark"] .tooltip-inner {
+    background-color: rgba(48, 54, 61, 0.95);
+    border-color: var(--bs-info);
+}
+
+/* Responsive styling */
+@media (max-width: 768px) {
+    .tooltip-inner {
+        max-width: 250px;
+        font-size: 0.85rem;
+        padding: 8px 10px;
+    }
+}
