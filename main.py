@@ -1,58 +1,49 @@
 
 """
-Nitrite Dynamics - Flask Application Entrypoint
+NO Dynamics Simulator - Main Application
 """
-import os
 from flask import Flask, render_template, redirect, url_for
-from app import app
-import logging
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Import and register blueprints
+from flask_sqlalchemy import SQLAlchemy
+import os
+from models import db, Patient, Simulation, init_db
 from routes.analyzer_routes import analyzer_bp
 from routes.api_routes import api_bp
 from routes.patient_routes import patient_bp
 from routes.simulation_routes import simulation_bp
 
-# Register blueprints with unique endpoints
+# Create Flask application
+app = Flask(__name__)
+
+# Configure database
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///no_dynamics.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = os.environ.get('SECRET_KEY', 'dev_key_for_testing')
+
+# Initialize database
+db.init_app(app)
+
+# Register blueprints
 app.register_blueprint(analyzer_bp)
 app.register_blueprint(api_bp)
 app.register_blueprint(patient_bp)
 app.register_blueprint(simulation_bp)
 
-# Update the index route to provide a proper dashboard
+# Main routes
 @app.route('/')
 def index():
-    """Render main dashboard"""
+    """Main index page - dashboard"""
     return render_template('dashboard.html')
 
-# Add a redirect for /patients to use the proper blueprint
-@app.route('/patients')
+# Redirect /patient to /patients for convenience
+@app.route('/patient')
 def patients_redirect():
-    """Redirect to the patients blueprint"""
+    """Redirect /patient to /patients"""
     return redirect(url_for('patients.list_patients'))
 
-# Add a redirect for API docs
-@app.route('/api/docs')
-def api_docs():
-    """Redirect to the API documentation"""
-    return render_template('docs.html')
+# Initialize database and create tables if needed
+with app.app_context():
+    init_db()
 
-@app.route('/about')
-def about():
-    """About page"""
-    return render_template('about.html')
-
-@app.route('/analysis')
-def analysis():
-    """Analysis page redirect"""
-    return redirect(url_for('analyzer.upload_csv'))
-
-if __name__ == "__main__":
-    # Get port from environment variable or use 5000 as default
-    port = int(os.environ.get("PORT", 5000))
-    logger.info(f"Starting Nitrite Dynamics app on port {port}")
-    app.run(host='0.0.0.0', port=port, debug=True)
+# Run the application
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)

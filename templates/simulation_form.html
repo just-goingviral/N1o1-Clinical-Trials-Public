@@ -5,285 +5,552 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Simulation - Nitrite Dynamics</title>
-    {% extends "layout.html" %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="/static/css/styles.css" rel="stylesheet">
 </head>
-{% block content %}
-    <div class="container mt-4">
-        <h1 class="mb-4">Create New Simulation</h1>
-        
-        {% if error %}
-        <div class="alert alert-danger">
-            {{ error }}
-        </div>
-        {% endif %}
-        
+<body data-bs-theme="dark">
+    <div class="container mt-5">
         <div class="row">
-            <div class="col-lg-8">
-                <div class="card">
+            <div class="col-lg-8 mx-auto">
+                <h1 class="mb-4">New Nitric Oxide Simulation</h1>
+                
+                <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="card-title">Simulation Parameters</h5>
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-flask me-2"></i>Simulation Parameters
+                        </h5>
                     </div>
                     <div class="card-body">
                         <form id="simulationForm">
-                            <div class="row mb-3">
+                            <div class="row mb-4">
                                 <div class="col-md-6">
-                                    <label for="patientSelect" class="form-label">Patient</label>
-                                    <select class="form-select" id="patientSelect" name="patient_id">
-                                        <option value="">No patient (use custom parameters)</option>
-                                        <!-- Patients will be loaded dynamically -->
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="modelType" class="form-label">Model Type</label>
-                                    <select class="form-select" id="modelType" name="model_type">
-                                        <option value="1-compartment PK">1-compartment PK</option>
-                                        <option value="Multi-compartment">Multi-compartment</option>
-                                        <option value="HillTau">HillTau</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div id="customParameters">
-                                <div class="row mb-3">
-                                    <div class="col-md-4">
-                                        <label for="dose" class="form-label">Dose (mg)</label>
-                                        <input type="number" class="form-control" id="dose" name="dose" value="30.0" min="0.1" max="100" step="0.1">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="age" class="form-label">Age (years)</label>
-                                        <input type="number" class="form-control" id="age" name="age" value="60" min="18" max="100">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="weight" class="form-label">Weight (kg)</label>
-                                        <input type="number" class="form-control" id="weight" name="weight" value="70" min="30" max="200">
+                                    <div class="form-group mb-3">
+                                        <label for="patientSelect" class="form-label">Select Patient (Optional)</label>
+                                        <select class="form-select" id="patientSelect" name="patient_id">
+                                            <option value="">-- Custom Parameters --</option>
+                                            <!-- Patient options will be loaded via JavaScript -->
+                                        </select>
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle"></i> Selecting a patient will use their stored parameters instead of custom values.
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="baselineNo2" class="form-label">Baseline NO₂⁻ (µM)</label>
-                                        <input type="number" class="form-control" id="baselineNo2" name="baseline_no2" value="0.2" min="0.01" max="1.0" step="0.01">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="formulation" class="form-label">Formulation</label>
-                                        <select class="form-select" id="formulation" name="formulation">
-                                            <option value="immediate-release">Immediate Release</option>
-                                            <option value="sustained-release">Sustained Release</option>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="modelType" class="form-label">Model Type</label>
+                                        <select class="form-select" id="modelType" name="model_type">
+                                            <option value="1-compartment PK">1-Compartment PK</option>
+                                            <option value="multi-compartment">Multi-Compartment Model</option>
+                                            <option value="allometric">Allometric Scaling Model</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="mb-3">
-                                <label class="form-label">Advanced Options</label>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="multiDoseSwitch">
-                                    <label class="form-check-label" for="multiDoseSwitch">Multiple Doses</label>
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="dose" class="form-label">NO₂⁻ Dose (mg)</label>
+                                        <input type="number" class="form-control" id="dose" name="dose" min="1" max="100" step="1" value="30">
+                                        <div class="form-text">Standard dose range: 15-60 mg</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="formulation" class="form-label">Formulation</label>
+                                        <select class="form-select" id="formulation" name="formulation">
+                                            <option value="immediate-release">Immediate Release</option>
+                                            <option value="delayed-release">Delayed Release</option>
+                                            <option value="extended-release">Extended Release</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="simulationDuration" class="form-label">Duration (hours)</label>
+                                        <input type="number" class="form-control" id="simulationDuration" name="duration" min="1" max="48" step="1" value="6">
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div id="multiDoseContainer" class="mb-3 d-none">
-                                <h6>Additional Doses</h6>
-                                <div id="additionalDoses">
-                                    <!-- Additional doses will be added here -->
+                            <div class="row" id="patientParamsSection">
+                                <div class="col-md-12 mb-3">
+                                    <h6>Patient Parameters</h6>
+                                    <div class="form-text mb-2">
+                                        <i class="fas fa-info-circle"></i> These parameters will be used when no patient is selected.
+                                    </div>
                                 </div>
-                                <button type="button" id="addDoseBtn" class="btn btn-sm btn-outline-primary mt-2">
-                                    <i class="fas fa-plus"></i> Add Dose
-                                </button>
+                                
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="age" class="form-label">Age (years)</label>
+                                        <input type="number" class="form-control" id="age" name="age" min="18" max="90" step="1" value="60">
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="weight" class="form-label">Weight (kg)</label>
+                                        <input type="number" class="form-control" id="weight" name="weight" min="40" max="150" step="1" value="70">
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="baselineNo2" class="form-label">Baseline NO₂⁻ (µM)</label>
+                                        <input type="number" class="form-control" id="baselineNo2" name="baseline_no2" min="0.05" max="1" step="0.05" value="0.2">
+                                    </div>
+                                </div>
                             </div>
                             
-                            <div class="text-end">
-                                <button type="button" id="runSimulationBtn" class="btn btn-primary">
-                                    <i class="fas fa-play"></i> Run Simulation
+                            <div class="form-group mb-3 mt-3" id="multiDoseSection">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableMultiDose">
+                                    <label class="form-check-label" for="enableMultiDose">
+                                        Add Multiple Doses
+                                    </label>
+                                </div>
+                                
+                                <div id="additionalDosesContainer" class="mt-3" style="display: none;">
+                                    <p class="mb-2">Additional Doses:</p>
+                                    <div id="doseList" class="mb-2"></div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-5">
+                                            <input type="number" class="form-control" id="additionalDoseAmount" placeholder="Dose (mg)" min="1" max="100" step="1">
+                                        </div>
+                                        <div class="col-md-5">
+                                            <input type="number" class="form-control" id="additionalDoseTime" placeholder="Time (min)" min="30" step="30">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" id="addDoseBtn">Add</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="button" class="btn btn-lg btn-primary" id="runSimulationBtn">
+                                    <i class="fas fa-play me-2"></i>Run Simulation
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
-            </div>
-            
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title">Help</h5>
-                    </div>
-                    <div class="card-body">
-                        <h6>Parameter Descriptions</h6>
-                        <dl>
-                            <dt>Dose</dt>
-                            <dd>Amount of nitrite supplement in milligrams</dd>
+                
+                <div id="resultsContainer" style="display: none;">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-chart-line me-2"></i>Simulation Results
+                                </h5>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="downloadCsvBtn">
+                                        <i class="fas fa-download me-1"></i>CSV
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="downloadImageBtn">
+                                        <i class="fas fa-image me-1"></i>Image
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-4">
+                                <canvas id="simulationChart" style="width:100%; height:400px;"></canvas>
+                            </div>
                             
-                            <dt>Baseline NO₂⁻</dt>
-                            <dd>Starting plasma nitrite level in micromolar (µM)</dd>
-                            
-                            <dt>Formulation</dt>
-                            <dd>Type of supplement release profile</dd>
-                        </dl>
-                        
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> Selecting a patient will use their stored parameters instead of custom values.
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card bg-dark">
+                                        <div class="card-header">Key Metrics</div>
+                                        <div class="card-body">
+                                            <table class="table table-sm table-striped">
+                                                <tbody id="metricsTable">
+                                                    <!-- Metrics will be populated by JavaScript -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-dark">
+                                        <div class="card-header">Parameters Used</div>
+                                        <div class="card-body">
+                                            <table class="table table-sm table-striped">
+                                                <tbody id="parametersTable">
+                                                    <!-- Parameters will be populated by JavaScript -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-5">
+                    <a href="/" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                    <a href="/patients" class="btn btn-info">
+                        <i class="fas fa-users me-2"></i>Patient Management
+                    </a>
                 </div>
             </div>
         </div>
     </div>
     
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/app.js"></script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Load patients
+            // Get elements
+            const patientSelect = document.getElementById('patientSelect');
+            const runSimulationBtn = document.getElementById('runSimulationBtn');
+            const enableMultiDose = document.getElementById('enableMultiDose');
+            const additionalDosesContainer = document.getElementById('additionalDosesContainer');
+            const addDoseBtn = document.getElementById('addDoseBtn');
+            const doseList = document.getElementById('doseList');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+            const downloadImageBtn = document.getElementById('downloadImageBtn');
+            
+            // Global variables for simulation data
+            let simulationChart = null;
+            let simulationData = null;
+            let additionalDoses = [];
+            
+            // Load patients for dropdown
             fetch('/api/patients')
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        const patientSelect = document.getElementById('patientSelect');
                         data.data.forEach(patient => {
                             const option = document.createElement('option');
                             option.value = patient.id;
-                            option.textContent = `${patient.name} (${patient.age}y, ${patient.weight_kg}kg)`;
+                            option.textContent = `${patient.name || 'Patient'} #${patient.id} (${patient.age}y, ${patient.weight_kg}kg)`;
                             patientSelect.appendChild(option);
                         });
                     }
                 })
                 .catch(error => {
                     console.error('Error loading patients:', error);
+                    patientSelect.innerHTML = '<option value="">Error loading patients</option>';
                 });
             
-            // Toggle custom parameters based on patient selection
-            const patientSelect = document.getElementById('patientSelect');
-            const customParameters = document.getElementById('customParameters');
-            
+            // Toggle patient params section based on patient selection
             patientSelect.addEventListener('change', function() {
-                if (this.value === '') {
-                    customParameters.style.display = 'block';
+                const patientParamsSection = document.getElementById('patientParamsSection');
+                if (this.value) {
+                    patientParamsSection.style.display = 'none';
                 } else {
-                    customParameters.style.display = 'none';
+                    patientParamsSection.style.display = 'flex';
                 }
             });
             
-            // Toggle multiple doses
-            const multiDoseSwitch = document.getElementById('multiDoseSwitch');
-            const multiDoseContainer = document.getElementById('multiDoseContainer');
-            
-            multiDoseSwitch.addEventListener('change', function() {
-                if (this.checked) {
-                    multiDoseContainer.classList.remove('d-none');
-                } else {
-                    multiDoseContainer.classList.add('d-none');
-                }
+            // Toggle multiple doses section
+            enableMultiDose.addEventListener('change', function() {
+                additionalDosesContainer.style.display = this.checked ? 'block' : 'none';
             });
             
             // Add dose button
-            const addDoseBtn = document.getElementById('addDoseBtn');
-            const additionalDoses = document.getElementById('additionalDoses');
-            let doseCounter = 0;
-            
             addDoseBtn.addEventListener('click', function() {
-                doseCounter++;
-                const doseRow = document.createElement('div');
-                doseRow.className = 'row mb-2 dose-row';
-                doseRow.dataset.doseId = doseCounter;
+                const doseAmount = document.getElementById('additionalDoseAmount').value;
+                const doseTime = document.getElementById('additionalDoseTime').value;
                 
-                doseRow.innerHTML = `
-                    <div class="col-md-4">
-                        <input type="number" class="form-control form-control-sm" 
-                               name="additional_dose_${doseCounter}" placeholder="Dose (mg)" 
-                               value="30.0" min="0.1" max="100" step="0.1">
-                    </div>
-                    <div class="col-md-4">
-                        <input type="number" class="form-control form-control-sm" 
-                               name="additional_time_${doseCounter}" placeholder="Time (min)" 
-                               value="360" min="1" max="1440">
-                    </div>
-                    <div class="col-md-4">
-                        <button type="button" class="btn btn-sm btn-outline-danger remove-dose-btn"
-                                data-dose-id="${doseCounter}">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                `;
+                if (!doseAmount || !doseTime) {
+                    showToast('Please enter both dose amount and time', 'warning');
+                    return;
+                }
                 
-                additionalDoses.appendChild(doseRow);
+                const dose = {
+                    dose: parseFloat(doseAmount),
+                    time_minutes: parseFloat(doseTime)
+                };
                 
-                // Add remove event listener
-                doseRow.querySelector('.remove-dose-btn').addEventListener('click', function() {
-                    const doseId = this.dataset.doseId;
-                    document.querySelector(`.dose-row[data-dose-id="${doseId}"]`).remove();
+                additionalDoses.push(dose);
+                
+                // Add to list
+                const doseItem = document.createElement('div');
+                doseItem.className = 'badge bg-primary me-2 mb-2 p-2';
+                doseItem.innerHTML = `${dose.dose}mg at ${dose.time_minutes}min <button type="button" class="btn-close btn-close-white ms-2" aria-label="Remove"></button>`;
+                
+                // Remove button
+                doseItem.querySelector('.btn-close').addEventListener('click', function() {
+                    const index = additionalDoses.findIndex(d => d.dose === dose.dose && d.time_minutes === dose.time_minutes);
+                    if (index !== -1) {
+                        additionalDoses.splice(index, 1);
+                        doseItem.remove();
+                    }
                 });
+                
+                doseList.appendChild(doseItem);
+                
+                // Clear inputs
+                document.getElementById('additionalDoseAmount').value = '';
+                document.getElementById('additionalDoseTime').value = '';
             });
             
-            // Run simulation
-            const runSimulationBtn = document.getElementById('runSimulationBtn');
-            const simulationForm = document.getElementById('simulationForm');
-            
+            // Run simulation button
             runSimulationBtn.addEventListener('click', function() {
-                // Gather form data
-                const formData = {};
+                // Show loading indicator
+                runSimulationBtn.disabled = true;
+                runSimulationBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Running...';
                 
-                // Basic parameters
-                formData.patient_id = patientSelect.value;
-                formData.model_type = document.getElementById('modelType').value;
-                formData.dose = parseFloat(document.getElementById('dose').value);
+                // Get form data
+                const formData = {
+                    patient_id: patientSelect.value || null,
+                    model_type: document.getElementById('modelType').value,
+                    dose: parseFloat(document.getElementById('dose').value),
+                    formulation: document.getElementById('formulation').value
+                };
                 
+                // Add custom parameters if no patient selected
                 if (!formData.patient_id) {
                     formData.age = parseInt(document.getElementById('age').value);
                     formData.weight = parseFloat(document.getElementById('weight').value);
                     formData.baseline_no2 = parseFloat(document.getElementById('baselineNo2').value);
                 }
                 
-                formData.formulation = document.getElementById('formulation').value;
-                
-                // Handle multiple doses
-                if (multiDoseSwitch.checked) {
-                    formData.additional_doses = [];
-                    document.querySelectorAll('.dose-row').forEach(row => {
-                        const doseId = row.dataset.doseId;
-                        const doseAmount = parseFloat(row.querySelector(`[name="additional_dose_${doseId}"]`).value);
-                        const doseTime = parseInt(row.querySelector(`[name="additional_time_${doseId}"]`).value);
-                        
-                        formData.additional_doses.push({
-                            dose_mg: doseAmount,
-                            time_minutes: doseTime
-                        });
-                    });
-                }
-                
-                // Clean up empty values
-                if (formData.patient_id === '') {
-                    delete formData.patient_id;
+                // Add multiple doses if enabled
+                if (enableMultiDose.checked && additionalDoses.length > 0) {
+                    formData.additional_doses = additionalDoses;
+                    
+                    // Use the multiple dose endpoint
+                    fetch('/api/simulate-multiple', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    })
+                    .then(response => response.json())
+                    .then(handleSimulationResponse)
+                    .catch(handleSimulationError);
                 } else {
-                    formData.patient_id = parseInt(formData.patient_id);
+                    // Use the single dose endpoint
+                    fetch('/api/simulate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    })
+                    .then(response => response.json())
+                    .then(handleSimulationResponse)
+                    .catch(handleSimulationError);
+                }
+            });
+            
+            // Handle simulation response
+            function handleSimulationResponse(data) {
+                runSimulationBtn.disabled = false;
+                runSimulationBtn.innerHTML = '<i class="fas fa-play me-2"></i>Run Simulation';
+                
+                if (data.status === 'success') {
+                    // Store simulation data
+                    simulationData = data.data;
+                    
+                    // Show results container
+                    resultsContainer.style.display = 'block';
+                    
+                    // Scroll to results
+                    resultsContainer.scrollIntoView({ behavior: 'smooth' });
+                    
+                    // Display chart
+                    displaySimulationChart(data.data);
+                    
+                    // Display metrics
+                    displayMetrics(data.data);
+                    
+                    // Display parameters
+                    displayParameters(data.data.parameters);
+                } else {
+                    showToast(`Error: ${data.message}`, 'danger');
+                }
+            }
+            
+            // Handle simulation error
+            function handleSimulationError(error) {
+                console.error('Error:', error);
+                runSimulationBtn.disabled = false;
+                runSimulationBtn.innerHTML = '<i class="fas fa-play me-2"></i>Run Simulation';
+                showToast(`Error: ${error.message}`, 'danger');
+            }
+            
+            // Display simulation chart
+            function displaySimulationChart(data) {
+                const ctx = document.getElementById('simulationChart').getContext('2d');
+                
+                // Destroy existing chart if it exists
+                if (simulationChart) {
+                    simulationChart.destroy();
                 }
                 
-                // Run the simulation
-                fetch('/api/simulate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
+                // Create new chart
+                simulationChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.time_points,
+                        datasets: [{
+                            label: 'Plasma NO₂⁻ (µM)',
+                            data: data.nitrite_levels,
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1,
+                            fill: false
+                        }]
                     },
-                    body: JSON.stringify(formData)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        if (data.data.simulation_id) {
-                            window.location.href = `/simulations/view?id=${data.data.simulation_id}`;
-                        } else {
-                            // Handle success but no simulation ID
-                            showToast('Simulation successful but no ID was returned. View the results on the dashboard.', 'warning');
-                            setTimeout(() => {
-                                window.location.href = '/';
-                            }, 2000);
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Time (minutes)'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Plasma NO₂⁻ (µM)'
+                                },
+                                min: 0
+                            }
                         }
-                    } else {
-                        showToast(`Error: ${data.message}`, 'danger');
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showToast('An error occurred while running the simulation', 'danger');
                 });
+            }
+            
+            // Display metrics
+            function displayMetrics(data) {
+                const metricsTable = document.getElementById('metricsTable');
+                
+                // Calculate key metrics
+                const maxValue = Math.max(...data.nitrite_levels);
+                const maxIndex = data.nitrite_levels.indexOf(maxValue);
+                const timeToMax = data.time_points[maxIndex];
+                
+                // Time above 1.0 µM (therapeutic threshold)
+                const timeAboveThreshold = data.nitrite_levels.filter(level => level >= 1.0).length;
+                const percentAboveThreshold = (timeAboveThreshold / data.nitrite_levels.length) * 100;
+                
+                // AUC - Area Under the Curve (rough calculation)
+                let auc = 0;
+                for (let i = 1; i < data.time_points.length; i++) {
+                    const dt = data.time_points[i] - data.time_points[i-1];
+                    const avgLevel = (data.nitrite_levels[i] + data.nitrite_levels[i-1]) / 2;
+                    auc += avgLevel * dt;
+                }
+                
+                // Populate table
+                metricsTable.innerHTML = `
+                    <tr>
+                        <th>Peak Concentration</th>
+                        <td>${maxValue.toFixed(2)} µM</td>
+                    </tr>
+                    <tr>
+                        <th>Time to Peak</th>
+                        <td>${timeToMax} minutes</td>
+                    </tr>
+                    <tr>
+                        <th>Area Under Curve</th>
+                        <td>${auc.toFixed(2)} µM·min</td>
+                    </tr>
+                    <tr>
+                        <th>Time Above 1.0 µM</th>
+                        <td>${timeAboveThreshold} min (${percentAboveThreshold.toFixed(1)}%)</td>
+                    </tr>
+                    <tr>
+                        <th>Baseline NO₂⁻</th>
+                        <td>${data.nitrite_levels[0].toFixed(2)} µM</td>
+                    </tr>
+                `;
+            }
+            
+            // Display parameters
+            function displayParameters(parameters) {
+                const parametersTable = document.getElementById('parametersTable');
+                
+                // Populate table
+                parametersTable.innerHTML = `
+                    <tr>
+                        <th>Dose</th>
+                        <td>${parameters.dose} mg</td>
+                    </tr>
+                    <tr>
+                        <th>Model Type</th>
+                        <td>${parameters.model_type}</td>
+                    </tr>
+                    <tr>
+                        <th>Age</th>
+                        <td>${parameters.age} years</td>
+                    </tr>
+                    <tr>
+                        <th>Weight</th>
+                        <td>${parameters.weight} kg</td>
+                    </tr>
+                    <tr>
+                        <th>Half-Life</th>
+                        <td>${(parameters.half_life * 60).toFixed(0)} minutes</td>
+                    </tr>
+                `;
+                
+                // Add additional doses if present
+                if (parameters.additional_doses && parameters.additional_doses.length > 0) {
+                    let dosesHtml = '';
+                    parameters.additional_doses.forEach(dose => {
+                        dosesHtml += `+${dose.dose}mg at ${dose.time_minutes}min, `;
+                    });
+                    parametersTable.innerHTML += `
+                        <tr>
+                            <th>Additional Doses</th>
+                            <td>${dosesHtml.slice(0, -2)}</td>
+                        </tr>
+                    `;
+                }
+                
+                // Add formulation if present
+                if (parameters.formulation) {
+                    parametersTable.innerHTML += `
+                        <tr>
+                            <th>Formulation</th>
+                            <td>${parameters.formulation.replace('-', ' ')}</td>
+                        </tr>
+                    `;
+                }
+            }
+            
+            // Download CSV button
+            downloadCsvBtn.addEventListener('click', function() {
+                if (!simulationData) return;
+                
+                // Create CSV content
+                let csvContent = 'Time (minutes),Plasma NO₂⁻ (µM)\n';
+                
+                for (let i = 0; i < simulationData.time_points.length; i++) {
+                    csvContent += `${simulationData.time_points[i]},${simulationData.nitrite_levels[i]}\n`;
+                }
+                
+                // Download CSV
+                downloadCSV(csvContent, 'nitrite_simulation_results.csv');
+            });
+            
+            // Download Image button
+            downloadImageBtn.addEventListener('click', function() {
+                if (!simulationChart) return;
+                
+                // Get chart as image
+                const imageData = simulationChart.toBase64Image();
+                
+                // Download image
+                downloadImage(imageData, 'nitrite_simulation_plot.png');
             });
         });
     </script>
-{% endblock %}
+</body>
+</html>

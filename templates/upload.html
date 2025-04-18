@@ -14,6 +14,9 @@
         <div class="card">
             <div class="card-body">
                 <p class="card-text">Upload your clinical trial data in CSV format to analyze nitric oxide dynamics.</p>
+                {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+                {% endif %}
                 <form action="/analyzer/" method="post" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label for="file" class="form-label">Select CSV file</label>

@@ -1,7 +1,8 @@
+
 """
 Analyzer routes for Nitrite Dynamics application
 """
-from flask import Blueprint, jsonify, request, render_template, send_file
+from flask import Blueprint, jsonify, request, render_template, send_file, current_app
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -50,78 +51,89 @@ def generate_plot(df):
 
 @analyzer_bp.route('/', methods=['GET', 'POST'])
 def upload_csv():
-    """Upload and analyze CSV data"""
+    """Upload CSV and analyze data"""
     if request.method == 'POST':
-        # Check if a file was uploaded
+        # Check if file was uploaded
         if 'file' not in request.files:
-            return render_template('upload.html', error="No file part")
-
+            return render_template('upload.html', error="No file selected")
+        
         file = request.files['file']
-
-        # Check if the file is empty
         if file.filename == '':
-            return render_template('upload.html', error="No selected file")
-
-        # Process the CSV file
-        if file and file.filename.endswith('.csv'):
-            try:
-                # Read CSV file
-                df = pd.read_csv(file)
-
-                # Check for required columns
-                time_col = None
-                value_col = None
-
-                # Try to identify time and value columns
-                for col in df.columns:
-                    col_lower = col.lower()
-                    if 'time' in col_lower or 'min' in col_lower or 'hour' in col_lower:
-                        time_col = col
-                    elif 'no' in col_lower or 'nitric' in col_lower or 'nitrite' in col_lower or 'value' in col_lower or 'level' in col_lower:
-                        value_col = col
-
-                # If columns weren't identified, use the first two columns
-                if time_col is None or value_col is None:
-                    time_col = df.columns[0]
-                    value_col = df.columns[1]
-
-                # Analyze the data
-                analyzer = StatisticalAnalyzer()
-
-                # Prepare data for analysis
-                time_values = df[time_col].values
-                no_values = df[value_col].values
-
-                # Calculate summary statistics
-                summary = analyzer.calculate_summary_statistics(time_values, no_values)
-
-                # Generate plot
-                plot_url = analyzer.plot_data(time_values, no_values, time_col, value_col, return_base64=True)
-
-                # Render the analysis template with results
-                return render_template('analysis.html', summary=summary, plot_url=plot_url)
-
-            except Exception as e:
-                return render_template('upload.html', error=f"Error processing file: {str(e)}")
-        else:
-            return render_template('upload.html', error="Invalid file format. Please upload a CSV file.")
-
-    # For GET requests, just show the upload form
+            return render_template('upload.html', error="No file selected")
+        
+        # Check file extension
+        if not file.filename.endswith('.csv'):
+            return render_template('upload.html', error="File must be CSV format")
+        
+        try:
+            # Read CSV
+            df = pd.read_csv(file)
+            
+            # Generate plot
+            plot_url = generate_plot(df)
+            
+            # Calculate summary statistics
+            analyzer = StatisticalAnalyzer()
+            summary = analyzer.analyze_time_series(df)
+            
+            return render_template('analysis.html', summary=summary, plot_url=plot_url)
+            
+        except Exception as e:
+            current_app.logger.error(f"Error processing CSV: {str(e)}")
+            return render_template('upload.html', error=f"Error processing CSV: {str(e)}")
+    
+    # GET request - show upload form
     return render_template('upload.html')
 
 @analyzer_bp.route('/download_pdf', methods=['POST'])
 def download_pdf():
-    summary_data = json.loads(request.form['summary'])
-
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="Nitrite Dynamics Report", ln=True, align='C')
-
-    for key, value in summary_data.items():
-        pdf.cell(200, 10, txt=f"{key}: {value}", ln=True)
-
-    buffer = BytesIO()
-    pdf.output(buffer)
-    buffer.seek(0)
-    return send_file(buffer, as_attachment=True, download_name="report.pdf", mimetype='application/pdf')
+    """Generate and download PDF report"""
+    try:
+        # Get data from request
+        summary = json.loads(request.form.get('summary', '{}'))
+        plot_url = request.form.get('plot_url', '')
+        
+        # Create PDF
+        pdf = FPDF()
+        pdf.add_page()
+        
+        # Title
+        pdf.set_font('Arial', 'B', 16)
+        pdf.cell(0, 10, 'Nitric Oxide Analysis Report', 0, 1, 'C')
+        pdf.ln(5)
+        
+        # Add plot
+        if plot_url and plot_url.startswith('data:image/png;base64,'):
+            plot_data = base64.b64decode(plot_url.split(',')[1])
+            plot_file = BytesIO(plot_data)
+            pdf.image(plot_file, x=10, y=pdf.get_y(), w=180)
+            pdf.ln(120)  # Space after image
+        
+        # Add summary
+        pdf.set_font('Arial', 'B', 14)
+        pdf.cell(0, 10, 'Summary Statistics', 0, 1, 'L')
+        pdf.ln(2)
+        
+        pdf.set_font('Arial', '', 10)
+        if summary:
+            for key, value in summary.items():
+                pdf.cell(60, 8, key, 1)
+                pdf.cell(130, 8, str(value), 1)
+                pdf.ln()
+        
+        # Output PDF
+        pdf_output = BytesIO()
+        pdf.output(pdf_output)
+        pdf_output.seek(0)
+        
+        # Return PDF file
+        return send_file(
+            pdf_output,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name='nitric_oxide_report.pdf'
+        )
+        
+    except Exception as e:
+        current_app.logger.error(f"Error generating PDF: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500

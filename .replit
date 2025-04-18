@@ -12,7 +12,7 @@ run = ["sh", "-c", "gunicorn --bind 0.0.0.0:5000 app:app"]
 REPLIT_DISABLE_PACKAGE_LAYER = "1"
 
 [workflows]
-runButton = "Run Application"
+runButton = "Run Flask App"
 
 [[workflows.workflow]]
 name = "Project"

@@ -51,7 +51,7 @@ Your initial greeting should be: "Hi, I'm N1O1ai! Would you like help with the c
 
         # Build messages including history if available
         messages = [{"role": "system", "content": system_message}]
-        
+
         # Add message history if provided
         if message_history and isinstance(message_history, list):
             for msg in message_history:
@@ -62,7 +62,7 @@ Your initial greeting should be: "Hi, I'm N1O1ai! Would you like help with the c
                             "role": msg['role'],
                             "content": msg['content']
                         })
-        
+
         # Add the current user message
         messages.append({"role": "user", "content": user_message})
 
@@ -74,14 +74,14 @@ Your initial greeting should be: "Hi, I'm N1O1ai! Would you like help with the c
                 temperature=0.7,
                 max_tokens=1000
             )
-            
+
             assistant_response = response.choices[0].message.content
-            
+
             return jsonify({
                 'status': 'success',
                 'response': assistant_response
             }), 200
-            
+
         except Exception as api_error:
             # More detailed error for API issues
             import logging
@@ -299,8 +299,8 @@ def run_multiple_doses_simulation():
             'message': str(e)
         }), 500
 
-@api_bp.route('/compare-patients', methods=['POST'])
-def compare_patient_simulations():
+@api_bp.route('/compare-simulations', methods=['POST'])
+def compare_simulations():
     """Compare multiple patients' nitrite dynamics"""
     try:
         data = request.json
