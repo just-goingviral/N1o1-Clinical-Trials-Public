@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Nitrite Simulation Results</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f8f9fa; }
+    h1 { text-align: center; }
+    #chart-container { width: 80%; margin: auto; }
+  </style>
+</head>
+<body>
+  <h1>Simulation Result Viewer</h1>
+  <div id="chart-container">
+    <canvas id="simulationChart"></canvas>
+  </div>
+
+  <script>
+    const simulationData = {{ result_curve|tojson }};
+    const labels = simulationData.map(point => point.time);
+    const values = simulationData.map(point => point.value);
+
+    const ctx = document.getElementById('simulationChart').getContext('2d');
+    const simulationChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Plasma Nitrite (μM)',
+          data: values,
+          fill: false,
+          borderColor: 'blue',
+          tension: 0.1
+        }]
+      },
+      options: {
+        scales: {
+          x: { title: { display: true, text: 'Time (minutes)' } },
+          y: { title: { display: true, text: 'NO₂⁻ Level (μM)' } }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
