@@ -296,6 +296,23 @@ function initChatWidget() {
     } else {
         chatWidget.style.display = 'none';
     }
+    
+    // Ensure the chat toggle button is positioned correctly on all screen sizes
+    function adjustChatButtonPosition() {
+        if (window.innerWidth <= 576) {
+            chatToggleBtn.style.top = 'auto';
+            chatToggleBtn.style.bottom = '20px';
+            chatToggleBtn.style.transform = 'translateY(0)';
+        } else {
+            chatToggleBtn.style.top = '50%';
+            chatToggleBtn.style.bottom = 'auto';
+            chatToggleBtn.style.transform = 'translateY(-50%)';
+        }
+    }
+    
+    // Call initially and add resize listener
+    adjustChatButtonPosition();
+    window.addEventListener('resize', adjustChatButtonPosition);
 
     // Load chat history for existing sessions
     if (chatSessionId) {
@@ -323,12 +340,12 @@ function initChatWidget() {
                     // If error, clear session and show welcome message
                     chatSessionId = null;
                     localStorage.removeItem('chatSessionId');
-                    chatMessages.innerHTML = '<div class="assistant-message">Hi, I\'m N1O1ai! Would you like help with the clinical trial app or guidance on our nitric oxide therapy tools?</div>';
+                    chatMessages.innerHTML = '<div class="assistant-message">Welcome! How can I help you today? Are you a doctor or a patient?</div>';
                 }
             })
             .catch(error => {
                 console.error('Error fetching chat history:', error);
-                chatMessages.innerHTML = '<div class="assistant-message">Hi, I\'m N1O1ai! Would you like help with the clinical trial app or guidance on our nitric oxide therapy tools?</div>';
+                chatMessages.innerHTML = '<div class="assistant-message">Welcome! How can I help you today? Are you a doctor or a patient?</div>';
             });
     }
 

@@ -89,12 +89,8 @@
         </div>
     </div>
 
-    <!-- Floating Chat Button -->
-    <div class="position-fixed" style="right: 30px; top: 50%; transform: translateY(-50%); z-index: 1000;">
-        <button id="chatToggleBtn" class="btn btn-primary rounded-circle p-3 shadow" style="width: 60px; height: 60px;">
-            <i class="fas fa-comment-dots"></i>
-        </button>
-    </div>
+    <!-- Chat component will be loaded from chat_component.html -->
+    {% include 'chat_component.html' %}
     
     <!-- Chat Modal -->
     <div class="position-fixed" id="chatModal" style="right: 30px; bottom: 30px; width: 350px; display: none; z-index: 1001;">
