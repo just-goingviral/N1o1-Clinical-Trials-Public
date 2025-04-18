@@ -61,7 +61,7 @@ def index():
         # Ensure we're not redirecting to login in a loop
         if not current_user.is_authenticated:
             # If not authenticated, use a simple template that doesn't check authentication
-            return render_template('index.html', title="Welcome to Nitrite Dynamics")
+            return render_template('index.html', title="Welcome to N1O1 Clinical Trials")
         # If we're here, we're authenticated, so we can render the dashboard
         return render_template('dashboard.html', title="Dashboard")
     except Exception as e:
