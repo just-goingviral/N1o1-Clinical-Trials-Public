@@ -1,6 +1,6 @@
 
 """
-Analyzer routes for Nitrite Dynamics application
+Analyzer routes for N1O1 Clinical Trials application
 """
 from flask import Blueprint, jsonify, request, render_template, send_file, current_app
 import pandas as pd
@@ -36,7 +36,7 @@ def generate_plot(df):
 
     plt.xlabel(time_col)
     plt.ylabel('Value')
-    plt.title('Nitric Oxide Dynamics')
+    plt.title('N1O1 Clinical Trials - Nitric Oxide Dynamics')
     plt.legend()
     plt.grid(True)
 
@@ -99,7 +99,7 @@ def download_pdf():
         
         # Title
         pdf.set_font('Arial', 'B', 16)
-        pdf.cell(0, 10, 'Nitric Oxide Analysis Report', 0, 1, 'C')
+        pdf.cell(0, 10, 'N1O1 Clinical Trials - Nitric Oxide Analysis Report', 0, 1, 'C')
         pdf.ln(5)
         
         # Add plot
@@ -131,7 +131,7 @@ def download_pdf():
             pdf_output,
             mimetype='application/pdf',
             as_attachment=True,
-            download_name='nitric_oxide_report.pdf'
+            download_name='n1o1_analysis_report.pdf'
         )
         
     except Exception as e:

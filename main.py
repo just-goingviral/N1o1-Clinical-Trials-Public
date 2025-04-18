@@ -67,7 +67,7 @@ def index():
     except Exception as e:
         print(f"Error rendering dashboard: {str(e)}")
         # Make sure we're returning something even if there's an error
-        return render_template('index.html', title="Welcome to Nitrite Dynamics", 
+        return render_template('index.html', title="Welcome to N1O1 Clinical Trials", 
                               error="An error occurred loading the dashboard.")
 
 # Redirect /patient to /patients for convenience
