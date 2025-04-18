@@ -17,3 +17,7 @@ requests
 flask-session
 fpdf
 uuid
+flask-migrate
+flask-session
+flask-migrate
+flask-session
