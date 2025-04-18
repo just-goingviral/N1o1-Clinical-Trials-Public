@@ -117,7 +117,151 @@
     </div>
   </div>
 
+  <!-- Floating Chat Button -->
+  <div class="position-fixed" style="right: 30px; top: 50%; transform: translateY(-50%); z-index: 1000;">
+    <button id="chatToggleBtn" class="btn btn-primary rounded-circle p-3 shadow" style="width: 60px; height: 60px;">
+      <i class="fas fa-comment-dots"></i>
+    </button>
+  </div>
+  
+  <!-- Chat Modal -->
+  <div class="position-fixed" id="chatModal" style="right: 30px; bottom: 30px; width: 350px; display: none; z-index: 1001;">
+    <div class="card shadow">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-robot me-2"></i> N1O1ai Assistant</span>
+        <button id="closeChat" class="btn-close btn-close-white" aria-label="Close"></button>
+      </div>
+      <div class="card-body bg-light" style="height: 400px; overflow-y: auto;" id="chatMessages">
+        <div class="d-flex flex-column">
+          <div class="bg-secondary text-white p-2 rounded mb-2 align-self-start" style="max-width: 80%;">
+            Hello! I'm N1O1ai, your assistant for nitric oxide questions. How can I help you today?
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="input-group">
+          <input type="text" id="userMessage" class="form-control" placeholder="Type your message...">
+          <button id="sendMessage" class="btn btn-primary">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const chatToggleBtn = document.getElementById('chatToggleBtn');
+      const chatModal = document.getElementById('chatModal');
+      const closeChat = document.getElementById('closeChat');
+      const userMessage = document.getElementById('userMessage');
+      const sendMessage = document.getElementById('sendMessage');
+      const chatMessages = document.getElementById('chatMessages');
+      const indexChatBtn = document.getElementById('indexChatBtn');
+      
+      // Toggle chat modal
+      chatToggleBtn.addEventListener('click', function() {
+        if (chatModal.style.display === 'block') {
+          chatModal.style.display = 'none';
+        } else {
+          chatModal.style.display = 'block';
+          userMessage.focus();
+        }
+      });
+      
+      // Close chat modal
+      closeChat.addEventListener('click', function() {
+        chatModal.style.display = 'none';
+      });
+      
+      // Send message function
+      function sendUserMessage() {
+        const message = userMessage.value.trim();
+        if (message) {
+          // Add user message to chat
+          const msgContainer = document.createElement('div');
+          msgContainer.className = 'd-flex flex-column';
+          
+          const userMsgElement = document.createElement('div');
+          userMsgElement.className = 'bg-primary text-white p-2 rounded mb-2 align-self-end';
+          userMsgElement.style.maxWidth = '80%';
+          userMsgElement.textContent = message;
+          
+          msgContainer.appendChild(userMsgElement);
+          chatMessages.appendChild(msgContainer);
+          
+          // Clear input
+          userMessage.value = '';
+          
+          // Scroll to bottom
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+          
+          // Make API call to N1O1ai
+          fetch('/api/assistant', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: message }),
+          })
+          .then(response => response.json())
+          .then(data => {
+            // Add assistant response to chat
+            const responseMsgContainer = document.createElement('div');
+            responseMsgContainer.className = 'd-flex flex-column';
+            
+            const assistantMsgElement = document.createElement('div');
+            assistantMsgElement.className = 'bg-secondary text-white p-2 rounded mb-2 align-self-start';
+            assistantMsgElement.style.maxWidth = '80%';
+            assistantMsgElement.textContent = data.response || "I'm sorry, I couldn't process your request.";
+            
+            responseMsgContainer.appendChild(assistantMsgElement);
+            chatMessages.appendChild(responseMsgContainer);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            // Show error message
+            const errorMsgContainer = document.createElement('div');
+            errorMsgContainer.className = 'd-flex flex-column';
+            
+            const errorMsgElement = document.createElement('div');
+            errorMsgElement.className = 'bg-danger text-white p-2 rounded mb-2 align-self-start';
+            errorMsgElement.style.maxWidth = '80%';
+            errorMsgElement.textContent = "Sorry, there was an error communicating with the server.";
+            
+            errorMsgContainer.appendChild(errorMsgElement);
+            chatMessages.appendChild(errorMsgContainer);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+          });
+        }
+      }
+      
+      // Send message on button click
+      sendMessage.addEventListener('click', sendUserMessage);
+      
+      // Send message on Enter key
+      userMessage.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          sendUserMessage();
+        }
+      });
+      
+      // Make the "Ask N1O1ai" button open the chat modal
+      if (indexChatBtn) {
+        indexChatBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          chatModal.style.display = 'block';
+          userMessage.focus();
+        });
+      }
+    });
+  </script>
 </body>
 </html>
