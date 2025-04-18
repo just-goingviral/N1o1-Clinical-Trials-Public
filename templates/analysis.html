@@ -1,889 +1,272 @@
-{% extends "layout.html" %}
-
-{% block title %}Analysis - NO Dynamics Simulator{% endblock %}
-
-{% block content %}
-<div class="row">
-    <div class="col-lg-12">
-        <div class="card shadow-sm mb-4">
-            <div class="card-header">
-                <h4 class="mb-0">
-                    <i class="fas fa-flask me-2"></i>Advanced Analysis Tools
-                </h4>
-            </div>
-            <div class="card-body">
-                <ul class="nav nav-tabs" id="analysisTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="comparison-tab" data-bs-toggle="tab" data-bs-target="#comparison-content" type="button" role="tab" aria-controls="comparison-content" aria-selected="true">
-                            <i class="fas fa-chart-line me-1"></i> Comparison
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="sensitivity-tab" data-bs-toggle="tab" data-bs-target="#sensitivity-content" type="button" role="tab" aria-controls="sensitivity-content" aria-selected="false">
-                            <i class="fas fa-sliders-h me-1"></i> Sensitivity Analysis
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="optimization-tab" data-bs-toggle="tab" data-bs-target="#optimization-content" type="button" role="tab" aria-controls="optimization-content" aria-selected="false">
-                            <i class="fas fa-bullseye me-1"></i> Parameter Optimization
-                        </button>
-                    </li>
-                </ul>
-                
-                <div class="tab-content pt-4" id="analysisTabsContent">
-                    <!-- Comparison Tab -->
-                    <div class="tab-pane fade show active" id="comparison-content" role="tabpanel" aria-labelledby="comparison-tab">
-                        <div class="row">
-                            <div class="col-lg-4">
-                                <div class="card bg-dark mb-4">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-cogs me-2"></i>Configure Simulations
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div id="comparisonParamsContainer">
-                                            <!-- Initial comparison simulation -->
-                                            <div class="comparison-set mb-3 border-bottom pb-3">
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <h6 class="mb-0">Simulation 1</h6>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger remove-comparison" disabled>
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                </div>
-                                                <div class="mb-2">
-                                                    <label class="form-label">Label</label>
-                                                    <input type="text" class="form-control form-control-sm" name="comparison-label[]" value="Standard Dose">
-                                                </div>
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <label class="form-label">Dose (mg)</label>
-                                                        <input type="number" class="form-control form-control-sm" name="comparison-dose[]" value="30.0" min="0.1" max="100" step="0.1">
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <label class="form-label">eGFR</label>
-                                                        <input type="number" class="form-control form-control-sm" name="comparison-egfr[]" value="90.0" min="30" max="150" step="1">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- Second comparison simulation -->
-                                            <div class="comparison-set mb-3 border-bottom pb-3">
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <h6 class="mb-0">Simulation 2</h6>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger remove-comparison">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                </div>
-                                                <div class="mb-2">
-                                                    <label class="form-label">Label</label>
-                                                    <input type="text" class="form-control form-control-sm" name="comparison-label[]" value="High Dose">
-                                                </div>
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <label class="form-label">Dose (mg)</label>
-                                                        <input type="number" class="form-control form-control-sm" name="comparison-dose[]" value="60.0" min="0.1" max="100" step="0.1">
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <label class="form-label">eGFR</label>
-                                                        <input type="number" class="form-control form-control-sm" name="comparison-egfr[]" value="90.0" min="30" max="150" step="1">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <button type="button" id="addComparisonBtn" class="btn btn-sm btn-outline-light mb-3">
-                                            <i class="fas fa-plus me-1"></i> Add Simulation
-                                        </button>
-                                        
-                                        <div class="d-grid">
-                                            <button type="button" id="runComparisonBtn" class="btn btn-primary">
-                                                <i class="fas fa-play me-1"></i> Run Comparison
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-lg-8">
-                                <div class="card bg-dark mb-4">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-chart-area me-2"></i>Comparison Results
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div id="comparisonResults">
-                                            <p class="text-center text-muted">Configure simulations and click "Run Comparison" to see results</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="card bg-dark mb-4 d-none" id="comparisonStatsCard">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-table me-2"></i>Comparison Statistics
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-dark table-striped" id="comparisonStatsTable">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Simulation</th>
-                                                        <th>Peak (µM)</th>
-                                                        <th>Time to Peak (min)</th>
-                                                        <th>AUC</th>
-                                                        <th>Half-life (h)</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <!-- Comparison stats will be populated here -->
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Sensitivity Analysis Tab -->
-                    <div class="tab-pane fade" id="sensitivity-content" role="tabpanel" aria-labelledby="sensitivity-tab">
-                        <div class="row">
-                            <div class="col-lg-4">
-                                <div class="card bg-dark mb-4">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-sliders-h me-2"></i>Sensitivity Parameters
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <form id="sensitivityForm">
-                                            <div class="mb-3">
-                                                <label for="sensitivityParameter" class="form-label">Parameter to Analyze</label>
-                                                <select class="form-select" id="sensitivityParameter" name="parameter">
-                                                    <option value="dose">Dose (mg)</option>
-                                                    <option value="baseline">Baseline (µM)</option>
-                                                    <option value="peak">Peak (µM)</option>
-                                                    <option value="t_peak">Time to Peak (h)</option>
-                                                    <option value="half_life">Half-life (h)</option>
-                                                    <option value="egfr">eGFR (mL/min)</option>
-                                                    <option value="rbc_count">RBC Count (cells/µL)</option>
-                                                </select>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <label for="minValue" class="form-label">Minimum Value</label>
-                                                <input type="number" class="form-control" id="minValue" name="min_value" value="5.0" step="0.1">
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <label for="maxValue" class="form-label">Maximum Value</label>
-                                                <input type="number" class="form-control" id="maxValue" name="max_value" value="60.0" step="0.1">
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <label for="numPoints" class="form-label">Number of Points</label>
-                                                <input type="number" class="form-control" id="numPoints" name="num_points" value="5" min="3" max="10" step="1">
-                                            </div>
-                                            
-                                            <div class="d-grid">
-                                                <button type="button" id="runSensitivityBtn" class="btn btn-primary">
-                                                    <i class="fas fa-play me-1"></i> Run Sensitivity Analysis
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-lg-8">
-                                <div class="card bg-dark mb-4">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-chart-area me-2"></i>Sensitivity Results
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div id="sensitivityResults">
-                                            <p class="text-center text-muted">Configure parameters and click "Run Sensitivity Analysis" to see results</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="card bg-dark mb-4 d-none" id="sensitivityDataCard">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-table me-2"></i>Sensitivity Data
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-dark table-striped" id="sensitivityDataTable">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Parameter</th>
-                                                        <th>Value</th>
-                                                        <th>Peak (µM)</th>
-                                                        <th>Time to Peak</th>
-                                                        <th>AUC</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <!-- Sensitivity data will be populated here -->
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Parameter Optimization Tab -->
-                    <div class="tab-pane fade" id="optimization-content" role="tabpanel" aria-labelledby="optimization-tab">
-                        <div class="row">
-                            <div class="col-lg-4">
-                                <div class="card bg-dark mb-4">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-upload me-2"></i>Upload Experimental Data
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <form id="optimizationForm" enctype="multipart/form-data">
-                                            <div class="mb-4">
-                                                <div class="file-upload">
-                                                    <input type="file" id="experimentalDataFile" name="file" accept=".csv">
-                                                    <div class="file-upload-text">
-                                                        <i class="fas fa-file-csv fa-2x mb-3"></i>
-                                                        <p class="mb-1">Drag & drop a CSV file or click to browse</p>
-                                                        <p class="small text-muted">CSV should contain time and concentration data</p>
-                                                    </div>
-                                                </div>
-                                                <div id="fileInfo" class="mt-2 d-none">
-                                                    <div class="alert alert-info">
-                                                        <i class="fas fa-info-circle me-1"></i>
-                                                        <span id="fileName"></span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <div class="form-text mb-2">
-                                                    <i class="fas fa-info-circle me-1"></i>
-                                                    Optimization will find the best parameters to match your experimental data.
-                                                </div>
-                                                <div class="form-text mb-3">
-                                                    Your CSV should have at least two columns: time and nitrite concentration.
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="d-grid">
-                                                <button type="button" id="runOptimizationBtn" class="btn btn-primary" disabled>
-                                                    <i class="fas fa-bullseye me-1"></i> Optimize Parameters
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-lg-8">
-                                <div class="card bg-dark mb-4">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-chart-area me-2"></i>Optimization Results
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div id="optimizationResults">
-                                            <p class="text-center text-muted">Upload experimental data and click "Optimize Parameters" to see results</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="card bg-dark mb-4 d-none" id="optimizedParamsCard">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-list me-2"></i>Optimized Parameters
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row" id="optimizedParamsContainer">
-                                            <!-- Optimized parameters will be displayed here -->
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    // Chart instances
-    let comparisonChart = null;
-    let sensitivityChart = null;
-    let optimizationChart = null;
-    
-    document.addEventListener('DOMContentLoaded', function() {
-        // Comparison tab functionality
-        const addComparisonBtn = document.getElementById('addComparisonBtn');
-        const comparisonParamsContainer = document.getElementById('comparisonParamsContainer');
-        const runComparisonBtn = document.getElementById('runComparisonBtn');
-        
-        // Add new comparison simulation
-        addComparisonBtn.addEventListener('click', function() {
-            const simulationSets = document.querySelectorAll('.comparison-set');
-            const newIndex = simulationSets.length + 1;
-            
-            const newSimulationHTML = `
-                <div class="comparison-set mb-3 border-bottom pb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="mb-0">Simulation ${newIndex}</h6>
-                        <button type="button" class="btn btn-sm btn-outline-danger remove-comparison">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">Label</label>
-                        <input type="text" class="form-control form-control-sm" name="comparison-label[]" value="Simulation ${newIndex}">
-                    </div>
-                    <div class="row">
-                        <div class="col-6">
-                            <label class="form-label">Dose (mg)</label>
-                            <input type="number" class="form-control form-control-sm" name="comparison-dose[]" value="30.0" min="0.1" max="100" step="0.1">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">eGFR</label>
-                            <input type="number" class="form-control form-control-sm" name="comparison-egfr[]" value="90.0" min="30" max="150" step="1">
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Insert new simulation
-            comparisonParamsContainer.insertAdjacentHTML('beforeend', newSimulationHTML);
-            
-            // Update remove button events
-            updateRemoveEvents();
-        });
-        
-        // Update remove button events
-        function updateRemoveEvents() {
-            document.querySelectorAll('.remove-comparison').forEach(button => {
-                button.addEventListener('click', function() {
-                    // Only remove if there are more than one simulation
-                    const simulationSets = document.querySelectorAll('.comparison-set');
-                    if (simulationSets.length > 1) {
-                        this.closest('.comparison-set').remove();
-                        
-                        // Update simulation numbers
-                        document.querySelectorAll('.comparison-set').forEach((set, index) => {
-                            set.querySelector('h6').textContent = `Simulation ${index + 1}`;
-                        });
-                    }
-                });
-            });
-        }
-        
-        // Initialize remove buttons
-        updateRemoveEvents();
-        
-        // Run comparison simulations
-        runComparisonBtn.addEventListener('click', function() {
-            const labels = Array.from(document.querySelectorAll('input[name="comparison-label[]"]')).map(input => input.value);
-            const doses = Array.from(document.querySelectorAll('input[name="comparison-dose[]"]')).map(input => parseFloat(input.value));
-            const egfrs = Array.from(document.querySelectorAll('input[name="comparison-egfr[]"]')).map(input => parseFloat(input.value));
-            
-            // Create parameter sets
-            const parameterSets = [];
-            for (let i = 0; i < labels.length; i++) {
-                parameterSets.push({
-                    baseline: 0.2,
-                    peak: 4.0,
-                    t_peak: 0.5,
-                    half_life: 0.5,
-                    t_max: 6.0,
-                    points: 360,
-                    egfr: egfrs[i],
-                    rbc_count: 4.5e6,
-                    dose: doses[i]
-                });
-            }
-            
-            // Show loading indicator
-            document.getElementById('comparisonResults').innerHTML = '';
-            document.getElementById('comparisonResults').appendChild(createLoader('Running comparison simulations...'));
-            document.getElementById('comparisonStatsCard').classList.add('d-none');
-            
-            // Run API request
-            fetch('/api/compare-simulations', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    parameter_sets: parameterSets,
-                    labels: labels
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Update chart
-                    document.getElementById('comparisonResults').innerHTML = `
-                        <div class="chart-container">
-                            <canvas id="comparisonChart"></canvas>
-                        </div>
-                        <img id="comparisonStaticImage" src="${data.plot}" class="img-fluid d-none" alt="Comparison Plot">
-                        <div class="text-center mt-3">
-                            <button id="toggleComparisonViewBtn" class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-image me-1"></i> Switch to Static Image
-                            </button>
-                            <button id="downloadComparisonImageBtn" class="btn btn-sm btn-outline-secondary ms-2">
-                                <i class="fas fa-download me-1"></i> Download Plot
-                            </button>
-                        </div>
-                    `;
-                    
-                    // Create comparison chart
-                    const ctx = document.getElementById('comparisonChart').getContext('2d');
-                    const chartConfig = createComparisonChartConfig(data.chart_data);
-                    comparisonChart = new Chart(ctx, chartConfig);
-                    
-                    // Toggle between interactive chart and static image
-                    document.getElementById('toggleComparisonViewBtn').addEventListener('click', function() {
-                        const canvas = document.getElementById('comparisonChart');
-                        const staticImage = document.getElementById('comparisonStaticImage');
-                        const isCanvasVisible = !canvas.closest('.chart-container').classList.contains('d-none');
-                        
-                        if (isCanvasVisible) {
-                            canvas.closest('.chart-container').classList.add('d-none');
-                            staticImage.classList.remove('d-none');
-                            this.innerHTML = '<i class="fas fa-chart-line me-1"></i> Switch to Interactive Chart';
-                        } else {
-                            canvas.closest('.chart-container').classList.remove('d-none');
-                            staticImage.classList.add('d-none');
-                            this.innerHTML = '<i class="fas fa-image me-1"></i> Switch to Static Image';
-                        }
-                    });
-                    
-                    // Download image button
-                    document.getElementById('downloadComparisonImageBtn').addEventListener('click', function() {
-                        downloadImage(data.plot, 'comparison_plot.png');
-                    });
-                    
-                    // Show comparison statistics
-                    document.getElementById('comparisonStatsCard').classList.remove('d-none');
-                    const statsTable = document.getElementById('comparisonStatsTable').querySelector('tbody');
-                    statsTable.innerHTML = '';
-                    
-                    data.comparison.forEach(item => {
-                        statsTable.innerHTML += `
-                            <tr>
-                                <td>${item.Label}</td>
-                                <td>${formatNumber(item['Peak Value'], 2)}</td>
-                                <td>${formatNumber(item['Time to Peak'], 1)}</td>
-                                <td>${formatNumber(item.AUC, 2)}</td>
-                                <td>${formatNumber(item['Half-life'], 2) || 'N/A'}</td>
-                            </tr>
-                        `;
-                    });
-                } else {
-                    document.getElementById('comparisonResults').innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-circle me-2"></i> ${data.message}
-                        </div>
-                    `;
-                }
-            })
-            .catch(error => {
-                document.getElementById('comparisonResults').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle me-2"></i> An error occurred: ${error.message}
-                    </div>
-                `;
-            });
-        });
-        
-        // Sensitivity Analysis tab functionality
-        const sensitivityParameter = document.getElementById('sensitivityParameter');
-        const minValue = document.getElementById('minValue');
-        const maxValue = document.getElementById('maxValue');
-        const runSensitivityBtn = document.getElementById('runSensitivityBtn');
-        
-        // Update min/max values based on selected parameter
-        sensitivityParameter.addEventListener('change', function() {
-            const parameter = this.value;
-            
-            switch (parameter) {
-                case 'dose':
-                    minValue.value = '5.0';
-                    maxValue.value = '60.0';
-                    break;
-                case 'baseline':
-                    minValue.value = '0.05';
-                    maxValue.value = '1.0';
-                    break;
-                case 'peak':
-                    minValue.value = '1.0';
-                    maxValue.value = '10.0';
-                    break;
-                case 't_peak':
-                    minValue.value = '0.1';
-                    maxValue.value = '2.0';
-                    break;
-                case 'half_life':
-                    minValue.value = '0.1';
-                    maxValue.value = '2.0';
-                    break;
-                case 'egfr':
-                    minValue.value = '30.0';
-                    maxValue.value = '150.0';
-                    break;
-                case 'rbc_count':
-                    minValue.value = '2.0';
-                    maxValue.value = '7.0';
-                    break;
-            }
-        });
-        
-        // Run sensitivity analysis
-        runSensitivityBtn.addEventListener('click', function() {
-            const parameter = sensitivityParameter.value;
-            const min = parseFloat(minValue.value);
-            const max = parseFloat(maxValue.value);
-            const numPoints = parseInt(document.getElementById('numPoints').value);
-            
-            // Special handling for RBC count
-            const parameterData = {
-                parameter: parameter,
-                min_value: parameter === 'rbc_count' ? min * 1e6 : min,
-                max_value: parameter === 'rbc_count' ? max * 1e6 : max,
-                num_points: numPoints
-            };
-            
-            // Show loading indicator
-            document.getElementById('sensitivityResults').innerHTML = '';
-            document.getElementById('sensitivityResults').appendChild(createLoader('Running sensitivity analysis...'));
-            document.getElementById('sensitivityDataCard').classList.add('d-none');
-            
-            // Run API request
-            fetch('/api/analyze-sensitivity', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(parameterData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Update results
-                    document.getElementById('sensitivityResults').innerHTML = `
-                        <img src="${data.plot}" class="img-fluid" alt="Sensitivity Analysis Plot">
-                        <div class="text-center mt-3">
-                            <button id="downloadSensitivityImageBtn" class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-download me-1"></i> Download Plot
-                            </button>
-                        </div>
-                    `;
-                    
-                    // Download image button
-                    document.getElementById('downloadSensitivityImageBtn').addEventListener('click', function() {
-                        downloadImage(data.plot, 'sensitivity_analysis.png');
-                    });
-                    
-                    // Show sensitivity data
-                    document.getElementById('sensitivityDataCard').classList.remove('d-none');
-                    const dataTable = document.getElementById('sensitivityDataTable').querySelector('tbody');
-                    dataTable.innerHTML = '';
-                    
-                    data.sensitivity_data.forEach(item => {
-                        // Format value based on parameter
-                        let displayValue = item.Value;
-                        if (parameter === 'rbc_count') {
-                            displayValue = (displayValue / 1e6).toFixed(1) + ' × 10⁶';
-                        }
-                        
-                        dataTable.innerHTML += `
-                            <tr>
-                                <td>${parameter}</td>
-                                <td>${displayValue}</td>
-                                <td>${formatNumber(item.Peak, 2)}</td>
-                                <td>${formatNumber(item['Time to Peak'], 1)}</td>
-                                <td>${formatNumber(item.AUC, 2)}</td>
-                            </tr>
-                        `;
-                    });
-                } else {
-                    document.getElementById('sensitivityResults').innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-circle me-2"></i> ${data.message}
-                        </div>
-                    `;
-                }
-            })
-            .catch(error => {
-                document.getElementById('sensitivityResults').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle me-2"></i> An error occurred: ${error.message}
-                    </div>
-                `;
-            });
-        });
-        
-        // Parameter Optimization tab functionality
-        const experimentalDataFile = document.getElementById('experimentalDataFile');
-        const fileInfo = document.getElementById('fileInfo');
-        const fileName = document.getElementById('fileName');
-        const runOptimizationBtn = document.getElementById('runOptimizationBtn');
-        
-        // File upload handling
-        experimentalDataFile.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                const file = this.files[0];
-                if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
-                    fileName.textContent = file.name;
-                    fileInfo.classList.remove('d-none');
-                    runOptimizationBtn.disabled = false;
-                } else {
-                    showToast('Please upload a CSV file', 'danger');
-                    this.value = '';
-                    fileInfo.classList.add('d-none');
-                    runOptimizationBtn.disabled = true;
-                }
-            } else {
-                fileInfo.classList.add('d-none');
-                runOptimizationBtn.disabled = true;
-            }
-        });
-        
-        // File drop handling
-        const fileUpload = document.querySelector('.file-upload');
-        
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            fileUpload.addEventListener(eventName, preventDefaults, false);
-        });
-        
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        
-        ['dragenter', 'dragover'].forEach(eventName => {
-            fileUpload.addEventListener(eventName, highlight, false);
-        });
-        
-        ['dragleave', 'drop'].forEach(eventName => {
-            fileUpload.addEventListener(eventName, unhighlight, false);
-        });
-        
-        function highlight() {
-            fileUpload.classList.add('border-primary');
-        }
-        
-        function unhighlight() {
-            fileUpload.classList.remove('border-primary');
-        }
-        
-        fileUpload.addEventListener('drop', handleDrop, false);
-        
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            
-            if (files.length > 0) {
-                experimentalDataFile.files = files;
-                const event = new Event('change');
-                experimentalDataFile.dispatchEvent(event);
-            }
-        }
-        
-        // Run optimization
-        runOptimizationBtn.addEventListener('click', function() {
-            if (!experimentalDataFile.files.length) {
-                showToast('Please upload a CSV file', 'danger');
-                return;
-            }
-            
-            // Show loading indicator
-            document.getElementById('optimizationResults').innerHTML = '';
-            document.getElementById('optimizationResults').appendChild(createLoader('Optimizing parameters...'));
-            document.getElementById('optimizedParamsCard').classList.add('d-none');
-            
-            // Create form data
-            const formData = new FormData();
-            formData.append('file', experimentalDataFile.files[0]);
-            
-            // Run API request
-            fetch('/api/optimize', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Update results
-                    document.getElementById('optimizationResults').innerHTML = `
-                        <img src="${data.plot}" class="img-fluid" alt="Optimization Results Plot">
-                        <div class="text-center mt-3">
-                            <button id="downloadOptimizationImageBtn" class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-download me-1"></i> Download Plot
-                            </button>
-                        </div>
-                    `;
-                    
-                    // Download image button
-                    document.getElementById('downloadOptimizationImageBtn').addEventListener('click', function() {
-                        downloadImage(data.plot, 'optimization_results.png');
-                    });
-                    
-                    // Show optimized parameters
-                    document.getElementById('optimizedParamsCard').classList.remove('d-none');
-                    const paramsContainer = document.getElementById('optimizedParamsContainer');
-                    paramsContainer.innerHTML = '';
-                    
-                    // Add RMSE value
-                    paramsContainer.innerHTML += `
-                        <div class="col-12 mb-3">
-                            <div class="alert alert-info">
-                                <strong>RMSE:</strong> ${formatNumber(data.optimization_result.rmse, 4)}
-                                <span class="ms-2">(Lower values indicate better fit)</span>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // Add each parameter
-                    for (const [param, value] of Object.entries(data.optimization_result.parameters)) {
-                        let paramName, paramUnit;
-                        
-                        switch (param) {
-                            case 'baseline':
-                                paramName = 'Baseline';
-                                paramUnit = 'µM';
-                                break;
-                            case 'peak':
-                                paramName = 'Peak';
-                                paramUnit = 'µM';
-                                break;
-                            case 't_peak':
-                                paramName = 'Time to Peak';
-                                paramUnit = 'hours';
-                                break;
-                            case 'half_life':
-                                paramName = 'Half-life';
-                                paramUnit = 'hours';
-                                break;
-                            default:
-                                paramName = param;
-                                paramUnit = '';
-                        }
-                        
-                        paramsContainer.innerHTML += `
-                            <div class="col-md-6 col-lg-3 mb-3">
-                                <div class="card bg-dark text-center">
-                                    <div class="card-body">
-                                        <h6 class="card-title">${paramName}</h6>
-                                        <p class="h3 text-primary mb-0">${formatNumber(value, 3)}</p>
-                                        <p class="small text-muted">${paramUnit}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
-                } else {
-                    document.getElementById('optimizationResults').innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-circle me-2"></i> ${data.message}
-                        </div>
-                    `;
-                }
-            })
-            .catch(error => {
-                document.getElementById('optimizationResults').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle me-2"></i> An error occurred: ${error.message}
-                    </div>
-                `;
-            });
-        });
-    });
-</script>
-{% endblock %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NO Dynamics Analysis - Clinical Research Tool</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Analysis Results - Nitrite Dynamics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/styles.css" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <h1>Nitric Oxide Dynamics Analysis</h1>
-        <p>Clinical trial data analysis for N1O1 nitric oxide delivery systems</p>
-        
+<body data-bs-theme="dark">
+    <div class="container mt-5">
+        <h1 class="mb-4">Nitric Oxide Analysis Results</h1>
+
         <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title">Visualization</h5>
+                    </div>
+                    <div class="card-body">
+                        <img src="{{ plot_url }}" alt="NO Dynamics Plot" class="img-fluid">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title">Summary Metrics</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if summary %}
+                            <table class="table table-striped">
+                                {% for key, value in summary.items() %}
+                                <tr>
+                                    <th>{{ key }}</th>
+                                    <td>{{ value }}</td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        {% else %}
+                            <p>No summary data available.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
                 <div class="card">
-                    <h2>Pharmacokinetic Parameters</h2>
-                    <table class="table table-striped">
-                        <tbody>
-                            {% for key, value in summary.items() %}
-                            <tr>
-                                <td><strong>{{ key }}</strong></td>
-                                <td>{{ value }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    
-                    <div class="actions">
-                        <form action="{{ url_for('analyzer_bp.upload_csv') }}" method="get">
-                            <button type="submit" class="btn btn-secondary">Upload Another CSV</button>
-                        </form>
-                        
-                        <form action="{{ url_for('analyzer_bp.download_pdf') }}" method="post">
-                            <input type="hidden" name="summary" value="{{ summary | tojson }}">
+                    <div class="card-header">
+                        <h5 class="card-title">Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/analyzer/download_pdf" method="post">
+                            <input type="hidden" name="summary" value="{{ summary|tojson }}">
                             <button type="submit" class="btn btn-primary">Download PDF Report</button>
                         </form>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-7">
-                <div class="card">
-                    <h2>NO₂⁻ / cGMP Response Graph</h2>
-                    <div class="plot-container">
-                        <img src="{{ plot_url }}" alt="NO₂⁻ Simulation Plot" class="img-fluid">
-                    </div>
-                    <div class="plot-caption">
-                        <p>Graph showing nitrite concentration changes over time with corresponding physiological responses</p>
+                        <hr>
+                        <a href="/analyzer/" class="btn btn-secondary">Upload New Data</a>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="card mt-4">
-            <h2>Analysis Summary</h2>
-            <p>The analysis shows the pharmacokinetic profile of nitric oxide delivery, including:</p>
-            <ul>
-                <li><strong>Peak Value:</strong> Maximum plasma nitrite concentration</li>
-                <li><strong>Time to Peak:</strong> Time required to reach maximum concentration</li>
-                <li><strong>AUC:</strong> Area under the curve, representing total bioavailability</li>
-                <li><strong>Half-life:</strong> Time for concentration to reduce by half after peak</li>
-            </ul>
-            <p>These metrics help evaluate the effectiveness of N1O1 lozenge and other nitric oxide delivery systems.</p>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Advanced Comparison</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h6>Dose Comparison</h6>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-2">
+                                        <label class="form-label">Label</label>
+                                        <input type="text" class="form-control form-control-sm" name="comparison-label[]" value="Low Dose">
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <label class="form-label">Dose (mg)</label>
+                                            <input type="number" class="form-control form-control-sm" name="comparison-dose[]" value="30.0" min="0.1" max="100" step="0.1">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label">eGFR</label>
+                                            <input type="number" class="form-control form-control-sm" name="comparison-egfr[]" value="90" min="10" max="150">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-2">
+                                        <label class="form-label">Label</label>
+                                        <input type="text" class="form-control form-control-sm" name="comparison-label[]" value="Medium Dose">
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <label class="form-label">Dose (mg)</label>
+                                            <input type="number" class="form-control form-control-sm" name="comparison-dose[]" value="45.0" min="0.1" max="100" step="0.1">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label">eGFR</label>
+                                            <input type="number" class="form-control form-control-sm" name="comparison-egfr[]" value="90" min="10" max="150">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-2">
+                                        <label class="form-label">Label</label>
+                                        <input type="text" class="form-control form-control-sm" name="comparison-label[]" value="High Dose">
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <label class="form-label">Dose (mg)</label>
+                                            <input type="number" class="form-control form-control-sm" name="comparison-dose[]" value="60.0" min="0.1" max="100" step="0.1">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label">eGFR</label>
+                                            <input type="number" class="form-control form-control-sm" name="comparison-egfr[]" value="90" min="10" max="150">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <button id="runComparisonBtn" class="btn btn-sm btn-primary mt-4">Run Comparison</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="comparisonResults"></div>
+                        <div id="comparisonStatsCard" class="card mt-3 d-none">
+                            <div class="card-header">Comparison Statistics</div>
+                            <div class="card-body">
+                                <div id="comparisonStatsContent"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Function to create a loader
+        function createLoader(message) {
+            const div = document.createElement('div');
+            div.className = 'text-center p-3';
+            div.innerHTML = `
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">${message}</p>
+            `;
+            return div;
+        }
+
+        // Run comparison simulations
+        const runComparisonBtn = document.getElementById('runComparisonBtn');
+        if (runComparisonBtn) {
+            runComparisonBtn.addEventListener('click', function() {
+                const labels = Array.from(document.querySelectorAll('input[name="comparison-label[]"]')).map(input => input.value);
+                const doses = Array.from(document.querySelectorAll('input[name="comparison-dose[]"]')).map(input => parseFloat(input.value));
+                const egfrs = Array.from(document.querySelectorAll('input[name="comparison-egfr[]"]')).map(input => parseFloat(input.value));
+
+                // Create parameter sets
+                const parameterSets = [];
+                for (let i = 0; i < labels.length; i++) {
+                    parameterSets.push({
+                        baseline: 0.2,
+                        peak: 4.0,
+                        t_peak: 0.5,
+                        half_life: 0.5,
+                        t_max: 6.0,
+                        points: 360,
+                        egfr: egfrs[i],
+                        rbc_count: 4.5e6,
+                        dose: doses[i]
+                    });
+                }
+
+                // Show loading indicator
+                document.getElementById('comparisonResults').innerHTML = '';
+                document.getElementById('comparisonResults').appendChild(createLoader('Running comparison simulations...'));
+                document.getElementById('comparisonStatsCard').classList.add('d-none');
+
+                // Run API request
+                fetch('/api/compare-simulations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        labels: labels,
+                        parameters: parameterSets
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Display the comparison plot
+                        document.getElementById('comparisonResults').innerHTML = '';
+                        const img = document.createElement('img');
+                        img.src = data.comparison_plot;
+                        img.className = 'img-fluid';
+                        img.alt = 'Comparison Plot';
+                        document.getElementById('comparisonResults').appendChild(img);
+
+                        // Display comparison stats
+                        const statsContent = document.getElementById('comparisonStatsContent');
+                        statsContent.innerHTML = '';
+                        const table = document.createElement('table');
+                        table.className = 'table table-sm table-striped';
+
+                        // Create table header
+                        let thead = document.createElement('thead');
+                        let headerRow = document.createElement('tr');
+                        ['Scenario', 'Peak (µM)', 'Time to Peak (min)', 'AUC', 'Half-life (min)'].forEach(header => {
+                            let th = document.createElement('th');
+                            th.textContent = header;
+                            headerRow.appendChild(th);
+                        });
+                        thead.appendChild(headerRow);
+                        table.appendChild(thead);
+
+                        // Create table body
+                        let tbody = document.createElement('tbody');
+                        data.comparison.forEach(row => {
+                            let tr = document.createElement('tr');
+
+                            let labelCell = document.createElement('td');
+                            labelCell.textContent = row.label;
+                            tr.appendChild(labelCell);
+
+                            let peakCell = document.createElement('td');
+                            peakCell.textContent = row.peak_value.toFixed(2);
+                            tr.appendChild(peakCell);
+
+                            let timeCell = document.createElement('td');
+                            timeCell.textContent = row.time_to_peak.toFixed(0);
+                            tr.appendChild(timeCell);
+
+                            let aucCell = document.createElement('td');
+                            aucCell.textContent = row.auc.toFixed(2);
+                            tr.appendChild(aucCell);
+
+                            let halfLifeCell = document.createElement('td');
+                            halfLifeCell.textContent = row.half_life ? row.half_life.toFixed(0) : 'N/A';
+                            tr.appendChild(halfLifeCell);
+
+                            tbody.appendChild(tr);
+                        });
+                        table.appendChild(tbody);
+
+                        statsContent.appendChild(table);
+                        document.getElementById('comparisonStatsCard').classList.remove('d-none');
+                    } else {
+                        document.getElementById('comparisonResults').innerHTML = `
+                            <div class="alert alert-danger">
+                                Error: ${data.message}
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('comparisonResults').innerHTML = `
+                        <div class="alert alert-danger">
+                            Error: ${error.message}
+                        </div>
+                    `;
+                });
+            });
+        }
+    </script>
 </body>
 </html>

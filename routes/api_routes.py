@@ -1,3 +1,4 @@
+
 """
 API routes for Nitrite Dynamics application
 Includes AI assistant functionality
@@ -5,6 +6,8 @@ Includes AI assistant functionality
 from flask import Blueprint, jsonify, request
 import os
 import json
+import pandas as pd
+import numpy as np
 from openai import OpenAI
 from models import db, Patient, Simulation
 
@@ -73,7 +76,98 @@ Your initial greeting should be: "Hi, I'm N1O1ai! Would you like help with the c
 @api_bp.route('/simulate', methods=['POST'])
 def run_simulation():
     """Run a nitrite dynamics simulation"""
-    
+    try:
+        data = request.json
+        patient_id = data.get('patient_id')
+        
+        # Check if we need to get patient data
+        if patient_id:
+            patient = Patient.query.get_or_404(patient_id)
+            # Use patient data for simulation parameters
+            baseline_no2 = patient.baseline_no2
+            age = patient.age
+            weight = patient.weight_kg
+        else:
+            # Use default values
+            baseline_no2 = data.get('baseline_no2', 0.2)
+            age = data.get('age', 60)
+            weight = data.get('weight', 70)
+        
+        # Get model parameters
+        model_type = data.get('model_type', '1-compartment PK')
+        dose = data.get('dose', 30.0)  # mg
+        
+        # Use the NODynamicsSimulator for accurate pharmacokinetic modeling
+        from simulation_core import NODynamicsSimulator
+        
+        # Convert parameters for simulator
+        half_life_minutes = 30 + (age / 10)  # Calculated half-life in minutes
+        peak_time = 30  # Peak time in minutes
+        half_life_hours = half_life_minutes / 60  # Convert to hours
+        t_peak_hours = peak_time / 60  # Convert peak time to hours
+        peak_value = baseline_no2 + (dose / (weight * 0.1))
+        
+        # Create and run simulation
+        simulator = NODynamicsSimulator(
+            baseline=baseline_no2,
+            peak=peak_value,
+            t_peak=t_peak_hours,
+            half_life=half_life_hours,
+            t_max=6,  # 6 hours of simulation
+            points=361,  # one point per minute
+            egfr=90.0 - (0.5 * (age - 40)) if age > 40 else 90.0,  # Estimate eGFR based on age
+            dose=dose
+        )
+        
+        # Run simulation
+        results_df = simulator.simulate()
+        
+        # Extract results
+        time_points = list(results_df['Time (minutes)'])
+        nitrite_levels = list(results_df['Plasma NO2- (µM)'])
+        
+        # Round values for display
+        nitrite_levels = [round(level, 2) for level in nitrite_levels]
+        
+        # Prepare results
+        result = {
+            'time_points': time_points,
+            'nitrite_levels': nitrite_levels,
+            'parameters': {
+                'baseline': baseline_no2,
+                'peak': peak_value,
+                'peak_time': peak_time,
+                'half_life': half_life_minutes / 60,  # convert to hours
+                'dose': dose,
+                'age': age,
+                'weight': weight,
+                'model_type': model_type
+            }
+        }
+        
+        # Save to database if patient_id was provided
+        if patient_id:
+            new_simulation = Simulation(
+                patient_id=patient_id,
+                model_type=model_type,
+                parameters=result['parameters'],
+                result_curve={'time': time_points, 'no2': nitrite_levels}
+            )
+            db.session.add(new_simulation)
+            db.session.commit()
+            result['simulation_id'] = new_simulation.id
+        
+        return jsonify({
+            'status': 'success',
+            'data': result
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
 @api_bp.route('/simulate-multiple', methods=['POST'])
 def run_multiple_doses_simulation():
     """Run a simulation with multiple dosing schedule"""
@@ -177,31 +271,6 @@ def run_multiple_doses_simulation():
             'status': 'error',
             'message': str(e)
         }), 500
-    try:
-        data = request.json
-        patient_id = data.get('patient_id')
-        
-        # Check if we need to get patient data
-        if patient_id:
-            patient = Patient.query.get_or_404(patient_id)
-            # Use patient data for simulation parameters
-            baseline_no2 = patient.baseline_no2
-            age = patient.age
-            weight = patient.weight_kg
-        else:
-            # Use default values
-            baseline_no2 = data.get('baseline_no2', 0.2)
-            age = data.get('age', 60)
-            weight = data.get('weight', 70)
-        
-        # Get model parameters
-        model_type = data.get('model_type', '1-compartment PK')
-        dose = data.get('dose', 30.0)  # mg
-        
-        # Use the NODynamicsSimulator for accurate pharmacokinetic modeling
-        from simulation_core import NODynamicsSimulator
-        
-        # Convert parameters for simulator
 
 @api_bp.route('/compare-patients', methods=['POST'])
 def compare_patient_simulations():
@@ -287,6 +356,9 @@ def compare_patient_simulations():
         
     except Exception as e:
         return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
 @api_bp.route('/population-analysis', methods=['GET'])
 def population_analysis():
@@ -377,6 +449,35 @@ def population_analysis():
         plot_data = base64.b64encode(buffer.read()).decode('utf-8')
         plt.close(fig)
         
+        # Calculate summary statistics
+        summary_stats = {
+            'patient_count': len(pk_data),
+            'age_range': [pk_df['age'].min(), pk_df['age'].max()],
+            'weight_range': [pk_df['weight'].min(), pk_df['weight'].max()],
+            'dose_range': [pk_df['dose'].min(), pk_df['dose'].max()],
+            'mean_half_life': pk_df['half_life'].mean(),
+            'mean_cmax': pk_df['cmax'].mean(),
+            'mean_tmax': pk_df['tmax'].mean(),
+            'correlations': {
+                'age_half_life': corr_matrix.loc['age', 'half_life'],
+                'weight_cmax': corr_matrix.loc['weight', 'cmax'],
+                'dose_cmax': corr_matrix.loc['dose', 'cmax'],
+                'baseline_cmax': corr_matrix.loc['baseline_no2', 'cmax']
+            }
+        }
+        
+        return jsonify({
+            'status': 'success',
+            'summary_stats': summary_stats,
+            'correlation_matrix': corr_matrix.to_dict(),
+            'analysis_plot': f'data:image/png;base64,{plot_data}'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
 @api_bp.route('/batch-simulate', methods=['POST'])
 def batch_simulate():
@@ -470,107 +571,6 @@ def batch_simulate():
             'status': 'success',
             'batch_results': batch_results,
             'summary': summary
-        }), 200
-        
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
-
-        # Calculate summary statistics
-        summary_stats = {
-            'patient_count': len(pk_data),
-            'age_range': [pk_df['age'].min(), pk_df['age'].max()],
-            'weight_range': [pk_df['weight'].min(), pk_df['weight'].max()],
-            'dose_range': [pk_df['dose'].min(), pk_df['dose'].max()],
-            'mean_half_life': pk_df['half_life'].mean(),
-            'mean_cmax': pk_df['cmax'].mean(),
-            'mean_tmax': pk_df['tmax'].mean(),
-            'correlations': {
-                'age_half_life': corr_matrix.loc['age', 'half_life'],
-                'weight_cmax': corr_matrix.loc['weight', 'cmax'],
-                'dose_cmax': corr_matrix.loc['dose', 'cmax'],
-                'baseline_cmax': corr_matrix.loc['baseline_no2', 'cmax']
-            }
-        }
-        
-        return jsonify({
-            'status': 'success',
-            'summary_stats': summary_stats,
-            'correlation_matrix': corr_matrix.to_dict(),
-            'analysis_plot': f'data:image/png;base64,{plot_data}'
-        }), 200
-        
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
-
-            'status': 'error',
-            'message': str(e)
-        }), 500
-
-        half_life_minutes = 30 + (age / 10)  # Calculated half-life in minutes
-        peak_time = 30  # Peak time in minutes
-        half_life_hours = half_life_minutes / 60  # Convert to hours
-        t_peak_hours = peak_time / 60  # Convert peak time to hours
-        peak_value = baseline_no2 + (dose / (weight * 0.1))
-        
-        # Create and run simulation
-        simulator = NODynamicsSimulator(
-            baseline=baseline_no2,
-            peak=peak_value,
-            t_peak=t_peak_hours,
-            half_life=half_life_hours,
-            t_max=6,  # 6 hours of simulation
-            points=361,  # one point per minute
-            egfr=90.0 - (0.5 * (age - 40)) if age > 40 else 90.0,  # Estimate eGFR based on age
-            dose=dose
-        )
-        
-        # Run simulation
-        results_df = simulator.simulate()
-        
-        # Extract results
-        time_points = list(results_df['Time (minutes)'])
-        nitrite_levels = list(results_df['Plasma NO2- (µM)'])
-        
-        # Round values for display
-        nitrite_levels = [round(level, 2) for level in nitrite_levels]
-        
-        # Prepare results
-        result = {
-            'time_points': time_points,
-            'nitrite_levels': nitrite_levels,
-            'parameters': {
-                'baseline': baseline_no2,
-                'peak': peak_value,
-                'peak_time': peak_time,
-                'half_life': half_life_minutes / 60,  # convert to hours
-                'dose': dose,
-                'age': age,
-                'weight': weight,
-                'model_type': model_type
-            }
-        }
-        
-        # Save to database if patient_id was provided
-        if patient_id:
-            new_simulation = Simulation(
-                patient_id=patient_id,
-                model_type=model_type,
-                parameters=result['parameters'],
-                result_curve={'time': time_points, 'no2': nitrite_levels}
-            )
-            db.session.add(new_simulation)
-            db.session.commit()
-            result['simulation_id'] = new_simulation.id
-        
-        return jsonify({
-            'status': 'success',
-            'data': result
         }), 200
         
     except Exception as e:

@@ -5,35 +5,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload CSV - Nitrite Dynamics</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/styles.css" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <h1>Upload Patient Data (CSV)</h1>
-        <p>Upload clinical trial data to analyze nitric oxide dynamics.</p>
-        
+<body data-bs-theme="dark">
+    <div class="container mt-5">
+        <h1 class="mb-4">Upload CSV for Analysis</h1>
         <div class="card">
-            <form method="POST" enctype="multipart/form-data" action="{{ url_for('analyzer_bp.upload_csv') }}">
-                <div class="form-group">
-                    <label for="file">Select a CSV file with patient data:</label>
-                    <input type="file" name="file" id="file" accept=".csv" required>
-                </div>
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary">Analyze Data</button>
-                </div>
-            </form>
-        </div>
-        
-        <div class="info-box">
-            <h3>Expected CSV Format</h3>
-            <p>Your CSV should include the following columns:</p>
-            <ul>
-                <li><strong>Time</strong> (minutes or hours)</li>
-                <li><strong>Plasma NO2-</strong> (µM) - Nitrite levels</li>
-                <li>Optional: <strong>cGMP</strong> (a.u.) - Cellular response</li>
-                <li>Optional: <strong>Vasodilation</strong> (%) - Physiological response</li>
-            </ul>
+            <div class="card-body">
+                <p class="card-text">Upload your clinical trial data in CSV format to analyze nitric oxide dynamics.</p>
+                <form action="/analyzer/" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select CSV file</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+                    </div>
+                    <div class="mb-3">
+                        <p>The CSV should contain columns for:</p>
+                        <ul>
+                            <li>Time (minutes or hours)</li>
+                            <li>Nitric oxide or nitrite measurements</li>
+                            <li>Optional: Patient ID or other metadata</li>
+                        </ul>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Analyze</button>
+                </form>
+            </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
