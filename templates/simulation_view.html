@@ -387,7 +387,7 @@
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                link.setAttribute('download', 'nitrite_simulation_{{ simulation.id }}.csv');
+                link.setAttribute('download', 'n1o1_simulation_{{ simulation.id }}.csv');
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -398,7 +398,7 @@
                 const image = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
                 link.href = image;
-                link.download = 'nitrite_simulation_{{ simulation.id }}.png';
+                link.download = 'n1o1_simulation_{{ simulation.id }}.png';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);

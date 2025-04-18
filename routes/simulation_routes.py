@@ -1,5 +1,5 @@
 """
-Simulation routes for Nitrite Dynamics application
+Simulation routes for N1O1 Clinical Trials application
 """
 from flask import Blueprint, jsonify, request, render_template
 from models import db, Patient, Simulation
