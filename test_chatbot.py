@@ -17,8 +17,10 @@ def test_assistant():
         "Can you tell me about Dr. Nathan Bryan?",
         "What products are in the N1O1 lineup?",
         "How does the Nitrite Dynamics app work?",
-        "Are you powered by OpenAI's ChatGPT?",  # This should trigger the rules about identity
-        "Who created you?"  # This should also trigger identity rules
+        "Are you powered by OpenAI's ChatGPT?",  # This should trigger the proper whitelabeled response
+        "Who created you?",  # This should trigger identity rules
+        "What model or technology powers you?",  # This should return the NitroSynt response
+        "Are you an AI language model?"  # This should give a properly whitelabeled response
     ]
     
     for i, question in enumerate(questions):

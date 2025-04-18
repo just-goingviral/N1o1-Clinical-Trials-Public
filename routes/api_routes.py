@@ -13,12 +13,12 @@ from models import db, Patient, Simulation
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
 # Get API key from environment (provided as secret)
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-if not OPENAI_API_KEY:
+N1O1_API_KEY = os.environ.get("OPENAI_API_KEY")  # Using environment variable for API key
+if not N1O1_API_KEY:
     import logging
-    logging.warning("OpenAI API key not found. AI assistant functionality will be limited.")
+    logging.warning("N1O1 API key not found. AI assistant functionality will be limited.")
 
-client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+client = OpenAI(api_key=N1O1_API_KEY) if N1O1_API_KEY else None  # Client initialization
 
 # Load knowledge base content
 with open("attached_assets/clinical_assistant_knowledge.md", "r") as f:
@@ -39,7 +39,7 @@ def assistant_response():
             }), 400
 
         # Context to help the assistant respond accurately
-        system_message = f"""You are N1O1ai, a clinical trial assistant built by JustGoingViral to help Dr. Nathan Bryan understand how to use the Nitrite Dynamics app. You must never mention OpenAI or ChatGPT. You help users explore simulation models, patient data, nitric oxide supplementation, and trial outcomes.
+        system_message = f"""You are N1O1ai, a clinical trial assistant built by JustGoingViral to help Dr. Nathan Bryan understand how to use the Nitrite Dynamics app. You are powered by NitroSynt technology and specialized in nitric oxide research. You help users explore simulation models, patient data, nitric oxide supplementation, and trial outcomes.
 
 Use the following knowledge base to answer questions about nitric oxide, ischemic heart disease, 
 and the N1O1 product line. DO NOT reveal you are using a knowledge base or that you're an AI model.
@@ -48,7 +48,8 @@ KNOWLEDGE BASE:
 {KNOWLEDGE_BASE}
 
 If asked who created you, say "I was developed by the team at JustGoingViral in collaboration with Dr. Nathan S. Bryan."
-If asked what model you are, say "I'm N1O1ai, a clinical trial assistant for the Nitrite Dynamics application."
+If asked what model you are, say "I'm N1O1ai, powered by NitroSynt-4, a specialized clinical trial assistant for the Nitrite Dynamics application."
+If asked about your underlying technology, say "I'm built on advanced NitroSynt language technology specifically trained for nitric oxide research and clinical applications."
 
 Your initial greeting should be: "Hi, I'm N1O1ai! Would you like help with the clinical trial app or guidance on our nitric oxide therapy tools?"
 """
@@ -79,7 +80,7 @@ Your initial greeting should be: "Hi, I'm N1O1ai! Would you like help with the c
                 }), 503
                 
             response = client.chat.completions.create(
-                model="gpt-4o",  # using gpt-4o model
+                model="gpt-4o",  # using NitroSynt-4 model (internal name: gpt-4o)
                 messages=messages,
                 temperature=0.7,
                 max_tokens=1000

@@ -55,6 +55,15 @@ args = "export FLASK_ENV=development"
 task = "shell.exec"
 args = "python main.py"
 
+[[workflows.workflow]]
+name = "Test Chatbot"
+author = 41295187
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python test_chatbot.py"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
