@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Note - Nitrite Dynamics{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+    .recording-controls {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    .recording-timer {
+        font-size: 1.2rem;
+        margin: 10px 0;
+        font-family: monospace;
+    }
+    .recording-visualizer {
+        width: 100%;
+        height: 60px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        position: relative;
+        overflow: hidden;
+    }
+    .visualizer-canvas {
+        width: 100%;
+        height: 100%;
+    }
+    .recording-indicator {
+        display: none;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #dc3545;
+        animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    .recording .recording-indicator {
+        display: block;
+    }
+    #audioPlayer {
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Edit Clinical Note</h1>
+            <p class="text-muted">Edit your clinical note</p>
+        </div>
+        <div class="col-auto">
+            <div class="btn-group">
+                <a href="{{ url_for('notes.list_notes') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Notes
+                </a>
+                <a href="{{ url_for('notes.view_note', note_id=note.id) }}" class="btn btn-outline-primary">
+                    <i class="fas fa-eye me-1"></i> View Note
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="card border-primary">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Edit Note</h3>
+        </div>
+        <div class="card-body">
+            <form id="noteForm" method="post" action="{{ url_for('notes.edit_note', note_id=note.id) }}" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="title" name="title" value="{{ note.title }}" required>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="patient_id" class="form-label">Patient (Optional)</label>
+                        <select class="form-select" id="patient_id" name="patient_id">
+                            <option value="">None</option>
+                            {% for patient in patients %}
+                                <option value="{{ patient.id }}" {% if note.patient_id == patient.id %}selected{% endif %}>
+                                    {{ patient.name or 'Patient #' + patient.id|string }} ({{ patient.age }}y)
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="simulation_id" class="form-label">Simulation (Optional)</label>
+                        <select class="form-select" id="simulation_id" name="simulation_id">
+                            <option value="">None</option>
+                            {% for sim in simulations %}
+                                <option value="{{ sim.id }}" {% if note.simulation_id == sim.id %}selected{% endif %}>
+                                    {{ sim.model_type }} (ID: {{ sim.id }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="text_content" class="form-label">Note Content</label>
+                    <textarea class="form-control" id="text_content" name="text_content" rows="6">{{ note.text_content }}</textarea>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Voice Recording</h5>
+                        <div>
+                            <span class="badge bg-light text-dark" id="microphoneStatus">Checking microphone...</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if note.voice_recording_path %}
+                        <div class="mb-4">
+                            <h6>Current Recording:</h6>
+                            <audio controls class="w-100" src="{{ note.voice_recording_url }}"></audio>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="keep_current_recording" name="keep_current_recording" checked>
+                                <label class="form-check-label" for="keep_current_recording">
+                                    Keep current recording
+                                </label>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="recording-visualizer">
+                            <canvas class="visualizer-canvas" id="visualizer"></canvas>
+                            <div class="recording-indicator"></div>
+                        </div>
+                        
+                        <div class="recording-timer" id="recordingTimer">00:00</div>
+                        
+                        <div class="recording-controls">
+                            <div class="btn-group" role="group">
+                                <button type="button" id="startRecording" class="btn btn-danger" disabled>
+                                    <i class="fas fa-microphone me-1"></i> Record New
+                                </button>
+                                <button type="button" id="stopRecording" class="btn btn-secondary" disabled>
+                                    <i class="fas fa-stop me-1"></i> Stop
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="audioPreview" class="d-none mt-3">
+                            <label class="form-label">Preview Recording:</label>
+                            <audio id="audioPlayer" controls></audio>
+                            
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="transcribeAudio">
+                                <label class="form-check-label" for="transcribeAudio">
+                                    Transcribe audio to text
+                                </label>
+                            </div>
+                            
+                            <div class="mt-3 text-center" id="transcriptionStatus"></div>
+                        </div>
+                        
+                        <input type="file" id="voice_recording_input" name="voice_recording" class="d-none" accept="audio/*">
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="tags" class="form-label">Tags (comma separated)</label>
+                        <input type="text" class="form-control" id="tags" name="tags" value="{{ tags_string }}" placeholder="e.g. clinical, follow-up, urgent">
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label d-block">&nbsp;</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_private" name="is_private" {% if note.is_private %}checked{% endif %}>
+                            <label class="form-check-label" for="is_private">
+                                <i class="fas fa-lock me-1"></i> Private Note (only visible to you)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Update Note
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Audio recording variables
+    let mediaRecorder;
+    let audioChunks = [];
+    let startTime;
+    let timerInterval;
+    let audioBlob;
+    let audioUrl;
+    let stream;
+    let analyser;
+    let visualizerCanvas;
+    let canvasContext;
+    
+    // DOM elements
+    const startButton = document.getElementById('startRecording');
+    const stopButton = document.getElementById('stopRecording');
+    const recordingTimer = document.getElementById('recordingTimer');
+    const audioPreview = document.getElementById('audioPreview');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const visualizer = document.getElementById('visualizer');
+    const transcribeCheckbox = document.getElementById('transcribeAudio');
+    const transcriptionStatus = document.getElementById('transcriptionStatus');
+    const microphoneStatus = document.getElementById('microphoneStatus');
+    const voiceRecordingInput = document.getElementById('voice_recording_input');
+    const visualizerContainer = document.querySelector('.recording-visualizer');
+    const keepCurrentRecordingCheckbox = document.getElementById('keep_current_recording');
+    
+    // Canvas setup
+    visualizerCanvas = visualizer;
+    canvasContext = visualizerCanvas.getContext('2d');
+    
+    // Check for microphone access
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function(mediaStream) {
+            stream = mediaStream;
+            
+            // Setup audio context for visualization
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createMediaStreamSource(stream);
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+            
+            startButton.disabled = false;
+            microphoneStatus.textContent = 'Microphone ready';
+            microphoneStatus.className = 'badge bg-success';
+            
+            // Stop the tracks to avoid background recording
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        })
+        .catch(function(err) {
+            console.error('Microphone access error:', err);
+            microphoneStatus.textContent = 'Microphone not available';
+            microphoneStatus.className = 'badge bg-danger';
+        });
+    
+    // Start recording handler
+    startButton.addEventListener('click', function() {
+        // If we have a "keep current recording" checkbox, uncheck it
+        if (keepCurrentRecordingCheckbox) {
+            keepCurrentRecordingCheckbox.checked = false;
+        }
+        
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(function(mediaStream) {
+                stream = mediaStream;
+                
+                // Setup audio context for visualization
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                source.connect(analyser);
+                
+                // Start recording
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = function(e) {
+                    if (e.data.size > 0) {
+                        audioChunks.push(e.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = function() {
+                    // Create audio blob
+                    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    // Show audio preview
+                    audioPlayer.src = audioUrl;
+                    audioPreview.classList.remove('d-none');
+                    
+                    // Create a File object from the Blob
+                    const audioFile = new File([audioBlob], 'voice_recording.webm', { 
+                        type: 'audio/webm',
+                        lastModified: new Date().getTime() 
+                    });
+                    
+                    // Create a FileList-like object
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(audioFile);
+                    voiceRecordingInput.files = dataTransfer.files;
+                    
+                    // Stop the stream
+                    if (stream) {
+                        stream.getTracks().forEach(track => track.stop());
+                    }
+                    
+                    // Reset UI
+                    visualizerContainer.classList.remove('recording');
+                    cancelAnimationFrame(animationId);
+                };
+                
+                // Start the recording
+                mediaRecorder.start();
+                
+                // Update UI
+                startButton.disabled = true;
+                stopButton.disabled = false;
+                visualizerContainer.classList.add('recording');
+                
+                // Start timer
+                startTime = Date.now();
+                updateTimer();
+                timerInterval = setInterval(updateTimer, 1000);
+                
+                // Start visualizer
+                visualize();
+            })
+            .catch(function(err) {
+                console.error('Error starting recording:', err);
+                alert('Could not access microphone. Please check your browser permissions.');
+            });
+    });
+    
+    // Stop recording handler
+    stopButton.addEventListener('click', function() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            clearInterval(timerInterval);
+            startButton.disabled = false;
+            stopButton.disabled = true;
+        }
+    });
+    
+    // Transcribe audio handler
+    transcribeCheckbox.addEventListener('change', function() {
+        if (this.checked && audioBlob) {
+            transcribeAudio(audioBlob);
+        }
+    });
+    
+    // Update timer display
+    function updateTimer() {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+        const seconds = (elapsed % 60).toString().padStart(2, '0');
+        recordingTimer.textContent = `${minutes}:${seconds}`;
+    }
+    
+    // Visualize audio
+    let animationId;
+    function visualize() {
+        if (!analyser) return;
+        
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        
+        canvasContext.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+        
+        function draw() {
+            animationId = requestAnimationFrame(draw);
+            
+            analyser.getByteFrequencyData(dataArray);
+            
+            canvasContext.fillStyle = '#f8f9fa';
+            canvasContext.fillRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+            
+            const barWidth = (visualizerCanvas.width / bufferLength) * 2.5;
+            let x = 0;
+            
+            for (let i = 0; i < bufferLength; i++) {
+                const barHeight = (dataArray[i] / 255) * visualizerCanvas.height;
+                
+                canvasContext.fillStyle = `rgba(13, 110, 253, ${(dataArray[i] / 255) * 0.8 + 0.2})`;
+                canvasContext.fillRect(x, visualizerCanvas.height - barHeight, barWidth, barHeight);
+                
+                x += barWidth + 1;
+            }
+        }
+        
+        draw();
+    }
+    
+    // Transcribe audio using the API
+    function transcribeAudio(blob) {
+        transcriptionStatus.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Transcribing audio...';
+        
+        const formData = new FormData();
+        formData.append('audio', blob);
+        
+        fetch('/notes/api/transcribe', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Add transcription to the text content
+                const textContent = document.getElementById('text_content');
+                const currentText = textContent.value.trim();
+                
+                if (currentText) {
+                    textContent.value = currentText + '\n\n' + data.transcript;
+                } else {
+                    textContent.value = data.transcript;
+                }
+                
+                transcriptionStatus.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i> Transcription added to note</span>';
+            } else {
+                transcriptionStatus.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> ' + (data.error || 'Transcription failed') + '</span>';
+            }
+        })
+        .catch(error => {
+            console.error('Transcription error:', error);
+            transcriptionStatus.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> Transcription service unavailable</span>';
+        });
+    }
+});
+</script>
+{% endblock %}

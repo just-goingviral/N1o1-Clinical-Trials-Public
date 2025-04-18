@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Clinical Notes - Nitrite Dynamics{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Clinical Notes</h1>
+            <p class="text-muted">Manage your clinical notes and voice recordings</p>
+        </div>
+        <div class="col-auto d-flex align-items-center">
+            <a href="{{ url_for('notes.new_note') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> New Note
+            </a>
+        </div>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    {% if notes %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for note in notes %}
+                <div class="col">
+                    <div class="card h-100 border-primary">
+                        <div class="card-header d-flex justify-content-between align-items-center {% if note.is_private %}bg-warning-subtle{% else %}bg-primary text-white{% endif %}">
+                            <h5 class="mb-0 text-truncate" style="max-width: 200px;">{{ note.title }}</h5>
+                            <div>
+                                {% if note.is_private %}
+                                    <span class="badge bg-warning text-dark" title="Only you can see this note">
+                                        <i class="fas fa-lock me-1"></i> Private
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text" style="max-height: 100px; overflow: hidden;">
+                                {% if note.text_content %}
+                                    {{ note.text_content|truncate(150) }}
+                                {% else %}
+                                    <em class="text-muted">No text content</em>
+                                {% endif %}
+                            </p>
+                            
+                            <div class="mt-3 mb-2">
+                                {% if note.voice_recording_path %}
+                                    <span class="badge bg-info me-1" title="Has voice recording">
+                                        <i class="fas fa-microphone"></i>
+                                    </span>
+                                {% endif %}
+                                
+                                {% if note.patient_id %}
+                                    <span class="badge bg-secondary me-1" title="Linked to patient">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                {% endif %}
+                                
+                                {% if note.simulation_id %}
+                                    <span class="badge bg-secondary me-1" title="Linked to simulation">
+                                        <i class="fas fa-chart-line"></i>
+                                    </span>
+                                {% endif %}
+                                
+                                {% if note.tags %}
+                                    {% for tag in note.tags %}
+                                        <span class="badge bg-secondary me-1">{{ tag }}</span>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                            <small class="text-muted">{{ note.created_at.strftime('%b %d, %Y') }}</small>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('notes.view_note', note_id=note.id) }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('notes.edit_note', note_id=note.id) }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#deleteModal{{ note.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Delete Modal -->
+                <div class="modal fade" id="deleteModal{{ note.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ note.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title" id="deleteModalLabel{{ note.id }}">Confirm Delete</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure you want to delete the note <strong>"{{ note.title }}"</strong>?</p>
+                                <p class="mb-0 text-danger"><small>This action cannot be undone.</small></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <form action="{{ url_for('notes.delete_note', note_id=note.id) }}" method="post">
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-sticky-note fa-5x text-muted mb-3"></i>
+            <h3>No Clinical Notes Found</h3>
+            <p class="text-muted">You haven't created any clinical notes yet.</p>
+            <a href="{{ url_for('notes.new_note') }}" class="btn btn-primary mt-3">
+                <i class="fas fa-plus me-1"></i> Create Your First Note
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
