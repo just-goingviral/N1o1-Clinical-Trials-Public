@@ -1,0 +1,39 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload CSV - Nitrite Dynamics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Upload Patient Data (CSV)</h1>
+        <p>Upload clinical trial data to analyze nitric oxide dynamics.</p>
+        
+        <div class="card">
+            <form method="POST" enctype="multipart/form-data" action="{{ url_for('analyzer_bp.upload_csv') }}">
+                <div class="form-group">
+                    <label for="file">Select a CSV file with patient data:</label>
+                    <input type="file" name="file" id="file" accept=".csv" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Analyze Data</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="info-box">
+            <h3>Expected CSV Format</h3>
+            <p>Your CSV should include the following columns:</p>
+            <ul>
+                <li><strong>Time</strong> (minutes or hours)</li>
+                <li><strong>Plasma NO2-</strong> (µM) - Nitrite levels</li>
+                <li>Optional: <strong>cGMP</strong> (a.u.) - Cellular response</li>
+                <li>Optional: <strong>Vasodilation</strong> (%) - Physiological response</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
