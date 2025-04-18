@@ -622,23 +622,7 @@ def population_analysis():
             'message': str(e)
         }), 500
 
-@api_bp.route('/patients', methods=['GET'])
-def get_patients():
-    """Get all patients for dropdown selection"""
-    try:
-        from models import Patient
-        patients = Patient.query.all()
-        return jsonify({
-            'status': 'success',
-            'data': [patient.to_dict() for patient in patients]
-        })
-    except Exception as e:
-        import logging
-        logging.error(f"Error in get_patients API: {str(e)}")
-        return jsonify({
-            'status': 'error',
-            'message': f"Failed to retrieve patients: {str(e)}"
-        }), 500
+# This get_patients function was removed as it was a duplicate of the one above
 
 @api_bp.route('/chat-history', methods=['GET'])
 def get_chat_history():
