@@ -24,7 +24,7 @@ db.init_app(app)
 
 # Register blueprints
 app.register_blueprint(analyzer_bp)
-app.register_blueprint(api_bp)
+app.register_blueprint(api_bp, name='api_main')  # Provide a unique name
 app.register_blueprint(patient_bp)
 app.register_blueprint(simulation_bp)
 

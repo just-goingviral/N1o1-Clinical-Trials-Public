@@ -13,8 +13,12 @@ from models import db, Patient, Simulation
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
 # Get API key from environment (provided as secret)
-JUSTGOINGVIRAL_API_KEY = os.environ.get("OPENAI_API_KEY")
-client = OpenAI(api_key=JUSTGOINGVIRAL_API_KEY)
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    import logging
+    logging.warning("OpenAI API key not found. AI assistant functionality will be limited.")
+
+client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 # Load knowledge base content
 with open("attached_assets/clinical_assistant_knowledge.md", "r") as f:
@@ -68,8 +72,14 @@ Your initial greeting should be: "Hi, I'm N1O1ai! Would you like help with the c
 
         # Call the AI assistant API 
         try:
+            if client is None:
+                return jsonify({
+                    'status': 'error',
+                    'message': "AI assistant is not available. Please configure the OpenAI API key in your environment variables."
+                }), 503
+                
             response = client.chat.completions.create(
-                model="gpt-4o",  # the newest JustGoingViral model is "gpt-4o" which was released May 13, 2024
+                model="gpt-4o",  # using gpt-4o model
                 messages=messages,
                 temperature=0.7,
                 max_tokens=1000
