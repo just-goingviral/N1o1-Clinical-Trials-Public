@@ -14,3 +14,4 @@ openai
 flask
 flask-migrate
 flask-sqlalchemy
+requests
