@@ -66,7 +66,8 @@ def login():
     """Handle user login"""
     # Check if already logged in
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        # Use absolute URL to prevent potential loop
+        return redirect(url_for('index', _external=True))
     
     # Create demo user if it doesn't exist
     demo_user = create_demo_user()
@@ -90,9 +91,11 @@ def login():
         db.session.commit()
         
         next_page = request.args.get('next')
-        if not next_page or not next_page.startswith('/'):
+        # Validate that next is safe to prevent redirect loops
+        if not next_page or not next_page.startswith('/') or next_page == url_for('auth.login'):
             next_page = url_for('index')
             
+        # Use absolute URL for redirects
         return redirect(next_page)
     
     return render_template('auth/login.html', 
@@ -108,7 +111,8 @@ def logout():
     """Handle user logout"""
     logout_user()
     flash('You have been logged out.', 'info')
-    return redirect(url_for('index'))
+    # Use absolute URL to prevent potential loop
+    return redirect(url_for('index', _external=True))
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():

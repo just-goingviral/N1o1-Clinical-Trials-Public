@@ -55,6 +55,11 @@ app.register_blueprint(notes_bp)
 def index():
     """Main index page - dashboard"""
     try:
+        # Ensure we're not redirecting to login in a loop
+        if not current_user.is_authenticated:
+            # If not authenticated, use a simple template
+            # that doesn't rely on authentication checks
+            return render_template('index.html')
         return render_template('dashboard.html')
     except Exception as e:
         print(f"Error rendering dashboard: {str(e)}")
