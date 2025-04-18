@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nitrite Dynamics API - Documentation</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .endpoint {
+            border-left: 4px solid #007bff;
+            padding-left: 1rem;
+            margin-bottom: 2rem;
+        }
+        .method {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        .method.get {
+            background-color: var(--bs-info);
+            color: var(--bs-dark);
+        }
+        .method.post {
+            background-color: var(--bs-success);
+            color: var(--bs-dark);
+        }
+        .chat-container {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .user-message {
+            background-color: rgba(13, 110, 253, 0.1);
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            margin-bottom: 0.5rem;
+            align-self: flex-end;
+            max-width: 80%;
+        }
+        .assistant-message {
+            background-color: rgba(128, 128, 128, 0.1);
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            margin-bottom: 0.5rem;
+            align-self: flex-start;
+            max-width: 80%;
+        }
+        #chatMessages {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body data-bs-theme="dark">
+    <div class="container">
+        <header class="pb-3 mb-4 border-bottom">
+            <h1 class="display-5 fw-bold">Nitrite Dynamics API</h1>
+            <p class="lead">Clinical trial simulator for nitric oxide (NO) metabolism</p>
+        </header>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="p-4 mb-4 bg-dark rounded-3">
+                    <h2>API Documentation</h2>
+                    <p>This API provides endpoints for simulating nitrite (NO<sub>2</sub><sup>-</sup>) dynamics after supplementation.</p>
+
+                    <div class="endpoint">
+                        <h3><span class="method get">GET</span> /patients</h3>
+                        <p>Get a list of all patients in the clinical trial.</p>
+                        <h4>Response</h4>
+                        <pre><code>{
+  "status": "success",
+  "data": [
+    {
+      "id": 1,
+      "name": "Patient Name",
+      "age": 65,
+      "weight_kg": 75.5,
+      "baseline_no2": 0.15,
+      "notes": "Patient notes",
+      "created_at": "2025-04-18T01:00:00"
+    },
+    ...
+  ]
+}</code></pre>
+                    </div>
+
+                    <div class="endpoint">
+                        <h3><span class="method post">POST</span> /api/simulate</h3>
+                        <p>Run a nitrite dynamics simulation.</p>
+                        <h4>Request Body</h4>
+                        <pre><code>{
+  "patient_id": 1,  // optional, if not provided uses default values
+  "model_type": "1-compartment PK",
+  "dose": 30.0  // mg
+}</code></pre>
+                        <h4>Response</h4>
+                        <pre><code>{
+  "status": "success",
+  "data": {
+    "time_points": [0, 10, 20, ...],
+    "nitrite_levels": [0.2, 0.8, 1.5, ...],
+    "parameters": {
+      "baseline": 0.2,
+      "peak": 4.0,
+      "peak_time": 30,
+      "half_life": 0.5,
+      "dose": 30.0,
+      "age": 65,
+      "weight": 75.5,
+      "model_type": "1-compartment PK"
+    }
+  }
+}</code></pre>
+                    </div>
+
+                    <div class="endpoint">
+                        <h3><span class="method post">POST</span> /api/assistant</h3>
+                        <p>Get a response from the N1O1ai clinical assistant.</p>
+                        <h4>Request Body</h4>
+                        <pre><code>{
+  "message": "What is nitric oxide and how does it help with heart disease?"
+}</code></pre>
+                        <h4>Response</h4>
+                        <pre><code>{
+  "status": "success",
+  "response": "Nitric oxide (NO) is a molecule that..."
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="p-4 mb-4 bg-dark rounded-3">
+                    <h2>Try the N1O1ai Assistant</h2>
+                    <p>Ask about nitric oxide, the N1O1 product line, or simulation parameters.</p>
+                    
+                    <div class="chat-container" id="chatContainer">
+                        <div id="chatMessages">
+                            <div class="assistant-message">
+                                Hi there! I'm your Nitrite Dynamics Assistant. Would you like help with our nitric oxide supplements or learn about our clinical trial to treat ischemic heart disease?
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="text" id="userMessage" class="form-control" placeholder="Type your message here...">
+                        <button class="btn btn-primary" type="button" id="sendMessage">Send</button>
+                    </div>
+                </div>
+
+                <div class="p-4 mb-4 bg-dark rounded-3">
+                    <h2>About Nitrite Dynamics</h2>
+                    <p>This application is designed to support clinical trials studying nitric oxide metabolism. It provides tools for:</p>
+                    <ul>
+                        <li>Simulating nitrite curves after supplementation</li>
+                        <li>Optimizing dosing schedules</li>
+                        <li>Visualizing therapeutic windows</li>
+                        <li>Patient data management</li>
+                    </ul>
+                    <p>Created in collaboration with Dr. Nathan S. Bryan, a globally recognized expert in nitric oxide biochemistry.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatMessages = document.getElementById('chatMessages');
+            const chatContainer = document.getElementById('chatContainer');
+            const userMessage = document.getElementById('userMessage');
+            const sendButton = document.getElementById('sendMessage');
+
+            function addMessage(message, type) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = type === 'user' ? 'user-message' : 'assistant-message';
+                messageDiv.textContent = message;
+                chatMessages.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            async function sendMessageToAssistant(message) {
+                try {
+                    const response = await fetch('/api/assistant', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message }),
+                    });
+
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        addMessage(data.response, 'assistant');
+                    } else {
+                        addMessage('Sorry, I encountered an error: ' + data.message, 'assistant');
+                    }
+                } catch (error) {
+                    addMessage('Sorry, there was an error communicating with the server.', 'assistant');
+                    console.error('Error:', error);
+                }
+            }
+
+            sendButton.addEventListener('click', function() {
+                const message = userMessage.value.trim();
+                if (message) {
+                    addMessage(message, 'user');
+                    userMessage.value = '';
+                    sendMessageToAssistant(message);
+                }
+            });
+
+            userMessage.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendButton.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
