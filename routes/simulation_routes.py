@@ -49,11 +49,26 @@ def view_simulation():
         
         if not simulation_id:
             # Get the most recent simulation if none specified
-            simulation = Simulation.query.order_by(Simulation.id.desc()).first()
-            if not simulation:
-                return render_template('dashboard.html', result_curve=[])
+            try:
+                simulation = Simulation.query.order_by(Simulation.id.desc()).first()
+                if not simulation:
+                    return render_template('simulation_view.html', result_curve=[], error="No simulations found")
+            except Exception as db_error:
+                import logging
+                logging.error(f"Database error: {str(db_error)}")
+                return render_template('simulation_view.html', result_curve=[], 
+                                      error="Database connection error. Please check the connection and try again.")
         else:
-            simulation = Simulation.query.get_or_404(simulation_id)
+            try:
+                simulation = Simulation.query.get(simulation_id)
+                if not simulation:
+                    return render_template('simulation_view.html', result_curve=[], 
+                                          error=f"Simulation with ID {simulation_id} not found")
+            except Exception as db_error:
+                import logging
+                logging.error(f"Database error: {str(db_error)}")
+                return render_template('simulation_view.html', result_curve=[], 
+                                      error="Database connection error. Please check the connection and try again.")
         
         # Convert the result curve to the format expected by the template
         time_points = simulation.result_curve.get('time', [])
@@ -65,12 +80,24 @@ def view_simulation():
             for time, level in zip(time_points, nitrite_levels)
         ]
         
-        return render_template('dashboard.html', result_curve=result_curve)
+        # Get patient information if available
+        patient = None
+        if simulation.patient_id:
+            try:
+                from models import Patient
+                patient = Patient.query.get(simulation.patient_id)
+            except Exception as patient_error:
+                import logging
+                logging.error(f"Error retrieving patient: {str(patient_error)}")
+        
+        return render_template('simulation_view.html', 
+                              simulation=simulation,
+                              patient=patient,
+                              result_curve=result_curve)
     except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+        import logging
+        logging.error(f"View simulation error: {str(e)}")
+        return render_template('simulation_view.html', result_curve=[], error=str(e))
 @simulation_bp.route('/advanced-view')
 def advanced_visualization():
     """Advanced visualization with multiple compartments"""
@@ -81,3 +108,8 @@ def advanced_visualization():
         return render_template('advanced_visualization.html', simulation=simulation)
     
     return render_template('advanced_visualization.html')
+
+@simulation_bp.route('/new', methods=['GET'])
+def new_simulation():
+    """Create a new simulation"""
+    return render_template('simulation_form.html')

@@ -10,8 +10,14 @@ patient_bp = Blueprint('patients', __name__, url_prefix='/patients')
 @patient_bp.route('/', methods=['GET'])
 def list_patients():
     """Display list of all patients"""
-    patients = Patient.query.all()
-    return render_template('patients_table.html', patients=patients)
+    try:
+        patients = Patient.query.all()
+        return render_template('patients_table.html', patients=patients)
+    except Exception as e:
+        import logging
+        logging.error(f"Database error in list_patients: {str(e)}")
+        error_message = "Unable to retrieve patient data. Please check the database connection."
+        return render_template('patients_table.html', patients=[], error=error_message)
 
 @patient_bp.route('/new', methods=['GET', 'POST'])
 def new_patient():

@@ -26,6 +26,7 @@ def assistant_response():
     try:
         data = request.json
         user_message = data.get('message', '')
+        message_history = data.get('history', [])
 
         if not user_message:
             return jsonify({
@@ -48,25 +49,52 @@ If asked what model you are, say "I'm N1O1ai, a clinical trial assistant for the
 Your initial greeting should be: "Hi, I'm N1O1ai! Would you like help with the clinical trial app or guidance on our nitric oxide therapy tools?"
 """
 
+        # Build messages including history if available
+        messages = [{"role": "system", "content": system_message}]
+        
+        # Add message history if provided
+        if message_history and isinstance(message_history, list):
+            for msg in message_history:
+                if isinstance(msg, dict) and 'role' in msg and 'content' in msg:
+                    # Only use roles that are valid for the API
+                    if msg['role'] in ['user', 'assistant']:
+                        messages.append({
+                            "role": msg['role'],
+                            "content": msg['content']
+                        })
+        
+        # Add the current user message
+        messages.append({"role": "user", "content": user_message})
+
         # Call the AI assistant API 
-        response = client.chat.completions.create(
-            model="gpt-4o",  # the newest JustGoingViral model is "gpt-4o" which was released May 13, 2024
-            messages=[
-                {"role": "system", "content": system_message},
-                {"role": "user", "content": user_message}
-            ],
-            temperature=0.7,
-            max_tokens=1000
-        )
-
-        assistant_response = response.choices[0].message.content
-
-        return jsonify({
-            'status': 'success',
-            'response': assistant_response
-        }), 200
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o",  # the newest JustGoingViral model is "gpt-4o" which was released May 13, 2024
+                messages=messages,
+                temperature=0.7,
+                max_tokens=1000
+            )
+            
+            assistant_response = response.choices[0].message.content
+            
+            return jsonify({
+                'status': 'success',
+                'response': assistant_response
+            }), 200
+            
+        except Exception as api_error:
+            # More detailed error for API issues
+            import logging
+            logging.error(f"AI assistant API error: {str(api_error)}")
+            return jsonify({
+                'status': 'error',
+                'message': "I'm having trouble connecting to my knowledge base. Please try again shortly.",
+                'error': str(api_error)
+            }), 500
 
     except Exception as e:
+        import logging
+        logging.error(f"Assistant endpoint error: {str(e)}")
         return jsonify({
             'status': 'error',
             'message': str(e)
@@ -497,6 +525,24 @@ def population_analysis():
         return jsonify({
             'status': 'error',
             'message': str(e)
+        }), 500
+
+@api_bp.route('/patients', methods=['GET'])
+def get_patients():
+    """Get all patients for dropdown selection"""
+    try:
+        from models import Patient
+        patients = Patient.query.all()
+        return jsonify({
+            'status': 'success',
+            'data': [patient.to_dict() for patient in patients]
+        })
+    except Exception as e:
+        import logging
+        logging.error(f"Error in get_patients API: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f"Failed to retrieve patients: {str(e)}"
         }), 500
 
 @api_bp.route('/batch-simulate', methods=['POST'])

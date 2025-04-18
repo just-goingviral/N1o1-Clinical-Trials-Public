@@ -287,22 +287,26 @@ body {
 /* Chat Widget Styles */
 .chat-widget {
     position: fixed;
-    bottom: 80px;
+    bottom: 20px;
     right: 20px;
     width: 350px;
-    height: 500px;
-    background-color: #2a2a2a;
+    max-width: 90vw;
+    max-height: 500px;
+    background-color: #343a40;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: column;
-    z-index: 1000;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     display: none;
+    flex-direction: column;
+    z-index: 1050;
+    transition: all 0.3s ease;
+    resize: both;
+    overflow: hidden;
 }
 
 .chat-header {
+    background-color: #212529;
+    color: #fff;
     padding: 10px 15px;
-    background-color: #333;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
     display: flex;
@@ -312,16 +316,46 @@ body {
 }
 
 .chat-container {
-    flex-grow: 1;
+    flex: 1;
     overflow-y: auto;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
+    padding: 15px;
+    max-height: 350px;
+    scrollbar-width: thin;
+    scrollbar-color: #6c757d #343a40;
 }
 
-#chatMessages {
-    display: flex;
-    flex-direction: column;
+.chat-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-container::-webkit-scrollbar-track {
+    background: #343a40;
+}
+
+.chat-container::-webkit-scrollbar-thumb {
+    background-color: #6c757d;
+    border-radius: 20px;
+}
+
+.chat-footer {
+    padding: 10px;
+    border-top: 1px solid #495057;
+}
+
+/* Adjust chat toggle button position */
+#chatToggleBtn {
+    position: relative;
+    z-index: 1040;
+}
+
+/* Animate chat widget appearance */
+@keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.chat-widget.visible {
+    animation: slideIn 0.3s forwards;
 }
 
 .user-message {

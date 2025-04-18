@@ -218,8 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Global variables for chat
-let chatHistory = [];
-const MAX_HISTORY_LENGTH = 10;
+const MAX_HISTORY_LENGTH = 20;
 
 // Initialize chat widget functionality
 function initChatWidget() {
@@ -237,6 +236,54 @@ function initChatWidget() {
     // Early return if elements don't exist (chat not on this page)
     if (!chatWidget || !chatToggleBtn) return;
     
+    // Load chat history from localStorage
+    let chatHistory = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+    
+    // Initialize chat state from localStorage
+    const chatState = localStorage.getItem('chatWidgetVisible');
+    if (chatState === 'visible') {
+        chatWidget.style.display = 'flex';
+    } else {
+        chatWidget.style.display = 'none';
+    }
+    
+    // Restore chat messages from history
+    if (chatHistory.length > 0) {
+        chatMessages.innerHTML = ''; // Clear default messages
+        chatHistory.forEach(msg => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = msg.role === 'user' ? 'user-message' : 'assistant-message';
+            messageDiv.textContent = msg.content;
+            
+            if (msg.attachment) {
+                const attachmentDiv = document.createElement('div');
+                attachmentDiv.className = 'file-attachment';
+                
+                if (msg.attachment.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = msg.attachment.dataUrl;
+                    img.alt = msg.attachment.name;
+                    attachmentDiv.appendChild(img);
+                } else {
+                    const fileIcon = document.createElement('i');
+                    fileIcon.className = 'fas fa-file me-2';
+                    const fileName = document.createElement('span');
+                    fileName.textContent = msg.attachment.name;
+                    
+                    attachmentDiv.appendChild(fileIcon);
+                    attachmentDiv.appendChild(fileName);
+                }
+                
+                messageDiv.appendChild(attachmentDiv);
+            }
+            
+            chatMessages.appendChild(messageDiv);
+        });
+        
+        // Scroll to bottom
+        chatWidget.querySelector('.chat-container').scrollTop = chatWidget.querySelector('.chat-container').scrollHeight;
+    }
+    
     // Make the chat widget draggable
     const chatHeader = document.getElementById('chatHeader');
     makeDraggable(chatWidget, chatHeader);
@@ -244,11 +291,13 @@ function initChatWidget() {
     // Toggle chat visibility
     chatToggleBtn.addEventListener('click', function() {
         chatWidget.style.display = chatWidget.style.display === 'flex' ? 'none' : 'flex';
+        localStorage.setItem('chatWidgetVisible', chatWidget.style.display === 'flex' ? 'visible' : 'hidden');
     });
     
     // Close chat
     chatCloseBtn.addEventListener('click', function() {
         chatWidget.style.display = 'none';
+        localStorage.setItem('chatWidgetVisible', 'hidden');
     });
     
     // Add message to chat
@@ -296,6 +345,9 @@ function initChatWidget() {
         if (chatHistory.length > MAX_HISTORY_LENGTH) {
             chatHistory.shift();
         }
+        
+        // Save to localStorage
+        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
     }
     
     // Handle file attachment
