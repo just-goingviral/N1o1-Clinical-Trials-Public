@@ -27,8 +27,24 @@ class NODynamicsSimulator:
                  points=360,       # Number of time points for simulation
                  egfr=90.0,        # Estimated glomerular filtration rate (mL/min)
                  rbc_count=4.5e6,  # Red blood cell count (cells/µL)
-                 dose=30.0         # Dose of NO2- administered (mg)
+                 dose=30.0,        # Dose of NO2- administered (mg)
+                 additional_doses=None, # Additional doses as list of dicts with 'time' and 'amount'
+                 formulation="immediate-release" # Formulation type (immediate-release, extended-release)
                 ):
+        """
+        Initialize the simulator with customizable parameters
+        """
+        self.baseline = baseline
+        self.peak = peak
+        self.t_peak = t_peak
+        self.half_life = half_life
+        self.t_max = t_max
+        self.points = points
+        self.egfr = egfr
+        self.rbc_count = rbc_count
+        self.dose = dose
+        self.additional_doses = additional_doses or []
+        self.formulation = formulation
         """
         Initialize the simulator with customizable parameters
         """
@@ -61,16 +77,62 @@ class NODynamicsSimulator:
         """Calculate RBC scavenging rate based on RBC count"""
         return 0.02 * (rbc_count / 1.0e6)
     
-    def _dose_input(self, t, dose=30.0, t_IR=0.0):
-        """Model immediate release dose input"""
-        if t_IR <= t < (t_IR + 0.083):  # Approximating quick dissolution
-            return (dose / 0.083)
-        return 0.0
+    def _dose_input(self, t, dose=30.0, t_IR=0.0, additional_doses=None):
+        """
+        Model dose input with support for multiple dosing regimens
+        
+        Parameters:
+        -----------
+        t : float
+            Current time (hours)
+        dose : float
+            Primary dose (mg)
+        t_IR : float
+            Time of primary dose administration (hours)
+        additional_doses : list of dict, optional
+            List of additional doses, each a dict with 'time' and 'amount' keys
+        """
+        # Immediate release approximation (standard dissolution)
+        result = 0.0
+        
+        # Primary dose
+        if t_IR <= t < (t_IR + 0.083):  # Approximating quick dissolution (5 min)
+            result += (dose / 0.083)
+            
+        # Additional doses if specified
+        if additional_doses:
+            for dose_info in additional_doses:
+                dose_time = dose_info['time']  # Time in hours
+                dose_amount = dose_info['amount']  # Dose in mg
+                
+                if dose_time <= t < (dose_time + 0.083):
+                    result += (dose_amount / 0.083)
+                    
+        return result
     
     def _no2_ode(self, t, y):
         """ODE model for nitrite concentration"""
-        input_flux = self._dose_input(t, dose=self.dose)
-        dcdt = input_flux - (self.k_clear + self.k_rbc) * y[0]
+        # Adapt absorption rate based on formulation
+        dissolution_factor = 1.0
+        if self.formulation == "extended-release":
+            dissolution_factor = 0.3  # Slower dissolution for extended release
+        
+        input_flux = self._dose_input(
+            t, 
+            dose=self.dose * dissolution_factor,
+            additional_doses=self.additional_doses
+        )
+        
+        # Physiological clearance
+        clearance = (self.k_clear + self.k_rbc) * y[0]
+        
+        # Extended release formulation continues to release drug over time
+        if self.formulation == "extended-release":
+            extended_release_rate = 0.7 * self.dose * np.exp(-t / 2) / 4  # Sustained release over ~4 hours
+            if t < 4:  # Only contribute during the first 4 hours
+                input_flux += extended_release_rate
+        
+        dcdt = input_flux - clearance
         return [dcdt]
     
     def _calculate_cgmp(self, no2_array):
