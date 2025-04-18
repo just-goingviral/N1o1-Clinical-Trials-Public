@@ -94,26 +94,35 @@ def run_simulation():
         model_type = data.get('model_type', '1-compartment PK')
         dose = data.get('dose', 30.0)  # mg
         
-        # Create dummy simulation results for now
-        # In a real implementation, this would call the simulation core
-        time_points = list(range(0, 361, 10))  # 0 to 360 minutes in steps of 10
+        # Use the NODynamicsSimulator for accurate pharmacokinetic modeling
+        from simulation_core import NODynamicsSimulator
         
-        # Simple exponential decay model for demo
-        half_life_minutes = 30 + (age / 10)  # Older patients have longer half-lives
-        peak_time = 30  # minutes
+        # Convert parameters for simulator
+        half_life_hours = (30 + (age / 10)) / 60  # Convert to hours
+        t_peak_hours = 30 / 60  # Convert peak time to hours
         peak_value = baseline_no2 + (dose / (weight * 0.1))
         
-        # Calculate nitrite levels at each time point
-        nitrite_levels = []
-        for t in time_points:
-            if t <= peak_time:
-                # Rising phase
-                level = baseline_no2 + (peak_value - baseline_no2) * (t / peak_time)
-            else:
-                # Decay phase
-                decay_factor = 2 ** (-(t - peak_time) / half_life_minutes)
-                level = baseline_no2 + (peak_value - baseline_no2) * decay_factor
-            nitrite_levels.append(round(level, 2))
+        # Create and run simulation
+        simulator = NODynamicsSimulator(
+            baseline=baseline_no2,
+            peak=peak_value,
+            t_peak=t_peak_hours,
+            half_life=half_life_hours,
+            t_max=6,  # 6 hours of simulation
+            points=361,  # one point per minute
+            egfr=90.0 - (0.5 * (age - 40)) if age > 40 else 90.0,  # Estimate eGFR based on age
+            dose=dose
+        )
+        
+        # Run simulation
+        results_df = simulator.simulate()
+        
+        # Extract results
+        time_points = list(results_df['Time (minutes)'])
+        nitrite_levels = list(results_df['Plasma NO2- (µM)'])
+        
+        # Round values for display
+        nitrite_levels = [round(level, 2) for level in nitrite_levels]
         
         # Prepare results
         result = {

@@ -218,7 +218,54 @@
             const ctx = document.getElementById('nitriteChart').getContext('2d');
             
             // Use the time and nitrite data provided by the route
-            const timePoints = {{ time_points|tojson }};
+            const timePoints = {{ simulation.result_curve.time|tojson }};
+            const nitriteValues = {{ simulation.result_curve.no2|tojson }};
+            
+            const chartData = {
+                labels: timePoints,
+                datasets: [{
+                    label: 'Plasma NO₂⁻ (µM)',
+                    data: nitriteValues,
+                    borderColor: 'rgba(138, 43, 226, 1)',
+                    backgroundColor: 'rgba(138, 43, 226, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            };
+            
+            const chartConfig = {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Nitrite Dynamics Simulation'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (minutes)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Concentration (µM)'
+                            }
+                        }
+                    }
+                }
+            };
+            
+            const nitriteChart = new Chart(ctx, chartConfig); time_points|tojson }};
             const nitriteValues = {{ nitrite_levels|tojson }};
             
             console.log('Time points:', timePoints);

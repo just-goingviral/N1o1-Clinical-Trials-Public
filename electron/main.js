@@ -52,12 +52,13 @@ async function startFlaskServer() {
       const pythonPath = getPythonExecutable();
       const appPath = app.getAppPath();
       const flaskAppPath = path.join(appPath, 'app.py');
+      const mainPath = path.join(appPath, 'main.py');
       
       // Spawn Flask process
-      flaskProcess = spawn(pythonPath, [flaskAppPath], {
+      flaskProcess = spawn(pythonPath, [mainPath], {
         env: {
           ...process.env,
-          FLASK_APP: flaskAppPath,
+          FLASK_APP: mainPath,
           FLASK_ENV: 'production',
           FLASK_RUN_PORT: flaskPort.toString(),
           FLASK_RUN_HOST: '127.0.0.1'
