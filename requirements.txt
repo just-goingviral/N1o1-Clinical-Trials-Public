@@ -1,6 +1,9 @@
+
 email-validator>=2.2.0
 flask>=3.1.0
 flask-sqlalchemy>=3.1.1
+flask-migrate
+flask-session
 gunicorn>=23.0.0
 matplotlib>=3.10.1
 numpy>=2.2.4
@@ -10,14 +13,6 @@ scipy>=1.15.2
 statsmodels>=0.14.4
 sqlalchemy
 openai
-flask
-flask-migrate
-flask-sqlalchemy
 requests
-flask-session
 fpdf
 uuid
-flask-migrate
-flask-session
-flask-migrate
-flask-session

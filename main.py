@@ -45,8 +45,39 @@ def patients_redirect():
 
 # Initialize database and create tables if needed
 with app.app_context():
-    init_db()
-    print("Database tables created successfully")
+    try:
+        db_file = os.path.join(os.path.dirname(__file__), 'no_dynamics.db')
+        if not os.path.exists(db_file):
+            print(f"Creating new database at {db_file}")
+        init_db()
+        print("Database tables created successfully")
+    except Exception as e:
+        print(f"Error initializing database: {e}")
+
+# Diagnostic route
+@app.route('/system/health')
+def system_health():
+    """Check system health"""
+    health = {
+        "status": "online",
+        "database": "connected",
+        "session": "active" if session.get('_id') else "initialized",
+        "blueprints": {
+            "analyzer": True,
+            "api": True,
+            "patient": True,
+            "simulation": True
+        }
+    }
+    
+    try:
+        # Test database connection
+        with db.engine.connect() as conn:
+            conn.execute("SELECT 1")
+    except Exception as e:
+        health["database"] = f"error: {str(e)}"
+        
+    return jsonify(health)
 
 # Run the application
 if __name__ == '__main__':
