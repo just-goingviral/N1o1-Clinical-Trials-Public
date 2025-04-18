@@ -128,17 +128,41 @@
                 </button>
             </div>
             <div class="no-chat-drawing-container" id="no-chat-drawing-container">
+                <div class="no-chat-drawing-header">
+                    <h5>N1O1 Drawing Canvas</h5>
+                    <button id="no-chat-close-drawing" class="no-chat-close-btn" title="Close">&times;</button>
+                </div>
                 <canvas id="no-chat-drawing" class="no-chat-drawing-canvas"></canvas>
                 <div class="no-chat-drawing-tools">
-                    <button id="no-chat-clear-drawing" class="no-chat-tool-btn" title="Clear">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                    <button id="no-chat-save-drawing" class="no-chat-tool-btn" title="Save">
-                        <i class="fas fa-save"></i>
-                    </button>
-                    <button id="no-chat-close-drawing" class="no-chat-tool-btn" title="Close">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <div class="no-chat-color-options">
+                        <button class="no-chat-color-btn" data-color="#0D6EFD" style="background-color: #0D6EFD;" title="Blue"></button>
+                        <button class="no-chat-color-btn" data-color="#DC3545" style="background-color: #DC3545;" title="Red"></button>
+                        <button class="no-chat-color-btn" data-color="#198754" style="background-color: #198754;" title="Green"></button>
+                        <button class="no-chat-color-btn" data-color="#6C757D" style="background-color: #6C757D;" title="Gray"></button>
+                        <button class="no-chat-color-btn" data-color="#FFC107" style="background-color: #FFC107;" title="Yellow"></button>
+                    </div>
+                    <div class="no-chat-size-options">
+                        <button class="no-chat-size-btn" data-size="2" title="Small">
+                            <div class="size-circle size-small"></div>
+                        </button>
+                        <button class="no-chat-size-btn" data-size="5" title="Medium">
+                            <div class="size-circle size-medium"></div>
+                        </button>
+                        <button class="no-chat-size-btn" data-size="10" title="Large">
+                            <div class="size-circle size-large"></div>
+                        </button>
+                    </div>
+                    <div class="no-chat-action-options">
+                        <button id="no-chat-clear-drawing" class="no-chat-tool-btn" title="Clear">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                        <button id="no-chat-save-drawing" class="no-chat-tool-btn" title="Save Image">
+                            <i class="fas fa-save"></i>
+                        </button>
+                        <button id="no-chat-send-drawing" class="no-chat-tool-btn" title="Send to Chat">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -332,28 +356,105 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(33, 37, 41, 0.95);
+            background-color: rgba(33, 37, 41, 0.98);
             z-index: 1002;
+            flex-direction: column;
+        }
+        
+        .no-chat-drawing-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: #0D6EFD;
+            color: white;
+        }
+        
+        .no-chat-drawing-header h5 {
+            margin: 0;
+            font-size: 1.1rem;
         }
         
         .no-chat-drawing-canvas {
             width: 100%;
-            height: calc(100% - 50px);
+            height: calc(100% - 110px);
             background-color: #343a40;
             cursor: crosshair;
         }
         
         .no-chat-drawing-tools {
             display: flex;
-            justify-content: center;
-            gap: 10px;
+            flex-direction: column;
             padding: 10px;
             background-color: #2b3035;
+            gap: 8px;
+        }
+        
+        .no-chat-color-options,
+        .no-chat-size-options,
+        .no-chat-action-options {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .no-chat-color-btn {
+            width: 30px;
+            height: 30px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .no-chat-color-btn:hover,
+        .no-chat-color-btn.active {
+            transform: scale(1.2);
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+        
+        .no-chat-size-btn {
+            width: 40px;
+            height: 40px;
+            background: none;
+            border: 1px solid #495057;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .size-circle {
+            background-color: white;
+            border-radius: 50%;
+        }
+        
+        .size-small {
+            width: 6px;
+            height: 6px;
+        }
+        
+        .size-medium {
+            width: 12px;
+            height: 12px;
+        }
+        
+        .size-large {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .no-chat-size-btn:hover,
+        .no-chat-size-btn.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: #fff;
         }
         
         .no-chat-tool-btn {
             width: 40px;
-            height: 30px;
+            height: 40px;
             border: none;
             background-color: #495057;
             color: white;
@@ -362,10 +463,12 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            transition: all 0.2s;
         }
         
         .no-chat-tool-btn:hover {
             background-color: #6c757d;
+            transform: translateY(-2px);
         }
         
         /* Responsive adjustments */
@@ -384,10 +487,43 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize scientific tooltips on the page
             if (window.N1O1Glossary) {
-                const contentElements = document.querySelectorAll('.card, .container, .row');
-                contentElements.forEach(element => {
-                    window.N1O1Glossary.scanForScientificTerms(element);
+                // First attempt to initialize any explicit scientific terms already in the HTML
+                window.N1O1Glossary.initScientificTooltips('body', {
+                    placement: 'auto',
+                    allowHtml: true,
+                    delay: 100
                 });
+                
+                // Then scan for additional terms in the content
+                try {
+                    // Main content containers to scan
+                    const contentSelectors = [
+                        '.card-body', 
+                        '.container p', 
+                        '.container li',
+                        'h3, h4, h5',
+                        '.card-text',
+                        '.lead'
+                    ];
+                    
+                    // Join selectors with commas for a single query
+                    const combinedSelector = contentSelectors.join(', ');
+                    
+                    // Scan with enhanced options for better performance
+                    window.N1O1Glossary.scanForScientificTerms(combinedSelector, {
+                        includeBasic: true,
+                        includeAdvanced: true, 
+                        includeProduct: true,
+                        limitReplacement: true, // Limit to one occurrence per term for better performance
+                        preserveExisting: true  // Don't replace terms that already have tooltips
+                    });
+                    
+                    console.log('Scientific terminology tooltips initialized');
+                } catch (error) {
+                    console.error('Error initializing scientific tooltips:', error);
+                }
+            } else {
+                console.warn('N1O1Glossary not available. Scientific tooltips will not be initialized.');
             }
             
             // Setup NO Molecule Chat
@@ -404,22 +540,88 @@
             const clearDrawingBtn = document.getElementById('no-chat-clear-drawing');
             const saveDrawingBtn = document.getElementById('no-chat-save-drawing');
             const closeDrawingBtn = document.getElementById('no-chat-close-drawing');
+            const sendDrawingBtn = document.getElementById('no-chat-send-drawing');
+            const colorButtons = document.querySelectorAll('.no-chat-color-btn');
+            const sizeButtons = document.querySelectorAll('.no-chat-size-btn');
             
             let isDrawing = false;
             let lastX = 0;
             let lastY = 0;
             const ctx = drawingCanvas.getContext('2d');
             
+            // Drawing settings
+            const drawingSettings = {
+                color: '#0D6EFD',
+                lineWidth: 5,
+                history: [],
+                currentStep: -1
+            };
+            
             // Set canvas dimensions
             function resizeCanvas() {
-                drawingCanvas.width = drawingContainer.clientWidth;
-                drawingCanvas.height = drawingContainer.clientHeight - 50; // Subtract toolbar height
+                const containerRect = drawingContainer.getBoundingClientRect();
+                drawingCanvas.width = containerRect.width;
+                drawingCanvas.height = containerRect.height - 110; // Subtract header and toolbar heights
                 
                 // Set default drawing style
-                ctx.strokeStyle = '#0D6EFD';
+                updateDrawingStyle();
+                
+                // Set active classes for the default color and size
+                document.querySelector(`.no-chat-color-btn[data-color="${drawingSettings.color}"]`)?.classList.add('active');
+                document.querySelector(`.no-chat-size-btn[data-size="${drawingSettings.lineWidth}"]`)?.classList.add('active');
+                
+                // Draw any existing content
+                redrawFromHistory();
+            }
+            
+            // Update the drawing style
+            function updateDrawingStyle() {
+                ctx.strokeStyle = drawingSettings.color;
                 ctx.lineJoin = 'round';
                 ctx.lineCap = 'round';
-                ctx.lineWidth = 3;
+                ctx.lineWidth = drawingSettings.lineWidth;
+            }
+            
+            // Add a step to the history
+            function addToHistory(data) {
+                // If we've gone back in history and are now drawing a new path, remove the "future" history
+                if (drawingSettings.currentStep < drawingSettings.history.length - 1) {
+                    drawingSettings.history = drawingSettings.history.slice(0, drawingSettings.currentStep + 1);
+                }
+                
+                drawingSettings.history.push(data);
+                drawingSettings.currentStep = drawingSettings.history.length - 1;
+            }
+            
+            // Clear the canvas and history
+            function clearCanvas() {
+                ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                drawingSettings.history = [];
+                drawingSettings.currentStep = -1;
+            }
+            
+            // Redraw from history
+            function redrawFromHistory() {
+                ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                
+                for (let i = 0; i <= drawingSettings.currentStep; i++) {
+                    const item = drawingSettings.history[i];
+                    
+                    if (item.type === 'path') {
+                        ctx.beginPath();
+                        ctx.strokeStyle = item.color;
+                        ctx.lineWidth = item.lineWidth;
+                        
+                        const points = item.points;
+                        ctx.moveTo(points[0].x, points[0].y);
+                        
+                        for (let j = 1; j < points.length; j++) {
+                            ctx.lineTo(points[j].x, points[j].y);
+                        }
+                        
+                        ctx.stroke();
+                    }
+                }
             }
             
             // Open chat modal with animation
@@ -543,52 +745,131 @@
             }
             
             // Canvas drawing functionality
+            let currentPath = null;
+            
             drawingCanvas.addEventListener('mousedown', function(e) {
                 isDrawing = true;
                 [lastX, lastY] = [e.offsetX, e.offsetY];
+                
+                // Start a new path
+                currentPath = {
+                    type: 'path',
+                    color: drawingSettings.color,
+                    lineWidth: drawingSettings.lineWidth,
+                    points: [{x: lastX, y: lastY}]
+                };
             });
             
             drawingCanvas.addEventListener('mousemove', function(e) {
                 if (!isDrawing) return;
+                
+                // Record the point
+                currentPath.points.push({x: e.offsetX, y: e.offsetY});
+                
+                // Draw the line
                 ctx.beginPath();
                 ctx.moveTo(lastX, lastY);
                 ctx.lineTo(e.offsetX, e.offsetY);
                 ctx.stroke();
+                
                 [lastX, lastY] = [e.offsetX, e.offsetY];
             });
             
-            drawingCanvas.addEventListener('mouseup', () => isDrawing = false);
-            drawingCanvas.addEventListener('mouseout', () => isDrawing = false);
+            drawingCanvas.addEventListener('mouseup', function() {
+                if (isDrawing && currentPath && currentPath.points.length > 1) {
+                    // Save the completed path to history
+                    addToHistory(currentPath);
+                    currentPath = null;
+                }
+                isDrawing = false;
+            });
+            
+            drawingCanvas.addEventListener('mouseout', function() {
+                if (isDrawing && currentPath && currentPath.points.length > 1) {
+                    // Save the path if mouse leaves the canvas
+                    addToHistory(currentPath);
+                    currentPath = null;
+                }
+                isDrawing = false;
+            });
             
             // Touch support for mobile
             drawingCanvas.addEventListener('touchstart', function(e) {
                 e.preventDefault();
                 isDrawing = true;
+                
                 const touch = e.touches[0];
                 const rect = drawingCanvas.getBoundingClientRect();
                 [lastX, lastY] = [touch.clientX - rect.left, touch.clientY - rect.top];
+                
+                // Start a new path
+                currentPath = {
+                    type: 'path',
+                    color: drawingSettings.color,
+                    lineWidth: drawingSettings.lineWidth,
+                    points: [{x: lastX, y: lastY}]
+                };
             });
             
             drawingCanvas.addEventListener('touchmove', function(e) {
                 e.preventDefault();
                 if (!isDrawing) return;
+                
                 const touch = e.touches[0];
                 const rect = drawingCanvas.getBoundingClientRect();
                 const offsetX = touch.clientX - rect.left;
                 const offsetY = touch.clientY - rect.top;
                 
+                // Record the point
+                currentPath.points.push({x: offsetX, y: offsetY});
+                
+                // Draw the line
                 ctx.beginPath();
                 ctx.moveTo(lastX, lastY);
                 ctx.lineTo(offsetX, offsetY);
                 ctx.stroke();
+                
                 [lastX, lastY] = [offsetX, offsetY];
             });
             
-            drawingCanvas.addEventListener('touchend', () => isDrawing = false);
+            drawingCanvas.addEventListener('touchend', function() {
+                if (isDrawing && currentPath && currentPath.points.length > 1) {
+                    // Save the completed path to history
+                    addToHistory(currentPath);
+                    currentPath = null;
+                }
+                isDrawing = false;
+            });
+            
+            // Color selection
+            colorButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const color = this.getAttribute('data-color');
+                    drawingSettings.color = color;
+                    updateDrawingStyle();
+                    
+                    // Update active class
+                    colorButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Size selection
+            sizeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const size = parseInt(this.getAttribute('data-size'));
+                    drawingSettings.lineWidth = size;
+                    updateDrawingStyle();
+                    
+                    // Update active class
+                    sizeButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
             
             // Clear drawing
             clearDrawingBtn.addEventListener('click', function() {
-                ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                clearCanvas();
             });
             
             // Save drawing
@@ -607,6 +888,58 @@
                 // Add message to chat
                 addMessageToChat('assistant', "Your drawing has been saved!");
             });
+            
+            // Send drawing to chat (attach it as an image in the chat)
+            if (sendDrawingBtn) {
+                sendDrawingBtn.addEventListener('click', function() {
+                    if (drawingSettings.history.length === 0) {
+                        alert('Please draw something before sending!');
+                        return;
+                    }
+                    
+                    // Convert canvas to data URL
+                    const dataURL = drawingCanvas.toDataURL('image/png');
+                    
+                    // Add an image message to the chat
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'no-chat-message user';
+                    
+                    const bubbleDiv = document.createElement('div');
+                    bubbleDiv.className = 'no-chat-bubble';
+                    
+                    const img = document.createElement('img');
+                    img.src = dataURL;
+                    img.style.maxWidth = '100%';
+                    img.style.borderRadius = '5px';
+                    
+                    bubbleDiv.appendChild(img);
+                    messageDiv.appendChild(bubbleDiv);
+                    messagesContainer.appendChild(messageDiv);
+                    
+                    // Scroll to bottom
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    
+                    // Close drawing canvas
+                    drawingContainer.style.display = 'none';
+                    
+                    // Simulate response
+                    setTimeout(() => {
+                        // Add typing indicator
+                        const typingDiv = document.createElement('div');
+                        typingDiv.className = 'no-chat-message assistant';
+                        typingDiv.innerHTML = '<div class="no-chat-bubble">Typing...</div>';
+                        messagesContainer.appendChild(typingDiv);
+                        
+                        setTimeout(() => {
+                            // Remove typing indicator
+                            messagesContainer.removeChild(typingDiv);
+                            
+                            // Add response
+                            addMessageToChat('assistant', "Thanks for sharing your drawing! It helps me understand what you're thinking about. Would you like to discuss any specific aspect of this diagram?");
+                        }, 1500);
+                    }, 500);
+                });
+            }
             
             // Close drawing panel
             closeDrawingBtn.addEventListener('click', function() {
