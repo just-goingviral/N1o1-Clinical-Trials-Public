@@ -91,11 +91,13 @@ def login():
         db.session.commit()
         
         next_page = request.args.get('next')
-        # Validate that next is safe to prevent redirect loops
-        if not next_page or not next_page.startswith('/') or next_page == url_for('auth.login'):
-            next_page = url_for('index')
+        # Enhanced validation to prevent redirect loops
+        if not next_page or not next_page.startswith('/') or 'login' in next_page:
+            next_page = url_for('index', _external=True)
+        elif not next_page.startswith('http'):
+            # Make sure we're using an absolute URL
+            next_page = request.host_url.rstrip('/') + next_page
             
-        # Use absolute URL for redirects
         return redirect(next_page)
     
     return render_template('auth/login.html', 

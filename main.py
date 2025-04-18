@@ -32,7 +32,10 @@ session_extension = Session(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'auth.login'
+login_manager.login_message = "Please log in to access this page."
 login_manager.login_message_category = 'info'
+# Prevent login loops with an absolute URL
+app.config['LOGIN_DISABLED'] = False
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -57,13 +60,15 @@ def index():
     try:
         # Ensure we're not redirecting to login in a loop
         if not current_user.is_authenticated:
-            # If not authenticated, use a simple template
-            # that doesn't rely on authentication checks
-            return render_template('index.html')
-        return render_template('dashboard.html')
+            # If not authenticated, use a simple template that doesn't check authentication
+            return render_template('index.html', title="Welcome to Nitrite Dynamics")
+        # If we're here, we're authenticated, so we can render the dashboard
+        return render_template('dashboard.html', title="Dashboard")
     except Exception as e:
         print(f"Error rendering dashboard: {str(e)}")
-        return render_template('index.html')  # Fallback template
+        # Make sure we're returning something even if there's an error
+        return render_template('index.html', title="Welcome to Nitrite Dynamics", 
+                              error="An error occurred loading the dashboard.")
 
 # Redirect /patient to /patients for convenience
 @app.route('/patient')
