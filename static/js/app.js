@@ -212,4 +212,243 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize numeric inputs
     initNumericInputs();
+    
+    // Initialize chat widget
+    initChatWidget();
 });
+
+// Global variables for chat
+let chatHistory = [];
+const MAX_HISTORY_LENGTH = 10;
+
+// Initialize chat widget functionality
+function initChatWidget() {
+    // Chat elements
+    const chatWidget = document.getElementById('chatWidget');
+    const chatToggleBtn = document.getElementById('chatToggleBtn');
+    const chatCloseBtn = document.getElementById('chatCloseBtn');
+    const chatMessages = document.getElementById('chatMessages');
+    const userMessageInput = document.getElementById('userMessage');
+    const sendMessageBtn = document.getElementById('sendMessage');
+    const attachFileBtn = document.getElementById('attachFileBtn');
+    const chatFileUpload = document.getElementById('chatFileUpload');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    
+    // Early return if elements don't exist (chat not on this page)
+    if (!chatWidget || !chatToggleBtn) return;
+    
+    // Make the chat widget draggable
+    const chatHeader = document.getElementById('chatHeader');
+    makeDraggable(chatWidget, chatHeader);
+    
+    // Toggle chat visibility
+    chatToggleBtn.addEventListener('click', function() {
+        chatWidget.style.display = chatWidget.style.display === 'flex' ? 'none' : 'flex';
+    });
+    
+    // Close chat
+    chatCloseBtn.addEventListener('click', function() {
+        chatWidget.style.display = 'none';
+    });
+    
+    // Add message to chat
+    function addMessage(message, type, attachment = null) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = type === 'user' ? 'user-message' : 'assistant-message';
+        messageDiv.textContent = message;
+        
+        // If there's an attachment (file or image)
+        if (attachment) {
+            const attachmentDiv = document.createElement('div');
+            attachmentDiv.className = 'file-attachment';
+            
+            // Check if it's an image
+            if (attachment.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = attachment.dataUrl;
+                img.alt = attachment.name;
+                attachmentDiv.appendChild(img);
+            } else {
+                // For other file types
+                const fileIcon = document.createElement('i');
+                fileIcon.className = 'fas fa-file me-2';
+                const fileName = document.createElement('span');
+                fileName.textContent = attachment.name;
+                
+                attachmentDiv.appendChild(fileIcon);
+                attachmentDiv.appendChild(fileName);
+            }
+            
+            messageDiv.appendChild(attachmentDiv);
+        }
+        
+        chatMessages.appendChild(messageDiv);
+        chatWidget.querySelector('.chat-container').scrollTop = chatWidget.querySelector('.chat-container').scrollHeight;
+        
+        // Store message in history
+        chatHistory.push({
+            role: type === 'user' ? 'user' : 'assistant',
+            content: message,
+            attachment: attachment
+        });
+        
+        // Limit history length
+        if (chatHistory.length > MAX_HISTORY_LENGTH) {
+            chatHistory.shift();
+        }
+    }
+    
+    // Handle file attachment
+    let currentAttachment = null;
+    
+    attachFileBtn.addEventListener('click', function() {
+        chatFileUpload.click();
+    });
+    
+    chatFileUpload.addEventListener('change', function() {
+        const file = chatFileUpload.files[0];
+        if (file) {
+            fileNameDisplay.textContent = file.name;
+            
+            // Read file content
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                currentAttachment = {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    dataUrl: e.target.result
+                };
+            };
+            
+            if (file.type.startsWith('image/')) {
+                reader.readAsDataURL(file);
+            } else {
+                reader.readAsText(file);
+            }
+        }
+    });
+    
+    // Send message
+    function sendMessage() {
+        const message = userMessageInput.value.trim();
+        if (!message && !currentAttachment) return;
+        
+        // Add user message to chat
+        if (message) {
+            addMessage(message, 'user', currentAttachment);
+        } else if (currentAttachment) {
+            addMessage("I'm sending you a file.", 'user', currentAttachment);
+        }
+        
+        userMessageInput.value = '';
+        fileNameDisplay.textContent = '';
+        
+        // Show loading indicator
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'assistant-message';
+        loadingDiv.innerHTML = '<div class="spinner-border spinner-border-sm text-light" role="status"><span class="visually-hidden">Loading...</span></div> Thinking...';
+        chatMessages.appendChild(loadingDiv);
+        
+        // Send message to AI
+        fetch('/api/assistant', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: message,
+                history: chatHistory.slice(0, -1), // Exclude the message we just added
+                attachment: currentAttachment
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Remove loading indicator
+            chatMessages.removeChild(loadingDiv);
+            
+            if (data.status === 'success') {
+                addMessage(data.response, 'assistant');
+                
+                // If there's a plot or visualization in the response
+                if (data.plot_url) {
+                    const plotAttachment = {
+                        name: 'visualization.png',
+                        type: 'image/png',
+                        dataUrl: data.plot_url
+                    };
+                    addMessage("Here's the visualization you requested:", 'assistant', plotAttachment);
+                }
+            } else {
+                addMessage('Sorry, I encountered an error: ' + data.message, 'assistant');
+            }
+            
+            // Reset current attachment
+            currentAttachment = null;
+        })
+        .catch(error => {
+            // Remove loading indicator
+            chatMessages.removeChild(loadingDiv);
+            
+            addMessage('Sorry, there was an error communicating with the server.', 'assistant');
+            console.error('Error:', error);
+            
+            // Reset current attachment
+            currentAttachment = null;
+        });
+    }
+    
+    // Send message on button click
+    sendMessageBtn.addEventListener('click', sendMessage);
+    
+    // Send message on Enter key
+    userMessageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+}
+
+// Make an element draggable
+function makeDraggable(element, handle) {
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    
+    if (handle) {
+        handle.onmousedown = dragMouseDown;
+    } else {
+        element.onmousedown = dragMouseDown;
+    }
+    
+    function dragMouseDown(e) {
+        e = e || window.event;
+        e.preventDefault();
+        // Get the mouse cursor position at startup
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        // Call a function whenever the cursor moves
+        document.onmousemove = elementDrag;
+    }
+    
+    function elementDrag(e) {
+        e = e || window.event;
+        e.preventDefault();
+        // Calculate the new cursor position
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        // Set the element's new position
+        element.style.top = (element.offsetTop - pos2) + "px";
+        element.style.right = "auto";
+        element.style.left = (element.offsetLeft - pos1) + "px";
+        element.style.bottom = "auto";
+    }
+    
+    function closeDragElement() {
+        // Stop moving when mouse button is released
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
+}

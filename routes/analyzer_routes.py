@@ -1,4 +1,3 @@
-
 """
 Analyzer routes for Nitrite Dynamics application
 """
@@ -51,15 +50,63 @@ def generate_plot(df):
 
 @analyzer_bp.route('/', methods=['GET', 'POST'])
 def upload_csv():
+    """Upload and analyze CSV data"""
     if request.method == 'POST':
-        file = request.files.get('file')
+        # Check if a file was uploaded
+        if 'file' not in request.files:
+            return render_template('upload.html', error="No file part")
+
+        file = request.files['file']
+
+        # Check if the file is empty
+        if file.filename == '':
+            return render_template('upload.html', error="No selected file")
+
+        # Process the CSV file
         if file and file.filename.endswith('.csv'):
-            df = pd.read_csv(file)
-            analyzer = StatisticalAnalyzer()
-            analyzer.load_data(dataframe=df)
-            summary = analyzer.create_summary_report()
-            plot_url = generate_plot(df)
-            return render_template('analysis.html', summary=summary, plot_url=plot_url)
+            try:
+                # Read CSV file
+                df = pd.read_csv(file)
+
+                # Check for required columns
+                time_col = None
+                value_col = None
+
+                # Try to identify time and value columns
+                for col in df.columns:
+                    col_lower = col.lower()
+                    if 'time' in col_lower or 'min' in col_lower or 'hour' in col_lower:
+                        time_col = col
+                    elif 'no' in col_lower or 'nitric' in col_lower or 'nitrite' in col_lower or 'value' in col_lower or 'level' in col_lower:
+                        value_col = col
+
+                # If columns weren't identified, use the first two columns
+                if time_col is None or value_col is None:
+                    time_col = df.columns[0]
+                    value_col = df.columns[1]
+
+                # Analyze the data
+                analyzer = StatisticalAnalyzer()
+
+                # Prepare data for analysis
+                time_values = df[time_col].values
+                no_values = df[value_col].values
+
+                # Calculate summary statistics
+                summary = analyzer.calculate_summary_statistics(time_values, no_values)
+
+                # Generate plot
+                plot_url = analyzer.plot_data(time_values, no_values, time_col, value_col, return_base64=True)
+
+                # Render the analysis template with results
+                return render_template('analysis.html', summary=summary, plot_url=plot_url)
+
+            except Exception as e:
+                return render_template('upload.html', error=f"Error processing file: {str(e)}")
+        else:
+            return render_template('upload.html', error="Invalid file format. Please upload a CSV file.")
+
+    # For GET requests, just show the upload form
     return render_template('upload.html')
 
 @analyzer_bp.route('/download_pdf', methods=['POST'])
