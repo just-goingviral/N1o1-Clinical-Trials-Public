@@ -23,17 +23,27 @@ body {
 .card {
     margin-bottom: 1.5rem;
     border: none;
-    border-radius: 0.5rem;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
 .card-header {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     background-color: rgba(255, 255, 255, 0.05);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
 }
 
 .card-body {
     padding: 1.5rem;
+    background-color: rgba(255, 255, 255, 0.02);
 }
 
 /* Form styles */
@@ -250,6 +260,70 @@ body {
     .metric-value {
         font-size: 1.5rem;
     }
+    
+    .container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    
+    h1, h2 {
+        font-size: 1.75rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+    
+    .nav-link {
+        padding: 0.4rem 0.6rem;
+    }
+    
+    .footer {
+        height: 50px;
+        line-height: 50px;
+        font-size: 0.85rem;
+    }
+    
+    .chat-widget {
+        width: 300px;
+        right: 10px;
+        bottom: 10px;
+    }
+    
+    .btn {
+        padding: 0.4rem 0.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    body {
+        padding-bottom: 50px;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+    
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .table td, .table th {
+        padding: 0.5rem;
+    }
+    
+    .metric-card {
+        padding: 0.75rem;
+    }
+    
+    .chat-widget {
+        width: calc(100% - 20px);
+        max-height: 450px;
+    }
+    
+    .chat-toggle-button {
+        bottom: 70px;
+    }
 }
 
 /* Custom animations */
@@ -293,14 +367,24 @@ body {
     max-width: 90vw;
     max-height: 500px;
     background-color: #343a40;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
     display: none;
     flex-direction: column;
     z-index: 1050;
     transition: all 0.3s ease;
     resize: both;
     overflow: hidden;
+}
+
+@media (max-width: 576px) {
+    .chat-widget {
+        bottom: 70px;
+        right: 10px;
+        width: calc(100% - 20px);
+        max-height: 60vh;
+        resize: none;
+    }
 }
 
 .chat-header {

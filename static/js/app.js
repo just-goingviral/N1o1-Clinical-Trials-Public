@@ -43,6 +43,55 @@ function showToast(message, type = 'info') {
     closeButton.setAttribute('data-bs-dismiss', 'toast');
     closeButton.setAttribute('aria-label', 'Close');
 
+// Mobile-friendly chat functions
+document.addEventListener('DOMContentLoaded', function() {
+    const chatWidget = document.querySelector('.chat-widget');
+    const chatToggleBtn = document.getElementById('chatToggleBtn');
+    const chatHeader = document.querySelector('.chat-header');
+    
+    if (chatToggleBtn && chatWidget) {
+        chatToggleBtn.addEventListener('click', function() {
+            chatWidget.style.display = chatWidget.style.display === 'flex' ? 'none' : 'flex';
+            
+            // Adjust position on mobile
+            if (window.innerWidth <= 576) {
+                chatWidget.style.height = '60vh';
+                chatWidget.style.bottom = '70px';
+            }
+        });
+    }
+    
+    // Make chat widget draggable
+    if (chatHeader && chatWidget) {
+        makeDraggable(chatWidget, chatHeader);
+    }
+    
+    // Handle resize events for mobile
+    window.addEventListener('resize', function() {
+        if (chatWidget.style.display === 'flex' && window.innerWidth <= 576) {
+            chatWidget.style.width = 'calc(100% - 20px)';
+            chatWidget.style.height = '60vh';
+            chatWidget.style.right = '10px';
+            chatWidget.style.bottom = '70px';
+        }
+    });
+    
+    // Focus input when chat is opened
+    if (chatToggleBtn && chatWidget) {
+        chatToggleBtn.addEventListener('click', function() {
+            if (chatWidget.style.display === 'flex') {
+                const chatInput = document.querySelector('.chat-widget input[type="text"]');
+                if (chatInput) {
+                    setTimeout(() => {
+                        chatInput.focus();
+                    }, 300);
+                }
+            }
+        });
+    }
+});
+
+
     flexContainer.appendChild(toastBody);
     flexContainer.appendChild(closeButton);
     toastEl.appendChild(flexContainer);
