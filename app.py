@@ -11,12 +11,29 @@ import json
 import numpy as np
 import pandas as pd
 from flask import Flask, render_template, request, jsonify, send_file, session
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
 from simulation_core import NODynamicsSimulator
 from statistical_analysis import StatisticalAnalyzer
 from optimization import ParameterOptimizer
 
+class Base(DeclarativeBase):
+    pass
+
+# Create Flask app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "development_secret_key")
+
+# Configure database
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+}
+
+# Initialize SQLAlchemy
+db = SQLAlchemy(model_class=Base)
+db.init_app(app)
 
 @app.route('/')
 def index():
