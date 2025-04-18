@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Nitrite Dynamics{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Sign In</h2>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form method="post" action="{{ url_for('auth.login') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            {{ form.username(class="form-control", id="username") }}
+                            {% for error in form.username.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            {{ form.password(class="form-control", id="password") }}
+                            {% for error in form.password.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            {{ form.remember_me(class="form-check-input", id="remember_me") }}
+                            <label class="form-check-label" for="remember_me">Remember Me</label>
+                        </div>
+                        
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                    
+                    <hr>
+                    
+                    {% if demo_credentials %}
+                    <div class="alert alert-info mt-3">
+                        <h5>Demo Credentials</h5>
+                        <p class="mb-1"><strong>Username:</strong> {{ demo_credentials.username }}</p>
+                        <p class="mb-0"><strong>Password:</strong> {{ demo_credentials.password }}</p>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-primary" id="fillDemoCredentials">
+                                <i class="fas fa-sign-in-alt me-1"></i> Login with Demo Account
+                            </button>
+                        </div>
+                    </div>
+                    <script>
+                        document.getElementById('fillDemoCredentials').addEventListener('click', function() {
+                            document.getElementById('username').value = "{{ demo_credentials.username }}";
+                            document.getElementById('password').value = "{{ demo_credentials.password }}";
+                        });
+                    </script>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Nitrite Dynamics{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card border-primary mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">User Profile</h3>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-circle">
+                            <span class="initials">{{ current_user.first_name[0] }}{{ current_user.last_name[0] }}</span>
+                        </div>
+                    </div>
+                    
+                    <h4>{{ current_user.first_name }} {{ current_user.last_name }}</h4>
+                    <p class="text-muted">{{ current_user.role|capitalize }}</p>
+                    
+                    <div class="mt-4">
+                        <div class="mb-2">
+                            <strong>Username:</strong> {{ current_user.username }}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Email:</strong> {{ current_user.email }}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Member since:</strong> {{ current_user.created_at.strftime('%B %d, %Y') }}
+                        </div>
+                        <div>
+                            <strong>Last login:</strong> 
+                            {% if current_user.last_login %}
+                                {{ current_user.last_login.strftime('%B %d, %Y at %H:%M') }}
+                            {% else %}
+                                First login
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2">
+                <a href="{{ url_for('notes.new_note') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i> Create New Note
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger">
+                    <i class="fas fa-sign-out-alt me-1"></i> Logout
+                </a>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Recent Clinical Notes</h3>
+                    <a href="{{ url_for('notes.list_notes') }}" class="btn btn-sm btn-outline-light">View All</a>
+                </div>
+                <div class="card-body">
+                    {% set notes = current_user.clinical_notes|sort(attribute='created_at', reverse=true)[:5] %}
+                    
+                    {% if notes %}
+                        <div class="list-group">
+                            {% for note in notes %}
+                            <a href="{{ url_for('notes.view_note', note_id=note.id) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ note.title }}</h5>
+                                    <small>{{ note.created_at.strftime('%b %d, %Y') }}</small>
+                                </div>
+                                <p class="mb-1 text-truncate">{{ note.text_content or 'No text content' }}</p>
+                                <div class="d-flex align-items-center">
+                                    {% if note.voice_recording_path %}
+                                    <span class="badge bg-info me-2">
+                                        <i class="fas fa-microphone me-1"></i> Voice
+                                    </span>
+                                    {% endif %}
+                                    
+                                    {% if note.patient_id %}
+                                    <span class="badge bg-secondary me-2">
+                                        <i class="fas fa-user me-1"></i> Patient
+                                    </span>
+                                    {% endif %}
+                                    
+                                    {% if note.simulation_id %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-chart-line me-1"></i> Simulation
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-sticky-note fa-3x text-muted mb-3"></i>
+                            <h5>No clinical notes yet</h5>
+                            <p class="text-muted">Create your first clinical note to get started.</p>
+                            <a href="{{ url_for('notes.new_note') }}" class="btn btn-primary mt-2">
+                                <i class="fas fa-plus me-1"></i> Create Note
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-circle {
+    width: 100px;
+    height: 100px;
+    background-color: var(--bs-primary);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
+
+.initials {
+    font-size: 42px;
+    font-weight: bold;
+    color: white;
+}
+</style>
+{% endblock %}
