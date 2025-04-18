@@ -217,9 +217,12 @@
             {% if simulation %}
             const ctx = document.getElementById('nitriteChart').getContext('2d');
             
-            // Extract data from the simulation
-            const timePoints = JSON.parse('{{ simulation.result_curve.time|tojson }}');
-            const nitriteValues = JSON.parse('{{ simulation.result_curve.no2|tojson }}');
+            // Use the time and nitrite data provided by the route
+            const timePoints = {{ time_points|tojson }};
+            const nitriteValues = {{ nitrite_levels|tojson }};
+            
+            console.log('Time points:', timePoints);
+            console.log('Nitrite values:', nitriteValues);
             
             // Create the chart
             const nitriteChart = new Chart(ctx, {

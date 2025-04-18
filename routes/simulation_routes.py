@@ -49,22 +49,38 @@ def view_simulation():
         if simulation_id:
             simulation = Simulation.query.get_or_404(simulation_id)
             patient = Patient.query.get(simulation.patient_id)
-            return render_template('simulation_view.html', 
-                                  simulation=simulation, 
-                                  patient=patient)
+            
+            # Extract and pre-process the data for the template
+            time_points = simulation.result_curve.get('time', [])
+            nitrite_levels = simulation.result_curve.get('no2', [])
+            
+            return render_template('simulation_view.html',
+                                  simulation=simulation,
+                                  patient=patient,
+                                  time_points=time_points,
+                                  nitrite_levels=nitrite_levels)
         else:
             # Get the most recent simulation if none specified
             simulation = Simulation.query.order_by(Simulation.id.desc()).first()
             if simulation:
                 patient = Patient.query.get(simulation.patient_id)
-                return render_template('simulation_view.html', 
-                                      simulation=simulation, 
-                                      patient=patient)
+                
+                # Extract and pre-process the data for the template
+                time_points = simulation.result_curve.get('time', [])
+                nitrite_levels = simulation.result_curve.get('no2', [])
+                
+                return render_template('simulation_view.html',
+                                      simulation=simulation,
+                                      patient=patient,
+                                      time_points=time_points,
+                                      nitrite_levels=nitrite_levels)
             else:
                 # No simulations yet
-                return render_template('simulation_view.html', 
-                                      simulation=None, 
-                                      patient=None)
+                return render_template('simulation_view.html',
+                                      simulation=None,
+                                      patient=None,
+                                      time_points=[],
+                                      nitrite_levels=[])
     except Exception as e:
         return jsonify({
             'status': 'error',
