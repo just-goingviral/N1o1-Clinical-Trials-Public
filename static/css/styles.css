@@ -472,7 +472,6 @@ body {
     transform: translateY(-50%);
     width: 60px;
     height: 60px;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%230d6efd" /><text x="12" y="16" font-family="Arial" font-size="10" fill="white" text-anchor="middle">NO</text></svg>');
     background-size: cover;
     background-position: center;
     border-radius: 50%;
@@ -481,13 +480,13 @@ body {
     align-items: center;
     cursor: pointer;
     z-index: 999;
-    box-shadow: 0 0 15px rgba(220, 53, 69, 0.5), 0 0 15px rgba(13, 110, 253, 0.5);
+    box-shadow: 0 0 15px rgba(0, 132, 255, 0.7);
     transition: all 0.3s ease;
 }
 
 .chat-toggle-button:hover {
     transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 0 20px rgba(220, 53, 69, 0.7), 0 0 20px rgba(13, 110, 253, 0.7);
+    box-shadow: 0 0 20px rgba(0, 132, 255, 0.9);
 }
 
 .no-molecule-icon {
