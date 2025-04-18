@@ -54,7 +54,11 @@ app.register_blueprint(notes_bp)
 @app.route('/')
 def index():
     """Main index page - dashboard"""
-    return render_template('dashboard.html')
+    try:
+        return render_template('dashboard.html')
+    except Exception as e:
+        print(f"Error rendering dashboard: {str(e)}")
+        return render_template('index.html')  # Fallback template
 
 # Redirect /patient to /patients for convenience
 @app.route('/patient')

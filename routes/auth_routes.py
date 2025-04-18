@@ -64,6 +64,7 @@ def create_demo_user():
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     """Handle user login"""
+    # Check if already logged in
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     
@@ -75,7 +76,13 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             flash('Invalid username or password', 'danger')
-            return redirect(url_for('auth.login'))
+            return render_template('auth/login.html', 
+                                title='Sign In', 
+                                form=form, 
+                                demo_credentials={
+                                    'username': demo_user.username,
+                                    'password': 'nitricoxide'
+                                })
         
         login_user(user, remember=form.remember_me.data)
         # Update last login time
