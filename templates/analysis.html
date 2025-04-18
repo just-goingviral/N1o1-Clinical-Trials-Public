@@ -51,6 +51,7 @@
                     <div class="card-body">
                         <form action="/analyzer/download_pdf" method="post">
                             <input type="hidden" name="summary" value="{{ summary|tojson }}">
+                            <input type="hidden" name="plot_url" value="{{ plot_url }}">
                             <button type="submit" class="btn btn-primary">Download PDF Report</button>
                         </form>
                         <hr>

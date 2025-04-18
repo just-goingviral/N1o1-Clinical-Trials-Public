@@ -1,3 +1,4 @@
+
 """
 Analyzer routes for Nitrite Dynamics application
 """
@@ -7,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import base64
 import io
+from io import BytesIO
 import json
 from fpdf import FPDF
 from statistical_analysis import StatisticalAnalyzer
