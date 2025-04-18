@@ -16,3 +16,8 @@ openai
 requests
 fpdf
 uuid
+flask-login
+flask-wtf
+flask-login
+werkzeug
+flask-wtf

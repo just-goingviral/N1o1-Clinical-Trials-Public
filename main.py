@@ -2,10 +2,11 @@
 """
 NO Dynamics Simulator - Main Application
 """
-from flask import Flask, render_template, redirect, url_for, session
+from flask import Flask, render_template, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, current_user
 import os
-from models import db, Patient, Simulation, init_db
+from models import db, Patient, Simulation, User, init_db
 from routes import analyzer_bp, api_bp, patient_bp, simulation_bp
 
 # Create Flask application
@@ -24,6 +25,20 @@ db.init_app(app)
 # Initialize Flask Session
 from flask_session import Session
 session_extension = Session(app)
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'auth.login'
+login_manager.login_message_category = 'info'
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Load user by ID for Flask-Login"""
+    return User.query.get(int(user_id))
+
+# Create directories for file uploads
+os.makedirs(os.path.join('static', 'voice_recordings'), exist_ok=True)
 
 # Register blueprints
 app.register_blueprint(analyzer_bp)

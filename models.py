@@ -3,8 +3,11 @@ Database models for Nitrite Dynamics
 A clinical simulator for plasma nitrite levels
 """
 from datetime import datetime
+import uuid
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import JSONB
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 
 db = SQLAlchemy()
 
@@ -198,4 +201,88 @@ class ChatHistory(db.Model):
             'messages': self.messages,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+
+class User(UserMixin, db.Model):
+    """User model for doctors, researchers, and staff"""
+    __tablename__ = 'users'
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    first_name = db.Column(db.String(64), nullable=False)
+    last_name = db.Column(db.String(64), nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    role = db.Column(db.String(20), nullable=False, default='doctor')  # doctor, researcher, admin
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime, nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
+
+    # Relationships
+    clinical_notes = db.relationship('ClinicalNote', backref='author', lazy=True, cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f'<User: {self.username} ({self.role})>'
+
+    def set_password(self, password):
+        """Set password hash"""
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        """Check password hash"""
+        return check_password_hash(self.password_hash, password)
+
+    def to_dict(self):
+        """Convert user data to dictionary"""
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'full_name': f"{self.first_name} {self.last_name}",
+            'role': self.role,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'last_login': self.last_login.isoformat() if self.last_login else None,
+            'is_active': self.is_active
+        }
+
+
+class ClinicalNote(db.Model):
+    """Model for clinical notes with text and voice recording capabilities"""
+    __tablename__ = 'clinical_notes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=True)
+    simulation_id = db.Column(db.Integer, db.ForeignKey('simulations.id'), nullable=True)
+    title = db.Column(db.String(200), nullable=False)
+    text_content = db.Column(db.Text, nullable=True)
+    voice_recording_path = db.Column(db.String(255), nullable=True)
+    voice_transcript = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_private = db.Column(db.Boolean, default=True)
+    tags = db.Column(JSONB, nullable=True)  # Array of tag strings
+
+    def __repr__(self):
+        return f'<ClinicalNote #{self.id}: {self.title[:20]}... by User #{self.user_id}>'
+
+    def to_dict(self):
+        """Convert clinical note to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'patient_id': self.patient_id,
+            'simulation_id': self.simulation_id,
+            'title': self.title,
+            'text_content': self.text_content,
+            'has_voice_recording': bool(self.voice_recording_path),
+            'voice_recording_url': f'/static/voice_recordings/{self.voice_recording_path}' if self.voice_recording_path else None,
+            'voice_transcript': self.voice_transcript,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'is_private': self.is_private,
+            'tags': self.tags or []
         }
