@@ -45,15 +45,6 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python main.py"
-
-[[workflows.workflow]]
-name = "Run Application"
-author = 36957810
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
 args = "export FLASK_APP=main.py"
 
 [[workflows.workflow.tasks]]
