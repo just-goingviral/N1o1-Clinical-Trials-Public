@@ -1,5 +1,5 @@
 """
-Main entry point for the Flask application
+Main entry point for the Nitrite Dynamics Flask application
 """
 from app import app
 

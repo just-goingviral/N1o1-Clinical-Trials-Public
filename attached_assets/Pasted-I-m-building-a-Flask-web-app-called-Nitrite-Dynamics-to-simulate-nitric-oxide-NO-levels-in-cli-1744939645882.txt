@@ -1,0 +1,62 @@
+I’m building a Flask web app called **Nitrite Dynamics** to simulate nitric oxide (NO) levels in clinical trial patients after supplementation (e.g., N1O1 Lozenge, NO Beetz). This is for a real-world clinical study focused on ischemic heart disease, based on Dr. Nathan S. Bryan’s research.
+
+Please set up PostgreSQL integration using **SQLAlchemy** and **Flask-Migrate** and structure the database with the following tables and relationships:
+
+---
+
+**patients table**
+- id: Integer, primary_key=True  
+- name: String (optional)  
+- age: Integer  
+- weight_kg: Float  
+- baseline_no2: Float (μM)  
+- notes: Text  
+
+**supplement_doses table**
+- id: Integer, primary_key=True  
+- patient_id: ForeignKey to patients.id  
+- supplement: String (e.g. "N1O1 Lozenge", "NO Beetz")  
+- dose_mg: Float  
+- time_given: DateTime  
+
+**no2_levels table**
+- id: Integer, primary_key=True  
+- patient_id: ForeignKey to patients.id  
+- time_after_dose: Float (minutes since dose)  
+- level_um: Float (plasma nitrite level in μM)  
+
+**simulations table**
+- id: Integer, primary_key=True  
+- patient_id: ForeignKey to patients.id  
+- model_type: String (e.g. "HillTau", "1-compartment PK")  
+- parameters: JSONB (holds model-specific parameters like half-life, peak, etc.)  
+- result_curve: JSONB (time vs. nitrite level)  
+- created_at: DateTime  
+
+---
+
+Please do the following:
+
+1. **Finalize the SQLAlchemy models** using appropriate `db.relationship()` links where needed.  
+2. **Initialize the PostgreSQL database** using Flask-Migrate and Flask-SQLAlchemy.  
+3. Update `main.py` with basic Flask app structure and at least one working route like `/simulate` or `/patients/<id>` that returns dummy JSON to confirm it’s connected.  
+4. Make sure everything is **well-organized** so I can easily extend it later to include:
+   - Clinical visualizations (plotting nitrite curves)
+   - CSV/Excel data export
+   - Doctor/Researcher dashboard
+   - Electron app interface later
+
+I’ve already uploaded or scaffolded some core simulation scripts (like `no_dynamics_simulator.py`) and want this backend to power the analysis engine for modeling NO metabolism in ischemic heart disease patients.
+
+The app’s purpose is to support personalized NO therapy planning and visualize how different doses (e.g., from N1O1 products) impact plasma nitrite over time, especially in aging or NO-deficient patients.
+
+Please generate clean, working code and confirm PostgreSQL connectivity works inside Replit.  Also, please create a file called `clinical_assistant_knowledge.md` that will serve as the embedded knowledge base for the chatbot. It should summarize:
+
+- Who Dr. Nathan Bryan is and his research in nitric oxide
+- The purpose of the Nitrite Dynamics app and clinical trial
+- What ischemic heart disease is and why NO matters
+- A summary of the N1O1 product line
+- FAQs the chatbot should know how to answer
+- Simulation goals and how they connect to patient outcomes
+
+Make sure this file is readable and structured for use as prompt memory in an assistant or chatbot later. 

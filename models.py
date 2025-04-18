@@ -1,147 +1,119 @@
 """
-Database models for NO Dynamics Simulator
-Author: Dustin Salinas
-License: MIT
+Database models for Nitrite Dynamics
+A clinical simulator for plasma nitrite levels
 """
-
 from datetime import datetime
-from app import db
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.dialects.postgresql import JSONB
 
-class SimulationRun(db.Model):
-    """
-    Model for storing simulation run data
-    """
+db = SQLAlchemy()
+
+class Patient(db.Model):
+    """Patient model for clinical trial participants"""
+    __tablename__ = 'patients'
+    
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False, default="Untitled Simulation")
+    name = db.Column(db.String(100), nullable=True)
+    age = db.Column(db.Integer, nullable=False)
+    weight_kg = db.Column(db.Float, nullable=False)
+    baseline_no2 = db.Column(db.Float, nullable=False)  # μM
+    notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Simulation parameters
-    baseline = db.Column(db.Float, nullable=False)
-    peak = db.Column(db.Float, nullable=False)
-    t_peak = db.Column(db.Float, nullable=False)
-    half_life = db.Column(db.Float, nullable=False)
-    t_max = db.Column(db.Float, nullable=False)
-    points = db.Column(db.Integer, nullable=False)
-    egfr = db.Column(db.Float, nullable=False)
-    rbc_count = db.Column(db.Float, nullable=False)
-    dose = db.Column(db.Float, nullable=False)
-    
-    # Key metrics
-    no2_peak_value = db.Column(db.Float)
-    no2_time_to_peak = db.Column(db.Float)
-    cgmp_peak_value = db.Column(db.Float)
-    cgmp_time_to_peak = db.Column(db.Float)
-    vaso_peak_value = db.Column(db.Float)
-    vaso_time_to_peak = db.Column(db.Float)
-    no2_auc = db.Column(db.Float)
-    
     # Relationships
-    data_points = db.relationship('SimulationDataPoint', back_populates='simulation', cascade='all, delete-orphan')
+    doses = db.relationship('SupplementDose', backref='patient', lazy=True, cascade='all, delete-orphan')
+    no2_measurements = db.relationship('NO2Level', backref='patient', lazy=True, cascade='all, delete-orphan')
+    simulations = db.relationship('Simulation', backref='patient', lazy=True, cascade='all, delete-orphan')
     
     def __repr__(self):
-        return f'<SimulationRun {self.name} ({self.created_at})>'
-        
+        return f'<Patient #{self.id}: {self.name or "Unnamed"}, {self.age} y/o>'
+    
     def to_dict(self):
-        """Convert simulation run to dictionary"""
+        """Convert patient data to dictionary"""
         return {
             'id': self.id,
             'name': self.name,
-            'created_at': self.created_at.isoformat(),
-            'parameters': {
-                'baseline': self.baseline,
-                'peak': self.peak,
-                't_peak': self.t_peak,
-                'half_life': self.half_life,
-                't_max': self.t_max,
-                'points': self.points,
-                'egfr': self.egfr,
-                'rbc_count': self.rbc_count,
-                'dose': self.dose
-            },
-            'metrics': {
-                'no2_peak': self.no2_peak_value,
-                'no2_time_to_peak': self.no2_time_to_peak,
-                'cgmp_peak': self.cgmp_peak_value,
-                'cgmp_time_to_peak': self.cgmp_time_to_peak,
-                'vaso_peak': self.vaso_peak_value,
-                'vaso_time_to_peak': self.vaso_time_to_peak,
-                'no2_auc': self.no2_auc
-            }
+            'age': self.age,
+            'weight_kg': self.weight_kg,
+            'baseline_no2': self.baseline_no2,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
 
-class SimulationDataPoint(db.Model):
-    """
-    Model for storing individual data points from a simulation
-    """
-    id = db.Column(db.Integer, primary_key=True)
-    simulation_id = db.Column(db.Integer, db.ForeignKey('simulation_run.id'), nullable=False)
-    time_minutes = db.Column(db.Float, nullable=False)
-    no2_concentration = db.Column(db.Float, nullable=False)
-    cgmp_level = db.Column(db.Float, nullable=False)
-    vasodilation_percent = db.Column(db.Float, nullable=False)
+class SupplementDose(db.Model):
+    """Model for storing supplement dosing information"""
+    __tablename__ = 'supplement_doses'
     
-    # Relationship
-    simulation = db.relationship('SimulationRun', back_populates='data_points')
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    supplement = db.Column(db.String(100), nullable=False)  # e.g., "N1O1 Lozenge", "NO Beetz"
+    dose_mg = db.Column(db.Float, nullable=False)
+    time_given = db.Column(db.DateTime, nullable=False)
+    notes = db.Column(db.Text, nullable=True)
     
     def __repr__(self):
-        return f'<DataPoint t={self.time_minutes} NO2={self.no2_concentration}>'
-        
+        return f'<Dose: {self.supplement}, {self.dose_mg}mg at {self.time_given}>'
+    
     def to_dict(self):
-        """Convert data point to dictionary"""
+        """Convert dose data to dictionary"""
         return {
             'id': self.id,
-            'time_minutes': self.time_minutes,
-            'no2_concentration': self.no2_concentration,
-            'cgmp_level': self.cgmp_level,
-            'vasodilation_percent': self.vasodilation_percent
+            'patient_id': self.patient_id,
+            'supplement': self.supplement,
+            'dose_mg': self.dose_mg,
+            'time_given': self.time_given.isoformat() if self.time_given else None,
+            'notes': self.notes
         }
 
 
-class ExperimentalData(db.Model):
-    """
-    Model for storing experimental data uploaded by users
-    """
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text)
-    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+class NO2Level(db.Model):
+    """Model for storing nitrite level measurements"""
+    __tablename__ = 'no2_levels'
     
-    # Relationships
-    data_points = db.relationship('ExperimentalDataPoint', back_populates='dataset', cascade='all, delete-orphan')
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    time_after_dose = db.Column(db.Float, nullable=False)  # minutes
+    level_um = db.Column(db.Float, nullable=False)  # μM
+    measured_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self):
-        return f'<ExperimentalData {self.name}>'
-        
+        return f'<NO2 Level: {self.level_um}μM at t+{self.time_after_dose}min>'
+    
     def to_dict(self):
-        """Convert experimental dataset to dictionary"""
+        """Convert NO2 level data to dictionary"""
         return {
             'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'uploaded_at': self.uploaded_at.isoformat()
+            'patient_id': self.patient_id,
+            'time_after_dose': self.time_after_dose,
+            'level_um': self.level_um,
+            'measured_at': self.measured_at.isoformat() if self.measured_at else None
         }
 
 
-class ExperimentalDataPoint(db.Model):
-    """
-    Model for storing individual experimental data points
-    """
-    id = db.Column(db.Integer, primary_key=True)
-    dataset_id = db.Column(db.Integer, db.ForeignKey('experimental_data.id'), nullable=False)
-    time_minutes = db.Column(db.Float, nullable=False)
-    no2_concentration = db.Column(db.Float, nullable=False)
+class Simulation(db.Model):
+    """Model for storing simulation results"""
+    __tablename__ = 'simulations'
     
-    # Relationship
-    dataset = db.relationship('ExperimentalData', back_populates='data_points')
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    model_type = db.Column(db.String(100), nullable=False)  # e.g., "HillTau", "1-compartment PK"
+    parameters = db.Column(JSONB, nullable=False)  # model-specific parameters
+    result_curve = db.Column(JSONB, nullable=False)  # time vs. nitrite level
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    notes = db.Column(db.Text, nullable=True)
     
     def __repr__(self):
-        return f'<ExperimentalDataPoint t={self.time_minutes} NO2={self.no2_concentration}>'
-        
+        return f'<Simulation: {self.model_type} for Patient #{self.patient_id}>'
+    
     def to_dict(self):
-        """Convert experimental data point to dictionary"""
+        """Convert simulation data to dictionary"""
         return {
             'id': self.id,
-            'time_minutes': self.time_minutes,
-            'no2_concentration': self.no2_concentration
+            'patient_id': self.patient_id,
+            'model_type': self.model_type,
+            'parameters': self.parameters,
+            'result_curve': self.result_curve,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'notes': self.notes
         }

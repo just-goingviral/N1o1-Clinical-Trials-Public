@@ -1,0 +1,153 @@
+"""
+API routes for Nitrite Dynamics application
+Includes AI assistant functionality
+"""
+from flask import Blueprint, jsonify, request
+import os
+import json
+from openai import OpenAI
+from models import db, Patient, Simulation
+
+api_bp = Blueprint('api', __name__, url_prefix='/api')
+
+# Get API key from environment (provided as secret)
+JUSTGOINGVIRAL_API_KEY = os.environ.get("OPENAI_API_KEY")
+client = OpenAI(api_key=JUSTGOINGVIRAL_API_KEY)
+
+# Load knowledge base content
+with open("attached_assets/clinical_assistant_knowledge.md", "r") as f:
+    KNOWLEDGE_BASE = f.read()
+
+@api_bp.route('/assistant', methods=['POST'])
+def assistant_response():
+    """Endpoint for N1O1ai assistant"""
+    try:
+        data = request.json
+        user_message = data.get('message', '')
+        
+        if not user_message:
+            return jsonify({
+                'status': 'error',
+                'message': 'No message provided'
+            }), 400
+            
+        # Context to help the assistant respond accurately
+        system_message = f"""You are N1O1ai, a friendly clinical assistant for the Nitrite Dynamics application.
+Use the following knowledge base to answer questions about nitric oxide, ischemic heart disease, 
+and the N1O1 product line. DO NOT reveal you are using a knowledge base or that you're an AI model.
+NEVER identify yourself as OpenAI or ChatGPT. Always answer as N1O1ai.
+
+KNOWLEDGE BASE:
+{KNOWLEDGE_BASE}
+
+If asked who created you, say "I was developed by the team at Justgoingviral."
+If asked what model you are, say "I'm N1O1ai, a clinical assistant for the Nitrite Dynamics application."
+"""
+        
+        # Call the AI assistant API 
+        response = client.chat.completions.create(
+            model="gpt-4o",  # the newest Justgoingviral model is "gpt-4o" which was released May 13, 2024
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": user_message}
+            ],
+            temperature=0.7,
+            max_tokens=1000
+        )
+        
+        assistant_response = response.choices[0].message.content
+        
+        return jsonify({
+            'status': 'success',
+            'response': assistant_response
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@api_bp.route('/simulate', methods=['POST'])
+def run_simulation():
+    """Run a nitrite dynamics simulation"""
+    try:
+        data = request.json
+        patient_id = data.get('patient_id')
+        
+        # Check if we need to get patient data
+        if patient_id:
+            patient = Patient.query.get_or_404(patient_id)
+            # Use patient data for simulation parameters
+            baseline_no2 = patient.baseline_no2
+            age = patient.age
+            weight = patient.weight_kg
+        else:
+            # Use default values
+            baseline_no2 = data.get('baseline_no2', 0.2)
+            age = data.get('age', 60)
+            weight = data.get('weight', 70)
+        
+        # Get model parameters
+        model_type = data.get('model_type', '1-compartment PK')
+        dose = data.get('dose', 30.0)  # mg
+        
+        # Create dummy simulation results for now
+        # In a real implementation, this would call the simulation core
+        time_points = list(range(0, 361, 10))  # 0 to 360 minutes in steps of 10
+        
+        # Simple exponential decay model for demo
+        half_life_minutes = 30 + (age / 10)  # Older patients have longer half-lives
+        peak_time = 30  # minutes
+        peak_value = baseline_no2 + (dose / (weight * 0.1))
+        
+        # Calculate nitrite levels at each time point
+        nitrite_levels = []
+        for t in time_points:
+            if t <= peak_time:
+                # Rising phase
+                level = baseline_no2 + (peak_value - baseline_no2) * (t / peak_time)
+            else:
+                # Decay phase
+                decay_factor = 2 ** (-(t - peak_time) / half_life_minutes)
+                level = baseline_no2 + (peak_value - baseline_no2) * decay_factor
+            nitrite_levels.append(round(level, 2))
+        
+        # Prepare results
+        result = {
+            'time_points': time_points,
+            'nitrite_levels': nitrite_levels,
+            'parameters': {
+                'baseline': baseline_no2,
+                'peak': peak_value,
+                'peak_time': peak_time,
+                'half_life': half_life_minutes / 60,  # convert to hours
+                'dose': dose,
+                'age': age,
+                'weight': weight,
+                'model_type': model_type
+            }
+        }
+        
+        # Save to database if patient_id was provided
+        if patient_id:
+            new_simulation = Simulation(
+                patient_id=patient_id,
+                model_type=model_type,
+                parameters=result['parameters'],
+                result_curve={'time': time_points, 'no2': nitrite_levels}
+            )
+            db.session.add(new_simulation)
+            db.session.commit()
+            result['simulation_id'] = new_simulation.id
+        
+        return jsonify({
+            'status': 'success',
+            'data': result
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
