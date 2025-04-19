@@ -178,12 +178,19 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label for="modelType" class="form-label">Model Type</label>
+                            <label for="modelType" class="form-label">
+                                Model Type
+                                <i class="fas fa-info-circle ms-1 text-info" 
+                                   data-bs-toggle="tooltip" 
+                                   data-bs-placement="right" 
+                                   title="Pharmacokinetic (PK) model to simulate how nitric oxide levels change over time. Different models account for varying levels of complexity in absorption, distribution, and elimination processes."></i>
+                            </label>
                             <select class="form-select" id="modelType" name="model_type">
-                                <option value="1-compartment PK">1-Compartment PK</option>
-                                <option value="2-compartment PK">2-Compartment PK</option>
-                                <option value="HillTau">HillTau</option>
+                                <option value="1-compartment PK">1-Compartment PK (Simple)</option>
+                                <option value="2-compartment PK">2-Compartment PK (Advanced)</option>
+                                <option value="HillTau">HillTau (Enzyme Kinetics)</option>
                             </select>
+                            <small class="form-text text-muted">Select the mathematical model used to simulate nitrite dynamics.</small>
                         </div>
                         
                         <div class="mb-3">
@@ -198,7 +205,9 @@
                 <div class="p-4 mb-4 bg-dark rounded-3">
                     <h3>Need Help?</h3>
                     <p>Ask the N1O1ai Assistant about simulation parameters or how to interpret results.</p>
-                    <a href="/docs#chat" class="btn btn-outline-info w-100">Ask N1O1ai</a>
+                    <button id="openChatBtn" class="btn btn-outline-info w-100">
+                        <i class="fas fa-comment-alt me-2"></i> Ask N1O1ai
+                    </button>
                 </div>
             </div>
         </div>
@@ -465,6 +474,37 @@
             
             // Listen for changes
             mediaQuery.addEventListener('change', handleMobileChanges);
+            
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+            
+            // Handle N1O1ai chat button
+            const openChatBtn = document.getElementById('openChatBtn');
+            if (openChatBtn) {
+                openChatBtn.addEventListener('click', function() {
+                    // Find the NO molecule chat button and trigger a click on it
+                    const noChatButton = document.getElementById('no-molecule-chat-button');
+                    if (noChatButton) {
+                        noChatButton.click();
+                        
+                        // Add a predefined question about model types after a delay
+                        setTimeout(() => {
+                            const chatInput = document.getElementById('no-chat-input');
+                            const sendBtn = document.getElementById('no-chat-send');
+                            
+                            if (chatInput && sendBtn) {
+                                chatInput.value = "Can you explain the different model types for nitric oxide simulations?";
+                                sendBtn.click();
+                            }
+                        }, 1000);
+                    } else {
+                        alert("Chat assistant is not available. Please try again later.");
+                    }
+                });
+            }
         });
     </script>
 </body>
