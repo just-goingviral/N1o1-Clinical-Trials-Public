@@ -44,10 +44,15 @@ def new_patient():
             db.session.add(new_patient)
             db.session.commit()
             
-            # Redirect to patient list
-            return redirect(url_for('patients.list_patients'))
+            # Use flash message to indicate success
+            flash('Patient created successfully!', 'success')
+            
+            # Redirect to patient list using absolute URL to avoid redirect loops
+            return redirect('/patients/')
             
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             error_message = f"Error creating patient: {str(e)}"
             return render_template('patient_form.html', error=error_message)
     

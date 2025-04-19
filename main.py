@@ -2,7 +2,7 @@
 """
 N1O1 Clinical Trials - Main Application
 """
-from flask import Flask, render_template, redirect, url_for, session, jsonify
+from flask import Flask, render_template, redirect, url_for, session, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 import os
@@ -56,12 +56,20 @@ app.register_blueprint(notes_bp)
 # Add redirect loop protection
 @app.before_request
 def prevent_redirect_loops():
+    # Reset redirect counter on non-redirect pages
+    if request.endpoint and not request.endpoint.endswith('_redirect'):
+        session['redirect_count'] = 0
+        return None
+    
+    # Count redirects
     if 'redirect_count' not in session:
         session['redirect_count'] = 0
     session['redirect_count'] += 1
-    if session['redirect_count'] > 5:
+    
+    # If redirecting too many times, stop and show error
+    if session['redirect_count'] > 4:
         session['redirect_count'] = 0
-        return "Redirect loop detected. Please try clearing your cookies or contact support.", 500
+        return f"Redirect loop detected at URL: {request.url}. Please try clearing your cookies or contact support.", 500
 
 # Main routes
 @app.route('/')
