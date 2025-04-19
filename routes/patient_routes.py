@@ -47,8 +47,8 @@ def new_patient():
             # Use flash message to indicate success
             flash('Patient created successfully!', 'success')
             
-            # Redirect to patient list using absolute URL to avoid redirect loops
-            return redirect('/patients/')
+            # Redirect to patient list using url_for with _external=True to avoid redirect loops
+            return redirect(url_for('patients.list_patients', _external=True))
             
         except Exception as e:
             import traceback
