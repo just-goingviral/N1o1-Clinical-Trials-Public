@@ -43,55 +43,6 @@ function showToast(message, type = 'info') {
     closeButton.setAttribute('data-bs-dismiss', 'toast');
     closeButton.setAttribute('aria-label', 'Close');
 
-// Mobile-friendly chat functions
-document.addEventListener('DOMContentLoaded', function() {
-    const chatWidget = document.querySelector('.chat-widget');
-    const chatToggleBtn = document.getElementById('chatToggleBtn');
-    const chatHeader = document.querySelector('.chat-header');
-    
-    if (chatToggleBtn && chatWidget) {
-        chatToggleBtn.addEventListener('click', function() {
-            chatWidget.style.display = chatWidget.style.display === 'flex' ? 'none' : 'flex';
-            
-            // Adjust position on mobile
-            if (window.innerWidth <= 576) {
-                chatWidget.style.height = '60vh';
-                chatWidget.style.bottom = '70px';
-            }
-        });
-    }
-    
-    // Make chat widget draggable
-    if (chatHeader && chatWidget) {
-        makeDraggable(chatWidget, chatHeader);
-    }
-    
-    // Handle resize events for mobile
-    window.addEventListener('resize', function() {
-        if (chatWidget.style.display === 'flex' && window.innerWidth <= 576) {
-            chatWidget.style.width = 'calc(100% - 20px)';
-            chatWidget.style.height = '60vh';
-            chatWidget.style.right = '10px';
-            chatWidget.style.bottom = '70px';
-        }
-    });
-    
-    // Focus input when chat is opened
-    if (chatToggleBtn && chatWidget) {
-        chatToggleBtn.addEventListener('click', function() {
-            if (chatWidget.style.display === 'flex') {
-                const chatInput = document.querySelector('.chat-widget input[type="text"]');
-                if (chatInput) {
-                    setTimeout(() => {
-                        chatInput.focus();
-                    }, 300);
-                }
-            }
-        });
-    }
-});
-
-
     flexContainer.appendChild(toastBody);
     flexContainer.appendChild(closeButton);
     toastEl.appendChild(flexContainer);
@@ -281,6 +232,8 @@ function initChatWidget() {
     const attachFileBtn = document.getElementById('attachFileBtn');
     const chatFileUpload = document.getElementById('chatFileUpload');
     const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const chatContainer = document.querySelector('.chat-container'); // Added to get chat container
+
 
     // Early return if elements don't exist (chat not on this page)
     if (!chatWidget || !chatToggleBtn) return;
@@ -296,7 +249,7 @@ function initChatWidget() {
     } else {
         chatWidget.style.display = 'none';
     }
-    
+
     // Ensure the chat toggle button is positioned correctly on all screen sizes
     function adjustChatButtonPosition() {
         if (window.innerWidth <= 576) {
@@ -309,7 +262,7 @@ function initChatWidget() {
             chatToggleBtn.style.transform = 'translateY(-50%)';
         }
     }
-    
+
     // Call initially and add resize listener
     adjustChatButtonPosition();
     window.addEventListener('resize', adjustChatButtonPosition);
@@ -366,38 +319,67 @@ function initChatWidget() {
     });
 
     // Add message to UI only (doesn't save to history)
-    function addMessageToUI(message, role, attachment = null) {
+    function addMessageToUI(message, sender, attachment = null) {
         const messageDiv = document.createElement('div');
-        messageDiv.className = role === 'user' ? 'user-message' : 'assistant-message';
-        messageDiv.textContent = message;
+        messageDiv.className = sender === 'user' ? 'user-message' : 'assistant-message';
 
-        // If there's an attachment (file or image)
+        // Create avatar element
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar';
+
+        // Set appropriate icon
+        if (sender === 'user') {
+            avatarDiv.innerHTML = '<i class="fas fa-user"></i>';
+        } else {
+            avatarDiv.innerHTML = '<i class="fas fa-robot"></i>';
+        }
+
+        // Create content container
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+
+        // Create paragraph for text
+        const textP = document.createElement('p');
+        textP.textContent = message;
+        contentDiv.appendChild(textP);
+
+        // If there's an attachment, add it to the message
         if (attachment) {
-            const attachmentDiv = document.createElement('div');
-            attachmentDiv.className = 'file-attachment';
-
-            // Check if it's an image
+            // For images, display them inline
             if (attachment.type && attachment.type.startsWith('image/')) {
+                const imgDiv = document.createElement('div');
+                imgDiv.className = 'mt-2';
+
                 const img = document.createElement('img');
                 img.src = attachment.dataUrl;
-                img.alt = attachment.name;
-                attachmentDiv.appendChild(img);
+                img.className = 'img-fluid rounded attachment-preview';
+                img.style.maxHeight = '200px';
+
+                imgDiv.appendChild(img);
+                contentDiv.appendChild(imgDiv);
             } else {
-                // For other file types
-                const fileIcon = document.createElement('i');
-                fileIcon.className = 'fas fa-file me-2';
-                const fileName = document.createElement('span');
-                fileName.textContent = attachment.name;
+                // For other files, just show a link/icon
+                const fileDiv = document.createElement('div');
+                fileDiv.className = 'mt-2';
+                fileDiv.innerHTML = `<i class="fas fa-paperclip"></i> Attached file: ${attachment.name}`;
 
-                attachmentDiv.appendChild(fileIcon);
-                attachmentDiv.appendChild(fileName);
+                contentDiv.appendChild(fileDiv);
             }
+        }
 
-            messageDiv.appendChild(attachmentDiv);
+        // Add elements to message div in the correct order
+        if (sender === 'user') {
+            messageDiv.appendChild(contentDiv);
+            messageDiv.appendChild(avatarDiv);
+        } else {
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
         }
 
         chatMessages.appendChild(messageDiv);
-        scrollChatToBottom();
+
+        // Scroll to the bottom
+        chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
     // Scroll chat to bottom
