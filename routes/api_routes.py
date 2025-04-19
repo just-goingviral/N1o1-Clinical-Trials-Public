@@ -63,7 +63,25 @@ def get_patients():
             return jsonify({
                 'status': 'error',
                 'message': str(e)
-            }), 500
+            })
+            
+@api_bp.route('/log-error', methods=['POST'])
+def log_client_error():
+    """Endpoint to log client-side errors"""
+    from utils.logger import get_module_logger
+    
+    logger = get_module_logger('client_errors')
+    try:
+        error_data = request.json
+        source = error_data.get('source', 'unknown')
+        error_msg = error_data.get('error', 'No error message provided')
+        context = error_data.get('context', 'No context provided')
+        
+        logger.error(f"Client error from {source}: {error_msg} - Context: {context}")
+        return jsonify({'status': 'success', 'message': 'Error logged'})
+    except Exception as e:
+        logger.error(f"Error in error logging endpoint: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Failed to log error'}), 500, 500
 
 # Load knowledge base content
 with open("attached_assets/clinical_assistant_knowledge.md", "r") as f:
