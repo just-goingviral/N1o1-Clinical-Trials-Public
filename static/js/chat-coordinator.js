@@ -1,3 +1,4 @@
+
 /**
  * Chat Coordinator Script
  * Manages multiple chat interfaces to ensure only one is visible at a time
@@ -18,7 +19,6 @@ function initChatCoordination() {
     
     // Modern chat widget (from chat_component.html)
     const chatToggleBtn = document.getElementById('chatToggleBtn');
-    const chatToggleBtnDesktop = document.getElementById('chatToggleBtnDesktop');
     const chatWidget = document.getElementById('chatWidget');
     const chatCloseBtn = document.getElementById('chatCloseBtn');
     
@@ -39,20 +39,32 @@ function initChatCoordination() {
         // NO Molecule Chat Button Click
         if (noMoleculeButton) {
             noMoleculeButton.addEventListener('click', function() {
-                // Hide the other chat if it's open
+                // Hide the widget chat if it's open
                 if (chatWidget) {
                     chatWidget.style.display = 'none';
                 }
                 
-                // Show this chat
+                // Toggle molecule chat
                 noMoleculeModal.style.display = 'block';
-                
-                // Store active chat type
                 localStorage.setItem('active-chat-type', 'molecule');
             });
         }
         
-        // NO Molecule Chat Close Button
+        // Modern Chat Toggle Button Click
+        if (chatToggleBtn) {
+            chatToggleBtn.addEventListener('click', function() {
+                // Hide the molecule chat if it's open
+                if (noMoleculeModal) {
+                    noMoleculeModal.style.display = 'none';
+                }
+                
+                // Toggle widget chat
+                chatWidget.style.display = chatWidget.style.display === 'flex' ? 'none' : 'flex';
+                localStorage.setItem('active-chat-type', chatWidget.style.display === 'flex' ? 'widget' : 'none');
+            });
+        }
+        
+        // Close buttons
         if (noMoleculeChatCloseBtn) {
             noMoleculeChatCloseBtn.addEventListener('click', function() {
                 noMoleculeModal.style.display = 'none';
@@ -60,50 +72,37 @@ function initChatCoordination() {
             });
         }
         
-        // Modern Chat Toggle Button
-        if (chatToggleBtn) {
-            chatToggleBtn.addEventListener('click', function() {
-                // Hide the other chat if it's open
-                if (noMoleculeModal) {
-                    noMoleculeModal.style.display = 'none';
-                }
-                
-                // Toggle this chat
-                const isVisible = chatWidget.style.display === 'flex';
-                chatWidget.style.display = isVisible ? 'none' : 'flex';
-                
-                // Store active chat type
-                localStorage.setItem('active-chat-type', isVisible ? 'none' : 'widget');
-            });
-        }
-        
-        // Desktop Chat Button (if exists)
-        if (chatToggleBtnDesktop) {
-            chatToggleBtnDesktop.addEventListener('click', function() {
-                // This button may be connected to the regular toggle button in some templates
-                // But we'll add fallback behavior for layouts where it's not
-                
-                // Hide the other chat if it's open
-                if (noMoleculeModal) {
-                    noMoleculeModal.style.display = 'none';
-                }
-                
-                if (chatWidget) {
-                    // Toggle this chat
-                    const isVisible = chatWidget.style.display === 'flex';
-                    chatWidget.style.display = isVisible ? 'none' : 'flex';
-                    
-                    // Store active chat type
-                    localStorage.setItem('active-chat-type', isVisible ? 'none' : 'widget');
-                }
-            });
-        }
-        
-        // Chat Widget Close Button
         if (chatCloseBtn) {
             chatCloseBtn.addEventListener('click', function() {
                 chatWidget.style.display = 'none';
                 localStorage.setItem('active-chat-type', 'none');
+            });
+        }
+        
+        // Handle other chat buttons
+        const openChatBtn = document.getElementById('openChatBtn');
+        if (openChatBtn) {
+            openChatBtn.addEventListener('click', function() {
+                if (chatWidget) {
+                    // Prefer modern chat widget
+                    chatWidget.style.display = 'flex';
+                    localStorage.setItem('active-chat-type', 'widget');
+                } else if (noMoleculeModal) {
+                    // Fall back to NO molecule chat
+                    noMoleculeModal.style.display = 'block';
+                    localStorage.setItem('active-chat-type', 'molecule');
+                }
+            });
+        }
+        
+        // Handle index page chat button
+        const indexChatBtn = document.getElementById('indexChatBtn');
+        if (indexChatBtn) {
+            indexChatBtn.addEventListener('click', function() {
+                if (chatWidget) {
+                    chatWidget.style.display = 'flex';
+                    localStorage.setItem('active-chat-type', 'widget');
+                }
             });
         }
     }

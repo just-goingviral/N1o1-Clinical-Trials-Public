@@ -214,7 +214,9 @@ document.addEventListener('DOMContentLoaded', function() {
     initNumericInputs();
 
     // Initialize chat widget
-    initChatWidget();
+    if (typeof initChatWidget === 'function') {
+        initChatWidget();
+    }
 });
 
 // Global variables for chat
