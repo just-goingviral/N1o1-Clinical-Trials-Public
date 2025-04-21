@@ -1,45 +1,262 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <title>Nitrite Simulation Results</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>N1O1 Clinical Trials - Simulation Results</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+  <!-- Chart.js for data visualization -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 40px; background: #f8f9fa; }
-    h1 { text-align: center; }
-    #chart-container { width: 80%; margin: auto; }
+    :root {
+      --n1o1-primary: #2063c9;
+      --n1o1-secondary: #178bea;
+      --n1o1-page-bg: #121c2c;
+    }
+    body { 
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", sans-serif;
+      background-color: var(--n1o1-page-bg);
+      color: white;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 { 
+      text-align: center;
+      margin-bottom: 30px;
+      color: white;
+    }
+    .chart-container { 
+      width: 100%;
+      position: relative;
+      min-height: 350px; 
+      margin: 0 auto 30px;
+    }
+    .card {
+      background-color: #16325c;
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      margin-bottom: 20px;
+    }
+    .card-header {
+      background-color: rgba(32, 99, 201, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 15px;
+    }
+    .card-body {
+      padding: 20px;
+    }
+    /* Mobile responsive styles */
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+      }
+      .chart-container {
+        min-height: 250px;
+        margin-bottom: 20px;
+      }
+      .card-body {
+        padding: 15px;
+      }
+    }
+    /* Small screens */
+    @media (max-width: 576px) {
+      .container {
+        padding: 10px;
+      }
+      h1 {
+        font-size: 1.6rem;
+        margin-bottom: 15px;
+      }
+      .chart-container {
+        min-height: 200px;
+      }
+      .card-body {
+        padding: 10px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Simulation Result Viewer</h1>
-  <div id="chart-container">
-    <canvas id="simulationChart"></canvas>
+  <div class="container">
+    <h1>N1O1 Nitrite Simulation Results</h1>
+    
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Plasma Nitrite Level Simulation</h5>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="simulationChart"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Simulation Details</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-dark table-hover">
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Baseline NO₂⁻</td>
+                <td id="baselineValue">{{ parameters.baseline|default('0.2') }} μM</td>
+              </tr>
+              <tr>
+                <td>Peak NO₂⁻</td>
+                <td id="peakValue">{{ parameters.peak|default('4.0') }} μM</td>
+              </tr>
+              <tr>
+                <td>Time to Peak</td>
+                <td id="timeToPeak">{{ parameters.t_peak|default('30') }} min</td>
+              </tr>
+              <tr>
+                <td>Half-life</td>
+                <td id="halfLife">{{ parameters.half_life|default('120') }} min</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
   <script>
-    const simulationData = {{ result_curve|tojson }};
-    const labels = simulationData.map(point => point.time);
-    const values = simulationData.map(point => point.value);
-
-    const ctx = document.getElementById('simulationChart').getContext('2d');
-    const simulationChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Plasma Nitrite (μM)',
-          data: values,
-          fill: false,
-          borderColor: 'blue',
-          tension: 0.1
-        }]
-      },
-      options: {
-        scales: {
-          x: { title: { display: true, text: 'Time (minutes)' } },
-          y: { title: { display: true, text: 'NO₂⁻ Level (μM)' } }
+    document.addEventListener('DOMContentLoaded', function() {
+      const simulationData = {{ result_curve|tojson }};
+      const labels = simulationData.map(point => point.time);
+      const values = simulationData.map(point => point.value);
+      
+      // Use responsive font size and padding based on screen size
+      const fontSize = window.innerWidth < 768 ? 10 : 12;
+      const padding = window.innerWidth < 768 ? 5 : 10;
+  
+      const ctx = document.getElementById('simulationChart').getContext('2d');
+      const simulationChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Plasma Nitrite (μM)',
+            data: values,
+            fill: true,
+            backgroundColor: 'rgba(32, 99, 201, 0.2)',
+            borderColor: '#2063c9',
+            borderWidth: 2,
+            pointBackgroundColor: '#178bea',
+            pointBorderColor: '#fff',
+            pointRadius: window.innerWidth < 768 ? 3 : 4,
+            pointHoverRadius: window.innerWidth < 768 ? 5 : 6,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 1500,
+            easing: 'easeOutQuart'
+          },
+          scales: {
+            x: { 
+              title: { 
+                display: true, 
+                text: 'Time (minutes)',
+                color: 'rgba(255, 255, 255, 0.7)',
+                font: { size: fontSize }
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)',
+                font: { size: fontSize },
+                padding: padding
+              }
+            },
+            y: { 
+              title: { 
+                display: true, 
+                text: 'NO₂⁻ Level (μM)',
+                color: 'rgba(255, 255, 255, 0.7)',
+                font: { size: fontSize }
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)',
+                font: { size: fontSize },
+                padding: padding
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: 'rgba(255, 255, 255, 0.9)',
+                font: { size: fontSize },
+                padding: padding
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(22, 50, 92, 0.9)',
+              titleColor: 'white',
+              bodyColor: 'white',
+              borderColor: 'rgba(255, 255, 255, 0.2)',
+              borderWidth: 1,
+              displayColors: false,
+              padding: padding + 4,
+              cornerRadius: 6,
+              callbacks: {
+                label: function(context) {
+                  return `NO₂⁻ Level: ${context.parsed.y.toFixed(2)} μM`;
+                },
+                title: function(context) {
+                  return `Time: ${context[0].label} minutes`;
+                }
+              }
+            }
+          }
         }
-      }
+      });
+      
+      // Handle resize events
+      window.addEventListener('resize', function() {
+        // Update chart options for responsiveness
+        const newFontSize = window.innerWidth < 768 ? 10 : 12;
+        const newPadding = window.innerWidth < 768 ? 5 : 10;
+        
+        simulationChart.options.plugins.legend.labels.font.size = newFontSize;
+        simulationChart.options.plugins.legend.labels.padding = newPadding;
+        simulationChart.options.scales.x.ticks.font.size = newFontSize;
+        simulationChart.options.scales.y.ticks.font.size = newFontSize;
+        simulationChart.options.scales.x.ticks.padding = newPadding;
+        simulationChart.options.scales.y.ticks.padding = newPadding;
+        
+        simulationChart.update();
+      });
     });
   </script>
 </body>
