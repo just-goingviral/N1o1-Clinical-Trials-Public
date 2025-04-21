@@ -21,18 +21,25 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_pre_ping': True,  # Test connections before using them
     'pool_recycle': 300,    # Recycle connections every 5 minutes
     'pool_timeout': 30,     # Wait up to 30 seconds for a connection
-    'pool_size': 10,        # Maximum number of connections to keep
-    'max_overflow': 15,     # Allow up to 15 additional connections
-    'connect_args': {
-        'connect_timeout': 10,  # Connection timeout in seconds
-        'keepalives': 1,        # Send keepalive packets
-        'keepalives_idle': 60,  # After 60 seconds of no activity, send keepalive
-        'keepalives_interval': 10,  # Send keepalive every 10 seconds
-        'keepalives_count': 5   # Fail after 5 missed keepalives
-    }
 }
+# Add PostgreSQL-specific options only when not using SQLite
+if 'sqlite' not in app.config['SQLALCHEMY_DATABASE_URI']:
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'].update({
+        'pool_size': 10,        # Maximum number of connections to keep
+        'max_overflow': 15,     # Allow up to 15 additional connections
+        'connect_args': {
+            'connect_timeout': 10,  # Connection timeout in seconds
+            'keepalives': 1,        # Send keepalive packets
+            'keepalives_idle': 60,  # After 60 seconds of no activity, send keepalive
+            'keepalives_interval': 10,  # Send keepalive every 10 seconds
+            'keepalives_count': 5   # Fail after 5 missed keepalives
+        }
+    })
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = True
+app.config['SESSION_FILE_THRESHOLD'] = 100  # Limit number of session files
+app.config['SESSION_FILE_DIR'] = os.path.join(os.path.dirname(__file__), 'flask_session')
+app.config['SESSION_FILE_MODE'] = 384  # 0600 in octal
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_key_for_testing')
 
 # Initialize database
@@ -41,6 +48,31 @@ db.init_app(app)
 # Initialize Flask Session
 from flask_session import Session
 session_extension = Session(app)
+
+# Clean up old session files periodically
+@app.before_first_request
+def cleanup_sessions():
+    """Clean up old session files"""
+    import glob
+    from datetime import datetime, timedelta
+    
+    session_dir = app.config['SESSION_FILE_DIR']
+    now = datetime.now()
+    session_files = glob.glob(os.path.join(session_dir, '*'))
+    
+    for file_path in session_files:
+        # Skip checking directories
+        if os.path.isdir(file_path):
+            continue
+            
+        # Check if file is over 7 days old
+        modified_time = datetime.fromtimestamp(os.path.getmtime(file_path))
+        if now - modified_time > timedelta(days=7):
+            try:
+                os.remove(file_path)
+                print(f"Removed old session file: {file_path}")
+            except OSError as e:
+                print(f"Error removing session file {file_path}: {e}")
 
 # Initialize Flask-Login
 login_manager = LoginManager()

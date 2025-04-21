@@ -165,6 +165,30 @@ def get_patients():
             })
             
 @api_bp.route('/log-error', methods=['POST'])
+def log_error():
+    """API endpoint to log client-side errors"""
+    try:
+        error_data = request.json
+        
+        # Get logger from utils
+        from utils.logger import app_logger
+        
+        # Log the error with context
+        source = error_data.get('source', 'unknown')
+        error_msg = error_data.get('error', 'No error message provided')
+        context = error_data.get('context', 'No context provided')
+        
+        app_logger.error(f"Client error from {source}: {error_msg} - Context: {context}")
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Error logged successfully'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to log error: {str(e)}'
+        }), 500ST'])
 def log_client_error():
     """Endpoint to log client-side errors"""
     from utils.logger import get_module_logger
