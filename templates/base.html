@@ -13,6 +13,24 @@
     <link href="/static/css/tooltips.css" rel="stylesheet">
     <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --n1o1-primary: #2063c9;
+            --n1o1-secondary: #178bea;
+            --n1o1-page-bg: #121c2c;
+        }
+        body {
+            background-color: var(--n1o1-page-bg);
+        }
+        .navbar {
+            background-color: #16325c !important;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+        }
+        .footer {
+            background-color: #16325c !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
     {% block head %}{% endblock %}
 </head>
 <body>

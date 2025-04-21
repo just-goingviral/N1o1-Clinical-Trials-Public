@@ -9,107 +9,200 @@
     --n1o1-secondary: #178bea;
     --n1o1-blue-light: #e4f1fc;
     --n1o1-blue-lighter: #f0f8ff;
+    --n1o1-light-blue: #aed9ff;
     --n1o1-blue-gradient: linear-gradient(135deg, #2063c9, #178bea);
+    --n1o1-dark-blue: #16325c;
+    --n1o1-page-bg: #121c2c;
+    --n1o1-card-bg: #1c2940;
+    --n1o1-card-hover: #243353;
   }
   
   body {
-    background-color: #1f2937;
+    background-color: var(--n1o1-page-bg);
     color: #fff;
+    overflow-x: hidden;
+  }
+  
+  .n1o1-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem;
   }
   
   .hero-section {
+    position: relative;
     padding: 2rem 1rem;
-    background: #1f2937;
+    background: var(--n1o1-dark-blue);
     border-radius: 1rem;
     margin-bottom: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+  
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%231783E4' fill-opacity='0.08' d='M46.3,-79.6C60.7,-72.7,73.5,-62.1,81.2,-47.8C88.9,-33.6,91.7,-16.8,89.8,-1.1C88,14.6,81.5,29.3,73.5,43.9C65.5,58.6,56,73.2,42.1,79.2C28.2,85.2,9.9,82.4,-6.8,77.5C-23.5,72.6,-38.6,65.6,-50.3,54.9C-62,44.2,-70.3,29.8,-73.9,14C-77.6,-1.8,-76.6,-19,-71.2,-34.8C-65.9,-50.7,-56.2,-65.3,-42.7,-72.2C-29.3,-79.1,-12.1,-78.4,2.3,-82.1C16.8,-85.8,31.9,-86.6,46.3,-79.6Z' transform='translate(100 100)' /%3E%3C/svg%3E") no-repeat;
+    background-size: 80%;
+    background-position: right -100px center;
+    opacity: 0.3;
+    z-index: 0;
+  }
+  
+  .hero-content {
+    position: relative;
+    z-index: 1;
   }
   
   .feature-card {
     height: 100%;
-    transition: transform 0.3s;
-    background-color: #263240;
+    transition: all 0.3s ease;
+    background-color: var(--n1o1-card-bg);
     border: none;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   }
   
   .feature-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(30, 144, 255, 0.2);
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(23, 139, 234, 0.2);
+  }
+  
+  .feature-card .card-body {
+    padding: 1.5rem;
   }
   
   .feature-icon {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
     color: var(--n1o1-secondary);
+    filter: drop-shadow(0 0 5px rgba(23, 139, 234, 0.4));
   }
   
   .action-button {
-    padding: 0.6rem 1.2rem;
-    border-radius: 2rem;
+    padding: 0.7rem 1.5rem;
+    border-radius: 50px;
     font-weight: 600;
     transition: all 0.3s;
+    margin: 0.25rem;
   }
   
   .btn-n1o1 {
-    background-color: var(--n1o1-primary);
-    border-color: var(--n1o1-primary);
+    background: var(--n1o1-blue-gradient);
+    border: none;
     color: white;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+  
+  .btn-n1o1::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.7s;
+    z-index: -1;
+  }
+  
+  .btn-n1o1:hover::after {
+    left: 100%;
   }
   
   .btn-n1o1:hover {
-    background-color: var(--n1o1-secondary);
-    border-color: var(--n1o1-secondary);
     color: white;
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(30, 144, 255, 0.4);
+    box-shadow: 0 5px 15px rgba(23, 139, 234, 0.5);
+    transform: translateY(-3px);
   }
   
   .btn-outline-n1o1 {
-    border-color: var(--n1o1-secondary);
+    border: 2px solid var(--n1o1-secondary);
     color: white;
+    background: transparent;
   }
   
   .btn-outline-n1o1:hover {
     background-color: var(--n1o1-secondary);
     color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(23, 139, 234, 0.3);
   }
   
   .quick-access {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
+    margin: 1.5rem 0;
   }
   
-  .quick-access .card {
-    padding: 1rem;
+  .quick-access-card {
+    height: 100%;
+    padding: 1.2rem 0.8rem;
     text-align: center;
-    margin-bottom: 0.8rem;
-    background-color: #263240;
+    margin-bottom: 1rem;
+    background-color: var(--n1o1-card-bg);
     border: none;
+    border-radius: 1rem;
     transition: all 0.3s;
     color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
   }
   
-  .quick-access .card:hover {
-    background-color: #2d3a4a;
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(30, 144, 255, 0.2);
+  .quick-access-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--n1o1-blue-gradient);
+    z-index: 1;
   }
   
-  .quick-access .card-title {
-    font-size: 1rem;
-    margin-bottom: 0.3rem;
+  .quick-access-card:hover {
+    background-color: var(--n1o1-card-hover);
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 10px 20px rgba(23, 139, 234, 0.25);
   }
   
-  .quick-access i {
-    font-size: 1.8rem;
+  .quick-access-icon {
+    font-size: 2rem;
     margin-bottom: 0.7rem;
     color: var(--n1o1-secondary);
+    transition: all 0.3s;
+    display: inline-block;
+  }
+  
+  .quick-access-card:hover .quick-access-icon {
+    transform: scale(1.2);
+    color: var(--n1o1-light-blue);
+  }
+  
+  .quick-access-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0;
+    transition: all 0.3s;
+  }
+  
+  .quick-access-card:hover .quick-access-title {
+    color: var(--n1o1-light-blue);
   }
   
   .section-title {
     color: white;
     position: relative;
-    padding-bottom: 0.5rem;
-    margin-bottom: 1.5rem;
+    padding-bottom: 0.8rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    font-weight: 700;
   }
   
   .section-title:after {
@@ -118,135 +211,238 @@
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 50px;
-    height: 3px;
-    background-color: var(--n1o1-secondary);
+    width: 80px;
+    height: 4px;
+    background: var(--n1o1-blue-gradient);
+    border-radius: 2px;
   }
   
   .highlight {
     color: var(--n1o1-secondary);
+    font-weight: 700;
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 767.98px) {
+    .hero-section {
+      padding: 1.5rem 1rem;
+    }
+    
+    .action-buttons {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .action-button {
+      margin-bottom: 0.5rem;
+      width: 100%;
+    }
+    
+    .quick-access-card {
+      padding: 0.8rem 0.5rem;
+    }
+    
+    .quick-access-icon {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .quick-access-title {
+      font-size: 0.9rem;
+    }
+    
+    .feature-card .card-body {
+      padding: 1rem;
+    }
+    
+    .section-title {
+      font-size: 1.5rem;
+    }
+  }
+  
+  /* Animation classes */
+  .fade-in {
+    animation: fadeIn 0.8s ease-in-out;
+  }
+  
+  .slide-up {
+    animation: slideUp 0.6s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Staggered animation for grid items */
+  .stagger-item {
+    opacity: 0;
+    animation: fadeInUp 0.5s ease forwards;
+  }
+  
+  .stagger-item:nth-child(1) { animation-delay: 0.1s; }
+  .stagger-item:nth-child(2) { animation-delay: 0.2s; }
+  .stagger-item:nth-child(3) { animation-delay: 0.3s; }
+  .stagger-item:nth-child(4) { animation-delay: 0.4s; }
+  .stagger-item:nth-child(5) { animation-delay: 0.5s; }
+  .stagger-item:nth-child(6) { animation-delay: 0.6s; }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-3">
-  <div class="hero-section text-center">
-    <h1 class="display-5 fw-bold mb-2">N1O1 Clinical Trials Platform</h1>
-    <p class="lead mb-3">
-      Welcome to Dr. Bryan's nitric oxide clinical trial simulation platform.
-      Visualize <span class="highlight">NO</span> kinetics and simulate patient-specific responses.
-    </p>
-    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-2">
-      <a href="/simulations/view?id=1" class="btn btn-n1o1 action-button px-4">
-        <i class="fas fa-chart-line me-2"></i> Start Simulation
-      </a>
-      <button id="indexChatBtn" class="btn btn-n1o1 action-button px-4">
-        <i class="fas fa-comment-dots me-2"></i> Ask N1O1ai
-      </button>
-      <a href="#" id="learnMoreBtn" class="btn btn-outline-n1o1 action-button px-4">
-        <i class="fas fa-info-circle me-2"></i> Learn More
-      </a>
+<div class="n1o1-container">
+  <div class="hero-section text-center mb-4">
+    <div class="hero-content fade-in">
+      <h1 class="display-5 fw-bold mb-3">N1O1 Clinical Trials Platform</h1>
+      <p class="lead mb-4">
+        Welcome to Dr. Bryan's nitric oxide clinical trial simulation platform.
+        Visualize <span class="highlight">NO</span> kinetics and simulate patient-specific responses.
+      </p>
+      <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-2 action-buttons">
+        <a href="/simulations/view?id=1" class="btn btn-n1o1 action-button px-4">
+          <i class="fas fa-chart-line me-2"></i> Start Simulation
+        </a>
+        <button id="indexChatBtn" class="btn btn-n1o1 action-button px-4">
+          <i class="fas fa-comment-dots me-2"></i> Ask N1O1ai
+        </button>
+        <a href="#" id="learnMoreBtn" class="btn btn-outline-n1o1 action-button px-4">
+          <i class="fas fa-info-circle me-2"></i> Learn More
+        </a>
+      </div>
     </div>
   </div>
   
   <!-- Quick Access Grid - Above the fold -->
-  <div class="row quick-access">
-    <div class="col-6 col-md-4 col-lg-2">
-      <div class="card">
-        <i class="fas fa-flask"></i>
-        <h5 class="card-title">New Simulation</h5>
-        <a href="/simulations/new" class="stretched-link"></a>
+  <div class="row g-3 quick-access slide-up">
+    <div class="col-6 col-md-4 col-lg-2 stagger-item">
+      <div class="quick-access-card">
+        <i class="fas fa-flask quick-access-icon"></i>
+        <h5 class="quick-access-title">New Simulation</h5>
+        <a href="/simulations/new" class="stretched-link" aria-label="New Simulation"></a>
       </div>
     </div>
-    <div class="col-6 col-md-4 col-lg-2">
-      <div class="card">
-        <i class="fas fa-users"></i>
-        <h5 class="card-title">Patients</h5>
-        <a href="/patients" class="stretched-link"></a>
+    <div class="col-6 col-md-4 col-lg-2 stagger-item">
+      <div class="quick-access-card">
+        <i class="fas fa-users quick-access-icon"></i>
+        <h5 class="quick-access-title">Patients</h5>
+        <a href="/patients" class="stretched-link" aria-label="Patients"></a>
       </div>
     </div>
-    <div class="col-6 col-md-4 col-lg-2">
-      <div class="card">
-        <i class="fas fa-chart-bar"></i>
-        <h5 class="card-title">Data Analysis</h5>
-        <a href="/analyzer" class="stretched-link"></a>
+    <div class="col-6 col-md-4 col-lg-2 stagger-item">
+      <div class="quick-access-card">
+        <i class="fas fa-chart-bar quick-access-icon"></i>
+        <h5 class="quick-access-title">Data Analysis</h5>
+        <a href="/analyzer" class="stretched-link" aria-label="Data Analysis"></a>
       </div>
     </div>
-    <div class="col-6 col-md-4 col-lg-2">
-      <div class="card">
-        <i class="fas fa-sticky-note"></i>
-        <h5 class="card-title">Clinical Notes</h5>
-        <a href="/notes" class="stretched-link"></a>
+    <div class="col-6 col-md-4 col-lg-2 stagger-item">
+      <div class="quick-access-card">
+        <i class="fas fa-sticky-note quick-access-icon"></i>
+        <h5 class="quick-access-title">Clinical Notes</h5>
+        <a href="/notes" class="stretched-link" aria-label="Clinical Notes"></a>
       </div>
     </div>
-    <div class="col-6 col-md-4 col-lg-2">
-      <div class="card">
-        <i class="fas fa-pills"></i>
-        <h5 class="card-title">Supplements</h5>
-        <a href="/supplements" class="stretched-link"></a>
+    <div class="col-6 col-md-4 col-lg-2 stagger-item">
+      <div class="quick-access-card">
+        <i class="fas fa-pills quick-access-icon"></i>
+        <h5 class="quick-access-title">Supplements</h5>
+        <a href="/supplements" class="stretched-link" aria-label="Supplements"></a>
       </div>
     </div>
-    <div class="col-6 col-md-4 col-lg-2">
-      <div class="card">
-        <i class="fas fa-download"></i>
-        <h5 class="card-title">Reports</h5>
-        <a href="/reports" class="stretched-link"></a>
+    <div class="col-6 col-md-4 col-lg-2 stagger-item">
+      <div class="quick-access-card">
+        <i class="fas fa-download quick-access-icon"></i>
+        <h5 class="quick-access-title">Reports</h5>
+        <a href="/reports" class="stretched-link" aria-label="Reports"></a>
       </div>
     </div>
   </div>
   
   <!-- Feature Cards - Now in 2 rows of 3 to be more compact -->
-  <section id="features" class="py-2">
-    <h2 class="text-center section-title">Key Features</h2>
-    <div class="row g-3 row-cols-1 row-cols-md-3">
-      <div class="col">
-        <div class="card feature-card">
+  <section id="features" class="py-4">
+    <h2 class="section-title">Key Features</h2>
+    <div class="row g-4 row-cols-1 row-cols-md-3">
+      <div class="col stagger-item">
+        <div class="feature-card">
           <div class="card-body">
-            <div class="feature-icon d-inline-flex align-items-center justify-content-center">
-              <i class="fas fa-flask"></i>
+            <div class="d-flex justify-content-center mb-3">
+              <div class="feature-icon d-inline-flex align-items-center justify-content-center">
+                <i class="fas fa-flask"></i>
+              </div>
             </div>
-            <h3 class="fs-4">NO Dynamics Simulation</h3>
-            <p class="small">Model nitrite dynamics with precision for diverse patient profiles and dosing regimens.</p>
-            <a href="/simulations/new" class="btn btn-n1o1 btn-sm">
-              Run Simulation <i class="fas fa-arrow-right ms-2"></i>
-            </a>
+            <h3 class="fs-4 text-center mb-3">NO Dynamics Simulation</h3>
+            <p class="small mb-4">Model nitrite dynamics with precision for diverse patient profiles and dosing regimens. Track plasma concentrations and physiological responses.</p>
+            <div class="text-center">
+              <a href="/simulations/new" class="btn btn-n1o1 btn-sm px-4 py-2">
+                Run Simulation <i class="fas fa-arrow-right ms-2"></i>
+              </a>
+            </div>
           </div>
         </div>
       </div>
-      <div class="col">
-        <div class="card feature-card">
+      <div class="col stagger-item">
+        <div class="feature-card">
           <div class="card-body">
-            <div class="feature-icon d-inline-flex align-items-center justify-content-center">
-              <i class="fas fa-users"></i>
+            <div class="d-flex justify-content-center mb-3">
+              <div class="feature-icon d-inline-flex align-items-center justify-content-center">
+                <i class="fas fa-users"></i>
+              </div>
             </div>
-            <h3 class="fs-4">Patient Management</h3>
-            <p class="small">Track and analyze patient data with comprehensive profiles and personalized treatment approaches.</p>
-            <a href="/patients" class="btn btn-n1o1 btn-sm">
-              View Patients <i class="fas fa-arrow-right ms-2"></i>
-            </a>
+            <h3 class="fs-4 text-center mb-3">Patient Management</h3>
+            <p class="small mb-4">Track and analyze patient data with comprehensive profiles and personalized treatment approaches based on clinical outcomes.</p>
+            <div class="text-center">
+              <a href="/patients" class="btn btn-n1o1 btn-sm px-4 py-2">
+                View Patients <i class="fas fa-arrow-right ms-2"></i>
+              </a>
+            </div>
           </div>
         </div>
       </div>
-      <div class="col">
-        <div class="card feature-card">
+      <div class="col stagger-item">
+        <div class="feature-card">
           <div class="card-body">
-            <div class="feature-icon d-inline-flex align-items-center justify-content-center">
-              <i class="fas fa-robot"></i>
+            <div class="d-flex justify-content-center mb-3">
+              <div class="feature-icon d-inline-flex align-items-center justify-content-center">
+                <i class="fas fa-robot"></i>
+              </div>
             </div>
-            <h3 class="fs-4">AI Assistant</h3>
-            <p class="small">Get instant guidance from N1O1ai about nitric oxide dynamics, supplements, and clinical trials.</p>
-            <button id="aiAssistBtn" class="btn btn-n1o1 btn-sm">
-              Ask N1O1ai <i class="fas fa-comment-dots ms-2"></i>
-            </button>
+            <h3 class="fs-4 text-center mb-3">AI Assistant</h3>
+            <p class="small mb-4">Get instant guidance from N1O1ai about nitric oxide dynamics, supplements, and clinical trials with research-backed recommendations.</p>
+            <div class="text-center">
+              <button id="aiAssistBtn" class="btn btn-n1o1 btn-sm px-4 py-2">
+                Ask N1O1ai <i class="fas fa-comment-dots ms-2"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </section>
   
-  <div class="text-center mt-2">
-    <a href="/docs" class="btn btn-outline-n1o1 btn-sm">
+  <div class="text-center mt-4 mb-3 fade-in">
+    <a href="/docs" class="btn btn-outline-n1o1 btn-sm px-4 py-2">
       <i class="fas fa-code me-2"></i> API Documentation
     </a>
   </div>
