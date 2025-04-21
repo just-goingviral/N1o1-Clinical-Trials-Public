@@ -137,6 +137,31 @@
             const sendBtn = document.getElementById('no-chat-send');
             const chatMessages = document.getElementById('no-chat-messages');
             
+            // Add click handlers for initial clickable items
+            const setupClickableItems = function() {
+                const clickableItems = document.querySelectorAll('.clickable-item');
+                clickableItems.forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        // Extract the text content without the icon
+                        const rawText = this.textContent;
+                        const cleanText = rawText.replace(/^\s*[\u2192\u25B6\u25BA\u25B8]/g, '').trim();
+                        
+                        // Set the chat input with the selected topic
+                        chatInput.value = "Tell me about " + cleanText;
+                        
+                        // Focus the input
+                        chatInput.focus();
+                        
+                        // Optionally, automatically send the message
+                        sendMessage();
+                    });
+                });
+            };
+            
+            // Call this initially to set up the default clickable items
+            setupClickableItems();
+            
             if (moleculeBtn && chatModal) {
                 // Toggle chat visibility when molecule button is clicked
                 moleculeBtn.addEventListener('click', function() {
