@@ -64,8 +64,11 @@ def view_patient(patient_id):
     """Display patient details and simulations"""
     patient = Patient.query.get_or_404(patient_id)
     
-    # Get patient's simulations
-    simulations = patient.simulations.order_by(db.desc('created_at')).all()
+    # Get patient's simulations - sort them by created_at in descending order
+    from sqlalchemy import desc
+    from models import Simulation
+    
+    simulations = Simulation.query.filter_by(patient_id=patient_id).order_by(desc('created_at')).all()
     
     return render_template('patient_view.html', patient=patient, simulations=simulations)
 
