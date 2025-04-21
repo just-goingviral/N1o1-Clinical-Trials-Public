@@ -33,8 +33,8 @@ if ANTHROPIC_API_KEY:
 else:
     import logging
     logging.warning("Anthropic API key not found. Image processing will not work.")
-    
-    
+
+
 @api_bp.route('/capture-research', methods=['POST'])
 def capture_research():
     """
@@ -42,35 +42,35 @@ def capture_research():
     """
     try:
         data = request.json
-        
+
         if not data:
             return jsonify({'status': 'error', 'message': 'No data provided'})
-        
+
         # Extract data
         simulation_id = data.get('simulation_id')
         screenshot = data.get('screenshot', '')  # Base64 image data
         notes = data.get('notes', '')
-        
+
         # Validate required fields
         if not simulation_id:
             return jsonify({'status': 'error', 'message': 'Simulation ID is required'})
-            
+
         # Get the simulation
         simulation = Simulation.query.get(simulation_id)
         if not simulation:
             return jsonify({'status': 'error', 'message': f'Simulation with ID {simulation_id} not found'})
-        
+
         # Get the current timestamp
         timestamp = datetime.utcnow()
-        
+
         # Create a reference ID for this capture
         capture_id = str(uuid.uuid4())
-        
+
         # Create a clinical note to store this research capture
         try:
             # Title for the clinical note
             title = f"Research Capture: Simulation #{simulation_id}"
-            
+
             # Format the content with details
             content = f"""Research capture from simulation #{simulation_id}
 Timestamp: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}
@@ -86,7 +86,7 @@ Baseline: {simulation.parameters.get('baseline', 'N/A')}
 Peak: {simulation.parameters.get('peak', 'N/A')}
 Half-life: {simulation.parameters.get('half_life', 'N/A')}
 """
-            
+
             # Create a clinical note
             clinical_note = ClinicalNote(
                 title=title,
@@ -96,15 +96,15 @@ Half-life: {simulation.parameters.get('half_life', 'N/A')}
                 user_id=1,  # Default to first user (in a real app, use the logged-in user)
                 tags=["research", "capture", "simulation"]
             )
-            
+
             db.session.add(clinical_note)
             db.session.commit()
-            
+
         except Exception as note_error:
             import logging
             logging.error(f"Error saving clinical note: {str(note_error)}")
             # Continue without saving the note
-        
+
         return jsonify({
             'status': 'success',
             'message': 'Research data captured successfully',
@@ -115,7 +115,7 @@ Half-life: {simulation.parameters.get('half_life', 'N/A')}
                 'patient_id': simulation.patient_id if simulation.patient_id else None
             }
         })
-        
+
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -128,12 +128,12 @@ def get_patients():
     try:
         format_type = request.args.get('format', 'json')
         patients = Patient.query.order_by(Patient.created_at.desc()).limit(5).all()
-        
+
         if format_type == 'html':
             # Return HTML for dashboard display
             if not patients:
                 return '<div class="alert alert-info">No patients registered yet.</div>'
-            
+
             html = '<div class="list-group patient-list">'
             for patient in patients:
                 html += f'''
@@ -154,7 +154,7 @@ def get_patients():
                 'status': 'success',
                 'data': [patient.to_dict() for patient in patients]
             }), 200
-            
+
     except Exception as e:
         if format_type == 'html':
             return '<div class="alert alert-danger">Error loading patient data.</div>'
@@ -163,23 +163,23 @@ def get_patients():
                 'status': 'error',
                 'message': str(e)
             })
-            
+
 @api_bp.route('/log-error', methods=['POST'])
 def log_error():
     """API endpoint to log client-side errors"""
     try:
         error_data = request.json
-        
+
         # Get logger from utils
         from utils.logger import app_logger
-        
+
         # Log the error with context
         source = error_data.get('source', 'unknown')
         error_msg = error_data.get('error', 'No error message provided')
         context = error_data.get('context', 'No context provided')
-        
+
         app_logger.error(f"Client error from {source}: {error_msg} - Context: {context}")
-        
+
         return jsonify({
             'status': 'success',
             'message': 'Error logged successfully'
@@ -194,14 +194,14 @@ def log_error():
 def log_client_error():
     """Endpoint to log client-side errors"""
     from utils.logger import get_module_logger
-    
+
     logger = get_module_logger('client_errors')
     try:
         error_data = request.json
         source = error_data.get('source', 'unknown')
         error_msg = error_data.get('error', 'No error message provided')
         context = error_data.get('context', 'No context provided')
-        
+
         logger.error(f"Client error from {source}: {error_msg} - Context: {context}")
         return jsonify({'status': 'success', 'message': 'Error logged'})
     except Exception as e:
@@ -237,7 +237,7 @@ def assistant_response():
         try:
             if client_session_id:
                 chat_session = ChatSession.query.get(client_session_id)
-            
+
             if not chat_session:
                 # Create a new session with UUID
                 session_id = str(uuid.uuid4())
@@ -253,7 +253,7 @@ def assistant_response():
             logging.error(f"Error creating chat session: {str(e)}")
             # Rollback session
             db.session.rollback()
-            
+
             # Use an in-memory session as a fallback
             session_id = str(uuid.uuid4())
             chat_session = ChatSession(id=session_id, user_identifier=user_identifier)
@@ -294,11 +294,11 @@ Your initial greeting should be: "Hi, I'm N1O1ai! Would you like help with the c
 
         # Build messages from database history
         messages = [{"role": "system", "content": system_message}]
-        
+
         # Get previous messages from this session (limit to last 20 for context window)
         previous_messages = ChatMessage.query.filter_by(session_id=chat_session.id).order_by(
             ChatMessage.timestamp).limit(20).all()
-        
+
         for msg in previous_messages:
             # Only include relevant message content (not attachments)
             messages.append({
@@ -316,12 +316,12 @@ Your initial greeting should be: "Hi, I'm N1O1ai! Would you like help with the c
                         'status': 'error',
                         'message': "Image processing is not available. Please configure the Anthropic API key."
                     }), 503
-                
+
                 # Extract the image data from the dataUrl (remove the prefix)
                 image_data = attachment.get('dataUrl', '')
                 if 'base64,' in image_data:
                     image_data = image_data.split('base64,')[1]
-                
+
                 # Build Claude message format
                 claude_messages = [
                     {
@@ -330,11 +330,11 @@ Your initial greeting should be: "Hi, I'm N1O1ai! Would you like help with the c
                             {
                                 "type": "text", 
                                 "text": f"""You are N1O1ai, a clinical trial assistant for nitric oxide research.
-                                
+
 {system_message}
 
 The user has shared an image with the following message: "{user_message}"
-                                
+
 Analyze this image in detail and respond as N1O1ai."""
                             },
                             {
@@ -348,7 +348,7 @@ Analyze this image in detail and respond as N1O1ai."""
                         ]
                     }
                 ]
-                
+
                 # Call Claude API (using claude-3-5-sonnet-20241022 which is the latest model)
                 response = claude_client.messages.create(
                     model="claude-3-5-sonnet-20241022",
@@ -356,9 +356,9 @@ Analyze this image in detail and respond as N1O1ai."""
                     temperature=0.7,
                     max_tokens=1000
                 )
-                
+
                 assistant_response_text = response.content[0].text
-                
+
             else:
                 # Use OpenAI for text-only requests
                 if client is None:
@@ -366,16 +366,16 @@ Analyze this image in detail and respond as N1O1ai."""
                         'status': 'error',
                         'message': "AI assistant is not available. Please configure the OpenAI API key in your environment variables."
                     }), 503
-                    
+
                 response = client.chat.completions.create(
                     model="gpt-4o",  # using NitroSynt-4 model (internal name: gpt-4o)
                     messages=messages,
                     temperature=0.7,
                     max_tokens=1000
                 )
-                
+
                 assistant_response_text = response.choices[0].message.content
-            
+
             # Save assistant response to database with error handling
             try:
                 assistant_chat_message = ChatMessage(
@@ -391,7 +391,7 @@ Analyze this image in detail and respond as N1O1ai."""
                 logging.error(f"Error saving assistant message: {str(db_error)}")
                 db.session.rollback()
                 # We'll continue and return the response anyway
-            
+
             # Return successful response to client
             return jsonify({
                 'status': 'success',
@@ -847,31 +847,31 @@ def population_analysis():
 # This get_patients function was removed as it was a duplicate of the one above
 
 @api_bp.route('/chat-history', methods=['GET'])
-def get_chat_history():
+defget_chat_history():
     """Get chat history for a specific session"""
     try:
         session_id = request.args.get('session_id')
-        
+
         if not session_id:
             return jsonify({
                 'status': 'error',
                 'message': 'No session ID provided'
             }), 400
-            
+
         # Verify user has access to this session
         chat_session = ChatSession.query.get(session_id)
-        
+
         if not chat_session:
             return jsonify({
                 'status': 'error',
                 'message': 'Session not found'
             }), 404
-            
+
         # Get user identifier
         user_ip = request.remote_addr
         user_id = session.get('user_id', None)
         current_user_identifier = user_id if user_id else user_ip
-        
+
         # Simple security check - only allow access to sessions created by this user
         # In a production app, you'd want more robust security
         if chat_session.user_identifier != current_user_identifier:
@@ -879,16 +879,16 @@ def get_chat_history():
             # In production, you would return a 403 Forbidden error
             import logging
             logging.warning(f"User {current_user_identifier} accessing session created by {chat_session.user_identifier}")
-        
+
         # Get messages for this session
         messages = ChatMessage.query.filter_by(session_id=session_id).order_by(ChatMessage.timestamp).all()
-        
+
         return jsonify({
             'status': 'success',
             'session_id': session_id,
             'messages': [msg.to_dict() for msg in messages]
         }), 200
-            
+
     except Exception as e:
         return jsonify({
             'status': 'error',
