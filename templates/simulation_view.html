@@ -369,7 +369,68 @@
             });
             
             document.getElementById('downloadReport').addEventListener('click', function() {
-                alert('Full report generation is coming soon!');
+                const simulationId = {{ simulation.id }};
+                const patientId = {{ simulation.patient_id if simulation.patient_id else 'null' }};
+                const simulationTime = new Date().toLocaleString();
+                
+                // Generate PDF report using jsPDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Add title
+                doc.setFontSize(18);
+                doc.text('N1O1 Clinical Trials - Simulation Report', 15, 15);
+                
+                // Add report info
+                doc.setFontSize(12);
+                doc.text(`Simulation ID: ${simulationId}`, 15, 30);
+                doc.text(`Generated: ${simulationTime}`, 15, 37);
+                doc.text(`Patient ID: ${patientId !== null ? patientId : 'N/A'}`, 15, 44);
+                
+                // Add model information
+                doc.setFontSize(14);
+                doc.text('Simulation Parameters', 15, 55);
+                doc.setFontSize(11);
+                doc.text(`Model Type: {{ simulation.model_type }}`, 20, 62);
+                
+                {% if simulation.parameters %}
+                const parameters = {{ simulation.parameters|tojson }};
+                let yPos = 69;
+                for (const [key, value] of Object.entries(parameters)) {
+                    doc.text(`${key}: ${value}`, 20, yPos);
+                    yPos += 7;
+                }
+                {% endif %}
+                
+                // Add chart image
+                const canvas = document.getElementById('nitriteChart');
+                const chartImage = canvas.toDataURL('image/png');
+                doc.addImage(chartImage, 'PNG', 15, 120, 180, 100);
+                
+                // Add results summary
+                doc.addPage();
+                doc.setFontSize(14);
+                doc.text('Simulation Results Summary', 15, 15);
+                
+                doc.setFontSize(11);
+                const { baseline, peak, time_to_peak, half_life } = getSimulationMetrics();
+                doc.text(`Baseline NO2- (µM): ${baseline.toFixed(2)}`, 15, 25);
+                doc.text(`Peak NO2- (µM): ${peak.toFixed(2)}`, 15, 32);
+                doc.text(`Time to Peak (hours): ${time_to_peak.toFixed(2)}`, 15, 39);
+                doc.text(`Elimination Half-life (hours): ${half_life.toFixed(2)}`, 15, 46);
+                
+                // Add footer
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(10);
+                    doc.text(`N1O1 Clinical Trials - Page ${i} of ${pageCount}`, 15, 285);
+                    doc.text(`© Dr. Nathan Bryan - JustGoingViral - ${new Date().getFullYear()}`, 120, 285);
+                }
+                
+                // Save the PDF
+                const fileName = `N1O1_Simulation_${simulationId}_Report.pdf`;
+                doc.save(fileName);
             });
             
             // Research Documentation Capture
@@ -397,7 +458,7 @@
                     captureResearchBtn.disabled = true;
                     
                     // Send the data to the server
-                    fetch('/simulations/capture', {
+                    fetch('/api/capture-research', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

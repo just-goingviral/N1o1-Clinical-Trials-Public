@@ -13,7 +13,7 @@ import anthropic
 from anthropic import Anthropic
 import uuid
 from datetime import datetime
-from models import db, Patient, Simulation, ChatSession, ChatMessage
+from models import db, Patient, Simulation, ChatSession, ChatMessage, ClinicalNote
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -33,6 +33,93 @@ if ANTHROPIC_API_KEY:
 else:
     import logging
     logging.warning("Anthropic API key not found. Image processing will not work.")
+    
+    
+@api_bp.route('/capture-research', methods=['POST'])
+def capture_research():
+    """
+    API endpoint to capture research data including simulation results, screenshots, and notes
+    """
+    try:
+        data = request.json
+        
+        if not data:
+            return jsonify({'status': 'error', 'message': 'No data provided'})
+        
+        # Extract data
+        simulation_id = data.get('simulation_id')
+        screenshot = data.get('screenshot', '')  # Base64 image data
+        notes = data.get('notes', '')
+        
+        # Validate required fields
+        if not simulation_id:
+            return jsonify({'status': 'error', 'message': 'Simulation ID is required'})
+            
+        # Get the simulation
+        simulation = Simulation.query.get(simulation_id)
+        if not simulation:
+            return jsonify({'status': 'error', 'message': f'Simulation with ID {simulation_id} not found'})
+        
+        # Get the current timestamp
+        timestamp = datetime.utcnow()
+        
+        # Create a reference ID for this capture
+        capture_id = str(uuid.uuid4())
+        
+        # Create a clinical note to store this research capture
+        try:
+            # Title for the clinical note
+            title = f"Research Capture: Simulation #{simulation_id}"
+            
+            # Format the content with details
+            content = f"""Research capture from simulation #{simulation_id}
+Timestamp: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}
+Reference ID: {capture_id}
+
+USER NOTES:
+{notes}
+
+SIMULATION PARAMETERS:
+Model: {simulation.model_type}
+Patient ID: {simulation.patient_id if simulation.patient_id else 'N/A'}
+Baseline: {simulation.parameters.get('baseline', 'N/A')}
+Peak: {simulation.parameters.get('peak', 'N/A')}
+Half-life: {simulation.parameters.get('half_life', 'N/A')}
+"""
+            
+            # Create a clinical note
+            clinical_note = ClinicalNote(
+                title=title,
+                text_content=content,
+                simulation_id=simulation_id,
+                patient_id=simulation.patient_id,
+                user_id=1,  # Default to first user (in a real app, use the logged-in user)
+                tags=["research", "capture", "simulation"]
+            )
+            
+            db.session.add(clinical_note)
+            db.session.commit()
+            
+        except Exception as note_error:
+            import logging
+            logging.error(f"Error saving clinical note: {str(note_error)}")
+            # Continue without saving the note
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Research data captured successfully',
+            'data': {
+                'capture_id': capture_id,
+                'simulation_id': simulation_id,
+                'timestamp': timestamp.isoformat(),
+                'patient_id': simulation.patient_id if simulation.patient_id else None
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'status': 'error', 'message': str(e)})
 
 
 @api_bp.route('/patients', methods=['GET'])
