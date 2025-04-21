@@ -5,10 +5,10 @@
 {% block head %}
 <style>
   .hero-section {
-    padding: 3rem 1rem;
+    padding: 2rem 1rem;
     background: linear-gradient(135deg, #212529, #343a40);
     border-radius: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
   }
   
@@ -18,18 +18,17 @@
   }
   
   .feature-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(-5px);
   }
   
   .feature-icon {
     font-size: 2rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     color: #0d6efd;
   }
   
   .action-button {
-    margin-top: 1rem;
-    padding: 0.8rem 1.5rem;
+    padding: 0.6rem 1.2rem;
     border-radius: 2rem;
     font-weight: 600;
     transition: all 0.3s;
@@ -39,66 +38,138 @@
     transform: scale(1.05);
     box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
   }
+  
+  .quick-access {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .quick-access .card {
+    padding: 0.8rem;
+    text-align: center;
+    margin-bottom: 0.8rem;
+  }
+  
+  .quick-access .card-title {
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+  }
+  
+  .quick-access i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container py-3">
   <div class="hero-section text-center">
-    <h1 class="display-4 fw-bold mb-4">N1O1 Clinical Trials Platform</h1>
-    <p class="lead mb-4">
-      Welcome to Dr. Bryan's nitric oxide clinical trial simulation platform.<br class="d-none d-md-block">
-      Visualize NO kinetics, simulate patient-specific responses, and ask N1O1ai for guidance.
+    <h1 class="display-5 fw-bold mb-2">N1O1 Clinical Trials Platform</h1>
+    <p class="lead mb-3">
+      Welcome to Dr. Bryan's nitric oxide clinical trial simulation platform.
+      Visualize NO kinetics and simulate patient-specific responses.
     </p>
-    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-      <a href="/simulations/view?id=1" class="btn btn-primary btn-lg action-button px-4 gap-3">
+    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-2">
+      <a href="/simulations/view?id=1" class="btn btn-primary action-button px-4">
         <i class="fas fa-chart-line me-2"></i> Start Simulation
       </a>
-      <a href="#" id="learnMoreBtn" class="btn btn-outline-secondary btn-lg action-button px-4">
-        Learn More <i class="fas fa-info-circle ms-2"></i>
+      <button id="indexChatBtn" class="btn btn-success action-button px-4">
+        <i class="fas fa-comment-dots me-2"></i> Ask N1O1ai
+      </button>
+      <a href="#" id="learnMoreBtn" class="btn btn-outline-secondary action-button px-4">
+        <i class="fas fa-info-circle me-2"></i> Learn More
       </a>
     </div>
   </div>
   
-  <section id="features" class="py-5">
-    <div class="row g-4 py-5 row-cols-1 row-cols-md-3">
-      <div class="col d-flex align-items-start">
-        <div class="card feature-card w-100">
-          <div class="card-body text-center">
-            <div class="feature-icon d-inline-flex align-items-center justify-content-center fs-2 mb-3">
+  <!-- Quick Access Grid - Above the fold -->
+  <div class="row quick-access">
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card bg-primary-subtle">
+        <i class="fas fa-flask text-primary"></i>
+        <h5 class="card-title">New Simulation</h5>
+        <a href="/simulations/new" class="stretched-link"></a>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card bg-success-subtle">
+        <i class="fas fa-users text-success"></i>
+        <h5 class="card-title">Patients</h5>
+        <a href="/patients" class="stretched-link"></a>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card bg-info-subtle">
+        <i class="fas fa-chart-bar text-info"></i>
+        <h5 class="card-title">Data Analysis</h5>
+        <a href="/analyzer" class="stretched-link"></a>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card bg-warning-subtle">
+        <i class="fas fa-sticky-note text-warning"></i>
+        <h5 class="card-title">Clinical Notes</h5>
+        <a href="/notes" class="stretched-link"></a>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card bg-danger-subtle">
+        <i class="fas fa-pills text-danger"></i>
+        <h5 class="card-title">Supplements</h5>
+        <a href="/supplements" class="stretched-link"></a>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card bg-secondary-subtle">
+        <i class="fas fa-download text-secondary"></i>
+        <h5 class="card-title">Reports</h5>
+        <a href="/reports" class="stretched-link"></a>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Feature Cards - Now in 2 rows of 3 to be more compact -->
+  <section id="features" class="py-2">
+    <h2 class="text-center mb-3">Key Features</h2>
+    <div class="row g-3 row-cols-1 row-cols-md-3">
+      <div class="col">
+        <div class="card feature-card">
+          <div class="card-body">
+            <div class="feature-icon d-inline-flex align-items-center justify-content-center">
               <i class="fas fa-flask"></i>
             </div>
-            <h3 class="fs-2">Simulate NO Dynamics</h3>
-            <p>Model nitrite dynamics with precision, accommodating diverse patient profiles and dosing regimens.</p>
-            <a href="/simulations/new" class="btn btn-primary">
+            <h3 class="fs-4">NO Dynamics Simulation</h3>
+            <p class="small">Model nitrite dynamics with precision for diverse patient profiles and dosing regimens.</p>
+            <a href="/simulations/new" class="btn btn-sm btn-primary">
               Run Simulation <i class="fas fa-arrow-right ms-2"></i>
             </a>
           </div>
         </div>
       </div>
-      <div class="col d-flex align-items-start">
-        <div class="card feature-card w-100">
-          <div class="card-body text-center">
-            <div class="feature-icon d-inline-flex align-items-center justify-content-center fs-2 mb-3">
+      <div class="col">
+        <div class="card feature-card">
+          <div class="card-body">
+            <div class="feature-icon d-inline-flex align-items-center justify-content-center">
               <i class="fas fa-users"></i>
             </div>
-            <h3 class="fs-2">Patient Management</h3>
-            <p>Track and analyze patient data with comprehensive profiles and personalized treatment approaches.</p>
-            <a href="/patients" class="btn btn-primary">
+            <h3 class="fs-4">Patient Management</h3>
+            <p class="small">Track and analyze patient data with comprehensive profiles and personalized treatment approaches.</p>
+            <a href="/patients" class="btn btn-sm btn-primary">
               View Patients <i class="fas fa-arrow-right ms-2"></i>
             </a>
           </div>
         </div>
       </div>
-      <div class="col d-flex align-items-start">
-        <div class="card feature-card w-100">
-          <div class="card-body text-center">
-            <div class="feature-icon d-inline-flex align-items-center justify-content-center fs-2 mb-3">
+      <div class="col">
+        <div class="card feature-card">
+          <div class="card-body">
+            <div class="feature-icon d-inline-flex align-items-center justify-content-center">
               <i class="fas fa-robot"></i>
             </div>
-            <h3 class="fs-2">AI Assistant</h3>
-            <p>Get instant guidance from N1O1ai about nitric oxide dynamics, supplements, and clinical trials.</p>
-            <button id="indexChatBtn" class="btn btn-primary">
+            <h3 class="fs-4">AI Assistant</h3>
+            <p class="small">Get instant guidance from N1O1ai about nitric oxide dynamics, supplements, and clinical trials.</p>
+            <button id="aiAssistBtn" class="btn btn-sm btn-primary">
               Ask N1O1ai <i class="fas fa-comment-dots ms-2"></i>
             </button>
           </div>
@@ -107,8 +178,8 @@
     </div>
   </section>
   
-  <div class="text-center">
-    <a href="/docs" class="btn btn-outline-light">
+  <div class="text-center mt-2">
+    <a href="/docs" class="btn btn-outline-light btn-sm">
       <i class="fas fa-code me-2"></i> API Documentation
     </a>
   </div>
@@ -120,6 +191,7 @@
   document.addEventListener('DOMContentLoaded', function() {
     // Get the buttons
     const indexChatBtn = document.getElementById('indexChatBtn');
+    const aiAssistBtn = document.getElementById('aiAssistBtn');
     const learnMoreBtn = document.getElementById('learnMoreBtn');
     
     // Get the NO molecule chat button from base.html
@@ -154,9 +226,18 @@
       }
     }
     
-    // Connect the Ask N1O1ai button to the main chat interface
+    // Connect the main Ask N1O1ai button to the chat interface
     if (indexChatBtn && noMoleculeBtn) {
       indexChatBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Click the NO molecule button to open the chat
+        noMoleculeBtn.click();
+      });
+    }
+    
+    // Connect the feature card AI Assistant button
+    if (aiAssistBtn && noMoleculeBtn) {
+      aiAssistBtn.addEventListener('click', function(e) {
         e.preventDefault();
         // Click the NO molecule button to open the chat
         noMoleculeBtn.click();
