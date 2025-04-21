@@ -1,84 +1,331 @@
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient List - N1O1 Clinical Trials</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/styles.css" rel="stylesheet">
-</head>
-<body data-bs-theme="dark">
-    <div class="container mt-5">
-        <h1 class="mb-4">Patient List</h1>
-        
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+{% extends "base.html" %}
 
-        {% if error %}
-        <div class="alert alert-danger">
-            {{ error }}
+{% block title %}Patient List - N1O1 Clinical Trials{% endblock %}
+
+{% block head %}
+<style>
+  .header-section {
+    background: linear-gradient(120deg, #212529, #343a40);
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .header-section::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(13, 110, 253, 0.05) 0%, rgba(13, 110, 253, 0) 70%);
+    z-index: 0;
+  }
+  
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .patient-count {
+    color: #6c757d;
+    font-size: 1.1rem;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .patient-card {
+    border-radius: 1rem;
+    transition: all 0.3s;
+    background: linear-gradient(145deg, #2c3034, #212529);
+    border: none;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .patient-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+  
+  .patient-card .card-body {
+    padding: 1.5rem;
+  }
+  
+  .patient-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .patient-info {
+    font-size: 0.9rem;
+    color: #adb5bd;
+  }
+  
+  .patient-stat {
+    text-align: center;
+    padding: 0.5rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .patient-stat:last-child {
+    border-right: none;
+  }
+  
+  .stat-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  
+  .stat-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .baseline-bar {
+    height: 6px;
+    background: linear-gradient(90deg, #dc3545 0%, #ffc107 50%, #28a745 100%);
+    border-radius: 3px;
+    margin-top: 0.5rem;
+    position: relative;
+  }
+  
+  .baseline-indicator {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    border-radius: 50%;
+    top: -2px;
+    transform: translateX(-50%);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+  }
+  
+  .card-action-buttons {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .action-button {
+    border-radius: 50px;
+    font-weight: 500;
+    transition: all 0.3s;
+    flex: 1;
+    text-align: center;
+  }
+  
+  .action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+  
+  .empty-icon {
+    font-size: 4rem;
+    color: #495057;
+    margin-bottom: 1.5rem;
+  }
+  
+  .empty-text {
+    color: #adb5bd;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .add-patient-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.3s;
+  }
+  
+  .add-patient-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(13, 110, 253, 0.3);
+  }
+  
+  .add-patient-floating {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.5);
+    z-index: 100;
+    transition: all 0.3s;
+  }
+  
+  .add-patient-floating:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(13, 110, 253, 0.6);
+  }
+  
+  @media (max-width: 768px) {
+    .patient-card {
+      margin-bottom: 1rem;
+    }
+    
+    .patient-name {
+      font-size: 1.1rem;
+    }
+    
+    .stat-value {
+      font-size: 1rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        {% endif %}
-        
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Registered Patients</h5>
-                <a href="/patients/new" class="btn btn-sm btn-primary">Add New Patient</a>
-            </div>
-            <div class="card-body">
-                {% if patients %}
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Age</th>
-                                <th>Weight (kg)</th>
-                                <th>Baseline NO₂⁻ (µM)</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for patient in patients %}
-                            <tr>
-                                <td>{{ patient.id }}</td>
-                                <td>{{ patient.name }}</td>
-                                <td>{{ patient.age }}</td>
-                                <td>{{ patient.weight_kg }}</td>
-                                <td>{{ patient.baseline_no2 }}</td>
-                                <td>
-                                    <a href="/patients/{{ patient.id }}" class="btn btn-sm btn-info">View</a>
-                                    <a href="/simulations/new?patient_id={{ patient.id }}" class="btn btn-sm btn-primary">Simulate</a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="alert alert-info">
-                    No patients have been registered yet.
-                </div>
-                {% endif %}
-            </div>
-        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% if error %}
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ error }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  {% endif %}
+  
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="row">
+      <div class="col-md-8">
+        <h1 class="page-title">Patient Management</h1>
+        <p class="patient-count">
+          {% if patients %}
+            {{ patients|length }} patient{% if patients|length != 1 %}s{% endif %} registered in the N1O1 clinical trial
+          {% else %}
+            No patients registered yet
+          {% endif %}
+        </p>
         
         <div class="mt-4">
-            <a href="/" class="btn btn-secondary">Back to Dashboard</a>
+          <a href="/patients/new" class="btn btn-primary action-button">
+            <i class="fas fa-plus me-2"></i> Add New Patient
+          </a>
+          <a href="/" class="btn btn-outline-light action-button ms-2">
+            <i class="fas fa-home me-2"></i> Back to Dashboard
+          </a>
         </div>
+      </div>
+      
+      <div class="col-md-4 d-none d-md-block text-end">
+        <i class="fas fa-users fa-5x text-primary opacity-25"></i>
+      </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+  </div>
+  
+  <!-- Patient Cards -->
+  {% if patients %}
+    <div class="row">
+      {% for patient in patients %}
+        <div class="col-lg-6">
+          <div class="patient-card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <h3 class="patient-name">{{ patient.name }}</h3>
+                  <div class="patient-info">ID: {{ patient.id }}</div>
+                </div>
+                <span class="badge bg-primary rounded-pill">Patient</span>
+              </div>
+              
+              <div class="row py-3 mb-2 bg-dark bg-opacity-50 rounded">
+                <div class="col-4 patient-stat">
+                  <div class="stat-value">{{ patient.age }}</div>
+                  <div class="stat-label">Age</div>
+                </div>
+                <div class="col-4 patient-stat">
+                  <div class="stat-value">{{ patient.weight_kg }}</div>
+                  <div class="stat-label">Weight (kg)</div>
+                </div>
+                <div class="col-4 patient-stat">
+                  <div class="stat-value">{{ patient.baseline_no2 }}</div>
+                  <div class="stat-label">NO₂⁻ (µM)</div>
+                  
+                  <div class="baseline-bar">
+                    <div class="baseline-indicator" style="left: {{ (patient.baseline_no2 / 1.0) * 100 }}%;"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card-action-buttons">
+                <a href="/patients/{{ patient.id }}" class="btn btn-outline-info action-button">
+                  <i class="fas fa-eye me-1"></i> View
+                </a>
+                <a href="/simulations/new?patient_id={{ patient.id }}" class="btn btn-primary action-button">
+                  <i class="fas fa-chart-line me-1"></i> Simulate
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="fas fa-user-plus"></i>
+      </div>
+      <h3>No patients registered yet</h3>
+      <p class="empty-text">Start by adding your first patient to the N1O1 clinical trial.</p>
+      <a href="/patients/new" class="btn btn-primary add-patient-button">
+        <i class="fas fa-plus me-2"></i> Add Your First Patient
+      </a>
+    </div>
+  {% endif %}
+  
+  <!-- Floating Add Button (visible on mobile) -->
+  <a href="/patients/new" class="add-patient-floating d-md-none">
+    <i class="fas fa-plus fa-lg"></i>
+  </a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltips.forEach(tooltip => {
+      new bootstrap.Tooltip(tooltip);
+    });
+  });
+</script>
+{% endblock %}

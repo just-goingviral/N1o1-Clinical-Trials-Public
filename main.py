@@ -17,6 +17,20 @@ app = Flask(__name__)
 # Configure database
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///no_dynamics.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,  # Test connections before using them
+    'pool_recycle': 300,    # Recycle connections every 5 minutes
+    'pool_timeout': 30,     # Wait up to 30 seconds for a connection
+    'pool_size': 10,        # Maximum number of connections to keep
+    'max_overflow': 15,     # Allow up to 15 additional connections
+    'connect_args': {
+        'connect_timeout': 10,  # Connection timeout in seconds
+        'keepalives': 1,        # Send keepalive packets
+        'keepalives_idle': 60,  # After 60 seconds of no activity, send keepalive
+        'keepalives_interval': 10,  # Send keepalive every 10 seconds
+        'keepalives_count': 5   # Fail after 5 missed keepalives
+    }
+}
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = True
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_key_for_testing')
