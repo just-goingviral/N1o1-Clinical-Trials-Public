@@ -109,29 +109,47 @@ def assistant_response():
 
         # Find or create a chat session
         chat_session = None
-        if client_session_id:
-            chat_session = ChatSession.query.get(client_session_id)
-        
-        if not chat_session:
-            # Create a new session with UUID
+        try:
+            if client_session_id:
+                chat_session = ChatSession.query.get(client_session_id)
+            
+            if not chat_session:
+                # Create a new session with UUID
+                session_id = str(uuid.uuid4())
+                chat_session = ChatSession(id=session_id, user_identifier=user_identifier)
+                db.session.add(chat_session)
+                db.session.commit()
+            else:
+                # Update last activity time
+                chat_session.last_activity = datetime.utcnow()
+                db.session.commit()
+        except Exception as e:
+            import logging
+            logging.error(f"Error creating chat session: {str(e)}")
+            # Rollback session
+            db.session.rollback()
+            
+            # Use an in-memory session as a fallback
             session_id = str(uuid.uuid4())
             chat_session = ChatSession(id=session_id, user_identifier=user_identifier)
-            db.session.add(chat_session)
-            db.session.commit()
-        else:
-            # Update last activity time
-            chat_session.last_activity = datetime.utcnow()
-            db.session.commit()
+            # Don't attempt to save to database again
 
-        # Save user message to database
-        user_chat_message = ChatMessage(
-            session_id=chat_session.id,
-            role='user',
-            content=user_message,
-            attachment=attachment
-        )
-        db.session.add(user_chat_message)
-        db.session.commit()
+        # Save user message to database (with error handling)
+        try:
+            user_chat_message = ChatMessage(
+                session_id=chat_session.id,
+                role='user',
+                content=user_message,
+                attachment=attachment
+            )
+            db.session.add(user_chat_message)
+            db.session.commit()
+        except Exception as db_error:
+            # Log the error but continue with the conversation
+            import logging
+            logging.error(f"Error saving user message: {str(db_error)}")
+            db.session.rollback()
+            # The conversation will continue without saving to database
 
         # Context to help the assistant respond accurately
         system_message = f"""You are N1O1ai, a clinical trial assistant built by JustGoingViral to help Dr. Nathan Bryan understand how to use the N1O1 Clinical Trials app. You are powered by NitroSynt technology and specialized in nitric oxide research. You help users explore simulation models, patient data, nitric oxide supplementation, and trial outcomes.
@@ -180,15 +198,23 @@ Your initial greeting should be: "Hi, I'm N1O1ai! Would you like help with the c
 
             assistant_response_text = response.choices[0].message.content
             
-            # Save assistant response to database
-            assistant_chat_message = ChatMessage(
-                session_id=chat_session.id,
-                role='assistant',
-                content=assistant_response_text
-            )
-            db.session.add(assistant_chat_message)
-            db.session.commit()
-
+            # Save assistant response to database with error handling
+            try:
+                assistant_chat_message = ChatMessage(
+                    session_id=chat_session.id,
+                    role='assistant',
+                    content=assistant_response_text
+                )
+                db.session.add(assistant_chat_message)
+                db.session.commit()
+            except Exception as db_error:
+                # Log the error but still return the response to the user
+                import logging
+                logging.error(f"Error saving assistant message: {str(db_error)}")
+                db.session.rollback()
+                # We'll continue and return the response anyway
+            
+            # Return successful response to client
             return jsonify({
                 'status': 'success',
                 'response': assistant_response_text,
