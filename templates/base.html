@@ -97,8 +97,86 @@
     <!-- Scientific Glossary Script -->
     <script src="/static/js/scientific_glossary.js"></script>
     
-    <!-- Chat Coordinator Script - Prevents multiple chat windows -->
-    <script src="/static/js/chat-coordinator.js"></script>
+    <!-- NO molecule chat initialization script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize NO molecule chat
+            const moleculeBtn = document.getElementById('no-molecule-chat-button');
+            const chatModal = document.getElementById('no-chat-modal');
+            const closeBtn = document.getElementById('no-chat-close');
+            const chatInput = document.getElementById('no-chat-input');
+            const sendBtn = document.getElementById('no-chat-send');
+            const chatMessages = document.getElementById('no-chat-messages');
+            
+            if (moleculeBtn && chatModal) {
+                // Toggle chat visibility when molecule button is clicked
+                moleculeBtn.addEventListener('click', function() {
+                    chatModal.style.display = 'block';
+                });
+                
+                // Close chat when close button is clicked
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() {
+                        chatModal.style.display = 'none';
+                    });
+                }
+                
+                // Send message when button is clicked
+                if (sendBtn && chatInput && chatMessages) {
+                    sendBtn.addEventListener('click', function() {
+                        sendMessage();
+                    });
+                    
+                    // Send message when Enter key is pressed
+                    chatInput.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            sendMessage();
+                        }
+                    });
+                    
+                    // Function to send message
+                    function sendMessage() {
+                        const message = chatInput.value.trim();
+                        if (!message) return;
+                        
+                        // Add user message to chat
+                        const userMsgDiv = document.createElement('div');
+                        userMsgDiv.className = 'no-chat-message user';
+                        userMsgDiv.innerHTML = `<div class="no-chat-bubble">${message}</div>`;
+                        chatMessages.appendChild(userMsgDiv);
+                        
+                        // Clear input
+                        chatInput.value = '';
+                        
+                        // Scroll to bottom
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        
+                        // Add loading indicator
+                        const loadingDiv = document.createElement('div');
+                        loadingDiv.className = 'no-chat-message assistant';
+                        loadingDiv.innerHTML = '<div class="no-chat-bubble">Thinking...</div>';
+                        chatMessages.appendChild(loadingDiv);
+                        
+                        // Simulate response (replace with actual API call if available)
+                        setTimeout(function() {
+                            // Remove loading indicator
+                            chatMessages.removeChild(loadingDiv);
+                            
+                            // Add assistant response
+                            const assistantMsg = document.createElement('div');
+                            assistantMsg.className = 'no-chat-message assistant';
+                            assistantMsg.innerHTML = `<div class="no-chat-bubble">I'm N1O1ai, your nitric oxide research assistant. I'd be happy to help with information about our nitric oxide supplements, clinical trials, or using the simulator.</div>`;
+                            chatMessages.appendChild(assistantMsg);
+                            
+                            // Scroll to bottom
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        }, 1000);
+                    }
+                }
+            }
+        });
+    </script>
     
     <!-- NO molecule chatbot -->
     <div id="no-molecule-chat-button" class="no-molecule-chat-button">
