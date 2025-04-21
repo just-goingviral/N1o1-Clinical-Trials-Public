@@ -62,8 +62,76 @@ audio {
     margin: 0 auto 1rem;
 }
 
-/* Mobile optimizations */
+/* Touch-friendly styles */
+.touch-active {
+    opacity: 0.8;
+    transform: scale(0.98);
+    transition: all 0.2s ease;
+}
+
+/* Responsive tables */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive chart containers */
+.chart-container {
+    position: relative;
+    min-height: 300px;
+    width: 100%;
+}
+
+/* Better form controls on mobile */
 @media (max-width: 768px) {
+    .form-control, .form-select, .btn {
+        min-height: 44px; /* Better touch targets */
+    }
+    
+    .input-group-text {
+        min-height: 44px;
+    }
+}
+
+/* Extra small screens (phones, 576px and down) */
+@media (max-width: 576px) {
+    .container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    h1 {
+        font-size: 1.6rem;
+    }
+    
+    h2 {
+        font-size: 1.4rem;
+    }
+    
+    h3 {
+        font-size: 1.2rem;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    
+    /* Remove text from some buttons, show only icons */
+    .btn-icon-only-xs .btn-text {
+        display: none;
+    }
+}
+
+/* Small screens (small tablets and large phones, 576px and up) */
+@media (min-width: 576px) and (max-width: 768px) {
     .card-body {
         padding: 1rem;
     }
@@ -75,25 +143,76 @@ audio {
     h2 {
         font-size: 1.5rem;
     }
-    
-    /* Floating action button for mobile */
-    .btn-floating {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        text-align: center;
-        box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
-        z-index: 1000;
+}
+
+/* Medium screens (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 992px) {
+    .card-deck .card {
+        margin-bottom: 15px;
+    }
+}
+
+/* Floating action button for mobile */
+.btn-floating {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    text-align: center;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-floating i {
+    font-size: 1.5rem;
+    line-height: 56px;
+}
+
+/* Back to top button */
+#back-to-top-btn {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    text-align: center;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    z-index: 1000;
+    background-color: var(--n1o1-primary);
+    border: none;
+    color: white;
+}
+
+/* Utility classes for responsive design */
+.hidden-xs {
+    display: none !important;
+}
+
+@media (min-width: 576px) {
+    .hidden-xs {
+        display: initial !important;
+    }
+    .hidden-sm-up {
+        display: none !important;
+    }
+}
+
+/* Mobile-friendly card actions */
+@media (max-width: 768px) {
+    .card-actions {
         display: flex;
-        align-items: center;
-        justify-content: center;
+        flex-direction: column;
     }
     
-    .btn-floating i {
-        font-size: 1.5rem;
-        line-height: 56px;
+    .card-actions .btn {
+        margin-bottom: 0.5rem;
+        width: 100%;
     }
 }

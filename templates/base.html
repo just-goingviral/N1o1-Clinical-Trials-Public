@@ -2,7 +2,12 @@
 <html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="N1O1 Clinical Trials - A comprehensive platform for simulating nitrite dynamics and managing clinical trials for nitric oxide therapeutics">
+    <meta name="theme-color" content="#16325c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>{% block title %}N1O1 Clinical Trials{% endblock %}</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
@@ -13,6 +18,8 @@
     <link href="/static/css/tooltips.css" rel="stylesheet">
     <link href="/static/css/loader-animations.css" rel="stylesheet">
     <link href="/static/css/chatbot.css" rel="stylesheet">
+    <!-- Mobile icons -->
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
     <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -124,6 +131,9 @@
     
     <!-- Chat Coordinator Script -->
     <script src="/static/js/chat-coordinator.js"></script>
+    
+    <!-- Responsive Utilities Script -->
+    <script src="/static/js/responsive-util.js"></script>
     
     <!-- NO molecule chat initialization script -->
     <script>

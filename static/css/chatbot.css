@@ -284,22 +284,88 @@
   .no-molecule-chat-button {
     top: auto;
     bottom: 20px;
+    right: 20px;
     transform: none;
+    width: 56px;
+    height: 56px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   }
   
-  .no-molecule-chat-button:hover {
-    transform: scale(1.1);
+  .no-molecule-chat-button:hover,
+  .no-molecule-chat-button:active,
+  .no-molecule-chat-button:focus {
+    transform: scale(1.05);
   }
   
   .no-chat-modal {
-    width: 90%;
-    height: 70%;
-    right: 5%;
-    bottom: 80px;
+    width: 100%;
+    height: 80%;
+    right: 0;
+    bottom: 0;
+    border-radius: 20px 20px 0 0;
   }
   
   .no-chat-header h5 {
     font-size: 1rem;
+  }
+  
+  .no-chat-message {
+    max-width: 90%;
+  }
+  
+  .no-chat-bubble {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+  
+  .no-chat-input-container {
+    padding: 8px;
+  }
+  
+  .no-chat-input {
+    min-height: 44px; /* Larger touch target */
+  }
+  
+  .no-chat-send-btn {
+    width: 44px;
+    height: 44px;
+  }
+  
+  /* Fixes for small screens */
+  .no-chat-messages {
+    padding: 12px;
+    gap: 8px;
+  }
+}
+
+/* Small phone optimizations */
+@media (max-width: 480px) {
+  .no-chat-modal {
+    height: 90%; /* Larger chat area on very small screens */
+  }
+  
+  .no-chat-controls {
+    gap: 2px;
+  }
+  
+  .no-chat-control-btn {
+    width: 28px;
+    height: 28px;
+  }
+  
+  /* Simplify the header on very small devices */
+  .no-chat-header h5 {
+    font-size: 0.95rem;
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* Improve touch targets for the file button */
+  .no-chat-tool-btn {
+    width: 40px;
+    height: 40px;
   }
 }
 
