@@ -57,6 +57,7 @@
   position: relative;
   perspective: 600px;
   margin: 0 auto;
+  overflow: visible;
 }
 
 .no-molecule-wrapper {
@@ -77,6 +78,7 @@
   background: radial-gradient(circle at 30% 30%, #3b7eb9, #16325c);
   box-shadow: 0 0 20px rgba(23, 139, 234, 0.6);
   z-index: 2;
+  animation: pulseBreathe 4s infinite alternate ease-in-out, moleculeTransform 8s infinite alternate ease-in-out;
 }
 
 .oxygen {
@@ -89,6 +91,7 @@
   background: radial-gradient(circle at 30% 30%, #e05a47, #7a1c0e);
   box-shadow: 0 0 20px rgba(224, 90, 71, 0.6);
   z-index: 1;
+  animation: pulseBreathe 4s infinite alternate ease-in-out, moleculeTransform 8s infinite alternate ease-in-out 0.5s;
 }
 
 .bond {
@@ -101,6 +104,7 @@
   transform: rotate(0deg);
   z-index: 0;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  animation: bondTransform 8s infinite alternate ease-in-out;
 }
 
 .nitrogen::after, .oxygen::after {
@@ -112,6 +116,57 @@
   background: transparent;
   box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.4);
   animation: pulse 2s infinite ease-in-out;
+}
+
+/* Gas particles */
+.gas-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  opacity: 0;
+  z-index: 0;
+  animation: gasDiffuse 4s infinite;
+}
+
+.gas-particle:nth-child(1) {
+  background-color: rgba(59, 126, 185, 0.7);
+  animation-delay: 0s;
+}
+
+.gas-particle:nth-child(2) {
+  background-color: rgba(224, 90, 71, 0.7);
+  animation-delay: 0.5s;
+}
+
+.gas-particle:nth-child(3) {
+  background-color: rgba(59, 126, 185, 0.7);
+  animation-delay: 1s;
+}
+
+.gas-particle:nth-child(4) {
+  background-color: rgba(224, 90, 71, 0.7);
+  animation-delay: 1.5s;
+}
+
+.gas-particle:nth-child(5) {
+  background-color: rgba(59, 126, 185, 0.7);
+  animation-delay: 2s;
+}
+
+.gas-particle:nth-child(6) {
+  background-color: rgba(224, 90, 71, 0.7);
+  animation-delay: 2.5s;
+}
+
+.gas-particle:nth-child(7) {
+  background-color: rgba(59, 126, 185, 0.7);
+  animation-delay: 3s;
+}
+
+.gas-particle:nth-child(8) {
+  background-color: rgba(224, 90, 71, 0.7);
+  animation-delay: 3.5s;
 }
 
 .electron {
@@ -420,6 +475,74 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes pulseBreathe {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes moleculeTransform {
+  0% {
+    opacity: 1;
+    transform: scale(1) translate(0, 0);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.9) translate(0, 0);
+  }
+  70% {
+    opacity: 0.6;
+    transform: scale(0.8) translate(5px, -5px);
+  }
+  100% {
+    opacity: 0.4;
+    transform: scale(0.7) translate(10px, -10px);
+  }
+}
+
+@keyframes bondTransform {
+  0% {
+    width: 40px;
+    opacity: 1;
+  }
+  50% {
+    width: 35px;
+    opacity: 0.7;
+  }
+  100% {
+    width: 20px;
+    opacity: 0.3;
+  }
+}
+
+@keyframes gasDiffuse {
+  0% {
+    opacity: 0;
+    transform: translate(80px, 65px) scale(0.5);
+  }
+  30% {
+    opacity: 0.7;
+    transform: translate(60px, 45px) scale(0.8);
+  }
+  60% {
+    opacity: 0.5;
+    transform: translate(40px, 25px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(30px + var(--random-x, 50px)), calc(-20px + var(--random-y, 10px))) scale(1.2);
   }
 }
 

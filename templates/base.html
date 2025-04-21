@@ -12,6 +12,7 @@
     <link href="/static/css/style.css" rel="stylesheet">
     <link href="/static/css/tooltips.css" rel="stylesheet">
     <link href="/static/css/loader-animations.css" rel="stylesheet">
+    <link href="/static/css/chatbot.css" rel="stylesheet">
     <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -252,8 +253,39 @@
                                 // Add assistant response
                                 const assistantMsg = document.createElement('div');
                                 assistantMsg.className = 'no-chat-message assistant';
-                                assistantMsg.innerHTML = `<div class="no-chat-bubble">${data.response}</div>`;
+                                
+                                // Process response - convert bullet points to clickable items
+                                let processedResponse = data.response;
+                                
+                                // Check if there are clickable topics (look for bullet points)
+                                if (processedResponse.includes('<ul>') && processedResponse.includes('<li>')) {
+                                    // Convert standard bullet points to clickable items
+                                    processedResponse = processedResponse.replace(
+                                        /<li>(.*?)<\/li>/g, 
+                                        '<li><a href="#" class="clickable-item"><i class="fas fa-arrow-right"></i>$1</a></li>'
+                                    );
+                                }
+                                
+                                assistantMsg.innerHTML = `<div class="no-chat-bubble">${processedResponse}</div>`;
                                 chatMessages.appendChild(assistantMsg);
+                                
+                                // Add click handlers for the clickable items
+                                const clickableItems = assistantMsg.querySelectorAll('.clickable-item');
+                                clickableItems.forEach(item => {
+                                    item.addEventListener('click', function(e) {
+                                        e.preventDefault();
+                                        const topicText = this.textContent.trim();
+                                        
+                                        // Set the chat input with the selected topic
+                                        chatInput.value = "Tell me about " + topicText;
+                                        
+                                        // Focus the input
+                                        chatInput.focus();
+                                        
+                                        // Optionally, automatically send the message
+                                        sendMessage();
+                                    });
+                                });
                             } else {
                                 // Show error
                                 const errorMsg = document.createElement('div');
@@ -327,10 +359,10 @@
                         <p>Hi, I'm N1O1ai! Would you like help with the clinical trial app or guidance on our nitric oxide therapeutics?</p>
                         <p>I can help with:</p>
                         <ul>
-                            <li>Understanding nitric oxide pathways</li>
-                            <li>Dosing calculations and recommendations</li>
-                            <li>Visualizing simulation results</li>
-                            <li>Explaining clinical trial data</li>
+                            <li><a href="#" class="clickable-item"><i class="fas fa-arrow-right"></i> Understanding nitric oxide pathways</a></li>
+                            <li><a href="#" class="clickable-item"><i class="fas fa-arrow-right"></i> Dosing calculations and recommendations</a></li>
+                            <li><a href="#" class="clickable-item"><i class="fas fa-arrow-right"></i> Visualizing simulation results</a></li>
+                            <li><a href="#" class="clickable-item"><i class="fas fa-arrow-right"></i> Explaining clinical trial data</a></li>
                         </ul>
                     </div>
                 </div>

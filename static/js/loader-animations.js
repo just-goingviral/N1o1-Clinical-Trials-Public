@@ -90,6 +90,18 @@ class N1O1Loader {
     bond.className = 'bond';
     wrapper.appendChild(bond);
     
+    // Add gas particles for diffusion effect
+    for (let i = 0; i < 8; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'gas-particle';
+      
+      // Set random positions
+      particle.style.setProperty('--random-x', `${Math.floor(Math.random() * 60) - 30}px`);
+      particle.style.setProperty('--random-y', `${Math.floor(Math.random() * 100) - 50}px`);
+      
+      wrapper.appendChild(particle);
+    }
+    
     // Create electron orbits
     for (let i = 0; i < 3; i++) {
       const orbit = document.createElement('div');
