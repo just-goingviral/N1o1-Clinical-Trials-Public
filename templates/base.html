@@ -104,6 +104,7 @@
             const moleculeBtn = document.getElementById('no-molecule-chat-button');
             const chatModal = document.getElementById('no-chat-modal');
             const closeBtn = document.getElementById('no-chat-close');
+            const expandBtn = document.getElementById('no-chat-expand');
             const chatInput = document.getElementById('no-chat-input');
             const sendBtn = document.getElementById('no-chat-send');
             const chatMessages = document.getElementById('no-chat-messages');
@@ -118,6 +119,30 @@
                 if (closeBtn) {
                     closeBtn.addEventListener('click', function() {
                         chatModal.style.display = 'none';
+                        // Remove fullscreen class if active when closing
+                        chatModal.classList.remove('fullscreen');
+                        expandBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                        expandBtn.title = 'Expand to full screen';
+                    });
+                }
+                
+                // Expand chat to fullscreen when expand button is clicked
+                if (expandBtn) {
+                    expandBtn.addEventListener('click', function() {
+                        chatModal.classList.toggle('fullscreen');
+                        
+                        if (chatModal.classList.contains('fullscreen')) {
+                            expandBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                            expandBtn.title = 'Exit full screen';
+                        } else {
+                            expandBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                            expandBtn.title = 'Expand to full screen';
+                        }
+                        
+                        // Focus on input after resize
+                        setTimeout(() => {
+                            chatInput.focus();
+                        }, 300);
                     });
                 }
                 
@@ -192,7 +217,10 @@
         <div class="no-chat-container">
             <div class="no-chat-header">
                 <h5><i class="fas fa-atom me-2"></i>N1O1ai Assistant</h5>
-                <button id="no-chat-close" class="no-chat-close-btn">&times;</button>
+                <div class="no-chat-controls">
+                    <button id="no-chat-expand" class="no-chat-control-btn" title="Expand to full screen"><i class="fas fa-expand"></i></button>
+                    <button id="no-chat-close" class="no-chat-close-btn">&times;</button>
+                </div>
             </div>
             <div class="no-chat-messages" id="no-chat-messages">
                 <!-- Messages will be inserted here -->
@@ -316,6 +344,47 @@
             border: 1px solid rgba(13, 110, 253, 0.3);
             animation: chatExpand 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        /* Fullscreen mode */
+        .no-chat-modal.fullscreen {
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+            margin: 0;
+            max-width: none;
+            animation: none;
+        }
+        
+        /* Control buttons in header */
+        .no-chat-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .no-chat-control-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .no-chat-control-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
         }
         
         @keyframes chatExpand {

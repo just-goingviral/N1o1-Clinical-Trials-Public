@@ -7,20 +7,32 @@ import os
 import json
 import pandas as pd
 import numpy as np
+import base64
 from openai import OpenAI
+import anthropic
+from anthropic import Anthropic
 import uuid
 from datetime import datetime
 from models import db, Patient, Simulation, ChatSession, ChatMessage
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
-# Get API key from environment (provided as secret)
-N1O1_API_KEY = os.environ.get("OPENAI_API_KEY")  # Using environment variable for API key
-if not N1O1_API_KEY:
-    import logging
-    logging.warning("N1O1 API key not found. AI assistant functionality will be limited.")
+# Get API keys from environment (provided as secrets)
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 
-client = OpenAI(api_key=N1O1_API_KEY) if N1O1_API_KEY else None  # Client initialization
+# Initialize AI clients
+client = None
+claude_client = None
+
+if OPENAI_API_KEY:
+    client = OpenAI(api_key=OPENAI_API_KEY)  # For text-only requests
+
+if ANTHROPIC_API_KEY:
+    claude_client = Anthropic(api_key=ANTHROPIC_API_KEY)  # For handling images
+else:
+    import logging
+    logging.warning("Anthropic API key not found. Image processing will not work.")
 
 
 @api_bp.route('/patients', methods=['GET'])
@@ -181,22 +193,75 @@ Your initial greeting should be: "Hi, I'm N1O1ai! Would you like help with the c
                 "content": msg.content
             })
 
-        # Call the AI assistant API 
+        # Call the appropriate AI assistant API based on content type
         try:
-            if client is None:
-                return jsonify({
-                    'status': 'error',
-                    'message': "AI assistant is not available. Please configure the OpenAI API key in your environment variables."
-                }), 503
+            # Check if we have an image attachment to process
+            if attachment and attachment.get('type', '').startswith('image/'):
+                # Use Claude for image understanding if available
+                if claude_client is None:
+                    return jsonify({
+                        'status': 'error',
+                        'message': "Image processing is not available. Please configure the Anthropic API key."
+                    }), 503
                 
-            response = client.chat.completions.create(
-                model="gpt-4o",  # using NitroSynt-4 model (internal name: gpt-4o)
-                messages=messages,
-                temperature=0.7,
-                max_tokens=1000
-            )
+                # Extract the image data from the dataUrl (remove the prefix)
+                image_data = attachment.get('dataUrl', '')
+                if 'base64,' in image_data:
+                    image_data = image_data.split('base64,')[1]
+                
+                # Build Claude message format
+                claude_messages = [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text", 
+                                "text": f"""You are N1O1ai, a clinical trial assistant for nitric oxide research.
+                                
+{system_message}
 
-            assistant_response_text = response.choices[0].message.content
+The user has shared an image with the following message: "{user_message}"
+                                
+Analyze this image in detail and respond as N1O1ai."""
+                            },
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": attachment.get('type', 'image/jpeg'),
+                                    "data": image_data
+                                }
+                            }
+                        ]
+                    }
+                ]
+                
+                # Call Claude API (using claude-3-5-sonnet-20241022 which is the latest model)
+                response = claude_client.messages.create(
+                    model="claude-3-5-sonnet-20241022",
+                    messages=claude_messages,
+                    temperature=0.7,
+                    max_tokens=1000
+                )
+                
+                assistant_response_text = response.content[0].text
+                
+            else:
+                # Use OpenAI for text-only requests
+                if client is None:
+                    return jsonify({
+                        'status': 'error',
+                        'message': "AI assistant is not available. Please configure the OpenAI API key in your environment variables."
+                    }), 503
+                    
+                response = client.chat.completions.create(
+                    model="gpt-4o",  # using NitroSynt-4 model (internal name: gpt-4o)
+                    messages=messages,
+                    temperature=0.7,
+                    max_tokens=1000
+                )
+                
+                assistant_response_text = response.choices[0].message.content
             
             # Save assistant response to database with error handling
             try:

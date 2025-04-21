@@ -427,6 +427,16 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Full-screen mode for chat widget */
+.chat-widget.fullscreen {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    margin: 0;
+}
+
 .chat-header {
     background-color: var(--bs-primary);
     color: white;
