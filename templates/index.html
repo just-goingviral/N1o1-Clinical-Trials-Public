@@ -4,27 +4,42 @@
 
 {% block head %}
 <style>
+  :root {
+    --n1o1-primary: #2063c9;
+    --n1o1-secondary: #178bea;
+    --n1o1-blue-light: #e4f1fc;
+    --n1o1-blue-lighter: #f0f8ff;
+    --n1o1-blue-gradient: linear-gradient(135deg, #2063c9, #178bea);
+  }
+  
+  body {
+    background-color: #1f2937;
+    color: #fff;
+  }
+  
   .hero-section {
     padding: 2rem 1rem;
-    background: linear-gradient(135deg, #212529, #343a40);
+    background: #1f2937;
     border-radius: 1rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
   }
   
   .feature-card {
     height: 100%;
     transition: transform 0.3s;
+    background-color: #263240;
+    border: none;
   }
   
   .feature-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(30, 144, 255, 0.2);
   }
   
   .feature-icon {
     font-size: 2rem;
     margin-bottom: 0.5rem;
-    color: #0d6efd;
+    color: var(--n1o1-secondary);
   }
   
   .action-button {
@@ -34,9 +49,28 @@
     transition: all 0.3s;
   }
   
-  .action-button:hover {
+  .btn-n1o1 {
+    background-color: var(--n1o1-primary);
+    border-color: var(--n1o1-primary);
+    color: white;
+  }
+  
+  .btn-n1o1:hover {
+    background-color: var(--n1o1-secondary);
+    border-color: var(--n1o1-secondary);
+    color: white;
     transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
+    box-shadow: 0 5px 15px rgba(30, 144, 255, 0.4);
+  }
+  
+  .btn-outline-n1o1 {
+    border-color: var(--n1o1-secondary);
+    color: white;
+  }
+  
+  .btn-outline-n1o1:hover {
+    background-color: var(--n1o1-secondary);
+    color: white;
   }
   
   .quick-access {
@@ -45,9 +79,19 @@
   }
   
   .quick-access .card {
-    padding: 0.8rem;
+    padding: 1rem;
     text-align: center;
     margin-bottom: 0.8rem;
+    background-color: #263240;
+    border: none;
+    transition: all 0.3s;
+    color: white;
+  }
+  
+  .quick-access .card:hover {
+    background-color: #2d3a4a;
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(30, 144, 255, 0.2);
   }
   
   .quick-access .card-title {
@@ -56,8 +100,31 @@
   }
   
   .quick-access i {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+    margin-bottom: 0.7rem;
+    color: var(--n1o1-secondary);
+  }
+  
+  .section-title {
+    color: white;
+    position: relative;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 3px;
+    background-color: var(--n1o1-secondary);
+  }
+  
+  .highlight {
+    color: var(--n1o1-secondary);
   }
 </style>
 {% endblock %}
@@ -68,16 +135,16 @@
     <h1 class="display-5 fw-bold mb-2">N1O1 Clinical Trials Platform</h1>
     <p class="lead mb-3">
       Welcome to Dr. Bryan's nitric oxide clinical trial simulation platform.
-      Visualize NO kinetics and simulate patient-specific responses.
+      Visualize <span class="highlight">NO</span> kinetics and simulate patient-specific responses.
     </p>
     <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-2">
-      <a href="/simulations/view?id=1" class="btn btn-primary action-button px-4">
+      <a href="/simulations/view?id=1" class="btn btn-n1o1 action-button px-4">
         <i class="fas fa-chart-line me-2"></i> Start Simulation
       </a>
-      <button id="indexChatBtn" class="btn btn-success action-button px-4">
+      <button id="indexChatBtn" class="btn btn-n1o1 action-button px-4">
         <i class="fas fa-comment-dots me-2"></i> Ask N1O1ai
       </button>
-      <a href="#" id="learnMoreBtn" class="btn btn-outline-secondary action-button px-4">
+      <a href="#" id="learnMoreBtn" class="btn btn-outline-n1o1 action-button px-4">
         <i class="fas fa-info-circle me-2"></i> Learn More
       </a>
     </div>
@@ -86,43 +153,43 @@
   <!-- Quick Access Grid - Above the fold -->
   <div class="row quick-access">
     <div class="col-6 col-md-4 col-lg-2">
-      <div class="card bg-primary-subtle">
-        <i class="fas fa-flask text-primary"></i>
+      <div class="card">
+        <i class="fas fa-flask"></i>
         <h5 class="card-title">New Simulation</h5>
         <a href="/simulations/new" class="stretched-link"></a>
       </div>
     </div>
     <div class="col-6 col-md-4 col-lg-2">
-      <div class="card bg-success-subtle">
-        <i class="fas fa-users text-success"></i>
+      <div class="card">
+        <i class="fas fa-users"></i>
         <h5 class="card-title">Patients</h5>
         <a href="/patients" class="stretched-link"></a>
       </div>
     </div>
     <div class="col-6 col-md-4 col-lg-2">
-      <div class="card bg-info-subtle">
-        <i class="fas fa-chart-bar text-info"></i>
+      <div class="card">
+        <i class="fas fa-chart-bar"></i>
         <h5 class="card-title">Data Analysis</h5>
         <a href="/analyzer" class="stretched-link"></a>
       </div>
     </div>
     <div class="col-6 col-md-4 col-lg-2">
-      <div class="card bg-warning-subtle">
-        <i class="fas fa-sticky-note text-warning"></i>
+      <div class="card">
+        <i class="fas fa-sticky-note"></i>
         <h5 class="card-title">Clinical Notes</h5>
         <a href="/notes" class="stretched-link"></a>
       </div>
     </div>
     <div class="col-6 col-md-4 col-lg-2">
-      <div class="card bg-danger-subtle">
-        <i class="fas fa-pills text-danger"></i>
+      <div class="card">
+        <i class="fas fa-pills"></i>
         <h5 class="card-title">Supplements</h5>
         <a href="/supplements" class="stretched-link"></a>
       </div>
     </div>
     <div class="col-6 col-md-4 col-lg-2">
-      <div class="card bg-secondary-subtle">
-        <i class="fas fa-download text-secondary"></i>
+      <div class="card">
+        <i class="fas fa-download"></i>
         <h5 class="card-title">Reports</h5>
         <a href="/reports" class="stretched-link"></a>
       </div>
@@ -131,7 +198,7 @@
   
   <!-- Feature Cards - Now in 2 rows of 3 to be more compact -->
   <section id="features" class="py-2">
-    <h2 class="text-center mb-3">Key Features</h2>
+    <h2 class="text-center section-title">Key Features</h2>
     <div class="row g-3 row-cols-1 row-cols-md-3">
       <div class="col">
         <div class="card feature-card">
@@ -141,7 +208,7 @@
             </div>
             <h3 class="fs-4">NO Dynamics Simulation</h3>
             <p class="small">Model nitrite dynamics with precision for diverse patient profiles and dosing regimens.</p>
-            <a href="/simulations/new" class="btn btn-sm btn-primary">
+            <a href="/simulations/new" class="btn btn-n1o1 btn-sm">
               Run Simulation <i class="fas fa-arrow-right ms-2"></i>
             </a>
           </div>
@@ -155,7 +222,7 @@
             </div>
             <h3 class="fs-4">Patient Management</h3>
             <p class="small">Track and analyze patient data with comprehensive profiles and personalized treatment approaches.</p>
-            <a href="/patients" class="btn btn-sm btn-primary">
+            <a href="/patients" class="btn btn-n1o1 btn-sm">
               View Patients <i class="fas fa-arrow-right ms-2"></i>
             </a>
           </div>
@@ -169,7 +236,7 @@
             </div>
             <h3 class="fs-4">AI Assistant</h3>
             <p class="small">Get instant guidance from N1O1ai about nitric oxide dynamics, supplements, and clinical trials.</p>
-            <button id="aiAssistBtn" class="btn btn-sm btn-primary">
+            <button id="aiAssistBtn" class="btn btn-n1o1 btn-sm">
               Ask N1O1ai <i class="fas fa-comment-dots ms-2"></i>
             </button>
           </div>
@@ -179,7 +246,7 @@
   </section>
   
   <div class="text-center mt-2">
-    <a href="/docs" class="btn btn-outline-light btn-sm">
+    <a href="/docs" class="btn btn-outline-n1o1 btn-sm">
       <i class="fas fa-code me-2"></i> API Documentation
     </a>
   </div>
