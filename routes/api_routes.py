@@ -847,7 +847,7 @@ def population_analysis():
 # This get_patients function was removed as it was a duplicate of the one above
 
 @api_bp.route('/chat-history', methods=['GET'])
-defget_chat_history():
+def get_chat_history():
     """Get chat history for a specific session"""
     try:
         session_id = request.args.get('session_id')
