@@ -1,0 +1,46 @@
+        }), 500ST'])
+        }), 500
+@api_bp.route('/log-client-error', methods=['POST'])
+def log_client_error():
+    """Endpoint to log client-side errors"""
+    from utils.logger import get_module_logger
+    
+    logger = get_module_logger('client_errors')
+    try:
+        error_data = request.json
+        source = error_data.get('source', 'unknown')
+        error_msg = error_data.get('error', 'No error message provided')
+        context = error_data.get('context', 'No context provided')
+        
+        logger.error(f"Client error from {source}: {error_msg} - Context: {context}")
+        return jsonify({'status': 'success', 'message': 'Error logged'})
+    except Exception as e:
+        logger.error(f"Error in error logging endpoint: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Failed to log error'}), 500, 500
+@api_bp.route('/log-client-error', methods=['POST'])
+def log_client_error():
+    """Endpoint to log client-side errors"""
+    from utils.logger import get_module_logger
+    
+    logger = get_module_logger('client_errors')
+    try:
+        error_data = request.json
+        source = error_data.get('source', 'unknown')
+        error_msg = error_data.get('error', 'No error message provided')
+        context = error_data.get('context', 'No context provided')
+        
+        logger.error(f"Client error from {source}: {error_msg} - Context: {context}")
+        return jsonify({'status': 'success', 'message': 'Error logged'})
+    except Exception as e:
+        logger.error(f"Error in error logging endpoint: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Failed to log error'}), 500
+# Run the application
+if __name__ == '__main__':
+    # Use port 5000 for deployment compatibility
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
+# Run the application
+if __name__ == '__main__':
+    # Use port 5000 for deployment compatibility
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
