@@ -11,6 +11,8 @@
     <!-- Custom CSS -->
     <link href="/static/css/style.css" rel="stylesheet">
     <link href="/static/css/tooltips.css" rel="stylesheet">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -1163,20 +1165,83 @@
                 });
             }
             
-            // Add message to chat
+            // Add message to chat with rich content support
             function addMessageToChat(role, content) {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `no-chat-message ${role}`;
                 
                 const bubbleDiv = document.createElement('div');
                 bubbleDiv.className = 'no-chat-bubble';
-                bubbleDiv.textContent = content;
+                
+                // Check if content is HTML or contains Markdown-like formatting
+                if (content.includes('<p>') || content.includes('<ul>') || 
+                    content.includes('<img') || content.includes('<h') ||
+                    content.includes('<table') || content.includes('<pre>')) {
+                    // It's already HTML, set innerHTML directly
+                    bubbleDiv.innerHTML = content;
+                } else {
+                    // Format plain text with proper paragraph structure
+                    let formattedText = '<p>' + content
+                        .replace(/\n\n+/g, '</p><p>')
+                        .replace(/\n/g, '<br>')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>')
+                        + '</p>';
+                    
+                    bubbleDiv.innerHTML = formattedText;
+                }
                 
                 messageDiv.appendChild(bubbleDiv);
                 messagesContainer.appendChild(messageDiv);
                 
                 // Scroll to bottom
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                
+                // Process any special content like images, charts, etc.
+                processRichBubbleContent(bubbleDiv);
+            }
+            
+            // Process rich content in bubbles
+            function processRichBubbleContent(bubble) {
+                // Look for image placeholders and load actual images
+                const imagePlaceholders = bubble.querySelectorAll('.image-placeholder');
+                imagePlaceholders.forEach(placeholder => {
+                    if (placeholder.dataset.src) {
+                        const img = new Image();
+                        img.src = placeholder.dataset.src;
+                        img.alt = placeholder.dataset.alt || 'Image';
+                        img.className = 'chat-image';
+                        img.onload = function() {
+                            placeholder.parentNode.replaceChild(img, placeholder);
+                        };
+                    }
+                });
+                
+                // Process any chart placeholders
+                const chartPlaceholders = bubble.querySelectorAll('.chart-placeholder');
+                chartPlaceholders.forEach(placeholder => {
+                    try {
+                        // Try to parse chart data
+                        if (placeholder.dataset.chartData) {
+                            const chartData = JSON.parse(placeholder.dataset.chartData);
+                            
+                            // Create canvas for chart
+                            const chartContainer = document.createElement('div');
+                            chartContainer.className = 'chart-container';
+                            const canvas = document.createElement('canvas');
+                            chartContainer.appendChild(canvas);
+                            
+                            // Replace placeholder with canvas
+                            placeholder.parentNode.replaceChild(chartContainer, placeholder);
+                            
+                            // Create chart
+                            new Chart(canvas, chartData);
+                        }
+                    } catch (e) {
+                        console.error('Failed to create chart:', e);
+                    }
+                });
             }
             
             // Simulate AI response
@@ -1222,22 +1287,50 @@
                     
                     if (userMessage.toLowerCase().includes('hello') || 
                         userMessage.toLowerCase().includes('hi')) {
-                        response = "Hello! I'm N1O1ai, your nitric oxide research assistant. How can I help you today?";
+                        response = "<p>Hello! I'm <strong>N1O1ai</strong>, your nitric oxide research assistant.</p><p>How can I help you today?</p>";
                     }
                     else if (userMessage.toLowerCase().includes('nitric oxide') || 
                              userMessage.toLowerCase().includes('no ')) {
-                        response = "Nitric oxide (NO) is a critical signaling molecule that helps regulate blood flow, immune function, and several other physiological processes. Dr. Bryan's research has shown its importance in vascular health.";
+                        response = `<p>Nitric oxide (NO) is a critical signaling molecule that helps regulate:</p>
+                            <ul>
+                                <li>Blood flow and vasodilation</li>
+                                <li>Immune function and inflammatory response</li>
+                                <li>Neurotransmission in the nervous system</li>
+                                <li>Mitochondrial biogenesis and energy production</li>
+                            </ul>
+                            <p>Dr. Bryan's research has shown its importance in vascular health and endothelial function.</p>`;
                     }
                     else if (userMessage.toLowerCase().includes('n1o1') || 
                              userMessage.toLowerCase().includes('lozenge')) {
-                        response = "The N1O1 lozenge is designed to enhance nitric oxide production in the body. It helps convert nitrate to nitrite and then to NO through a series of biochemical reactions.";
+                        response = `<p>The <strong>N1O1 lozenge</strong> is designed to enhance nitric oxide production through a patented formula that:</p>
+                            <ul>
+                                <li>Provides nitrate precursors that convert to nitrite in the oral cavity</li>
+                                <li>Supports the nitrate-nitrite-NO pathway</li>
+                                <li>Enhances circulation and oxygen delivery</li>
+                            </ul>
+                            <p>Clinical studies have shown significant increases in plasma nitrite levels following supplementation.</p>`;
                     }
                     else if (userMessage.toLowerCase().includes('simulation') || 
                              userMessage.toLowerCase().includes('model')) {
-                        response = "Our plasma nitrite simulation models use compartmental pharmacokinetics to predict how different dosing strategies affect NO bioavailability over time.";
+                        response = `<p>Our plasma nitrite simulation models use compartmental pharmacokinetics to predict bioavailability over time.</p>
+                            <p>The models account for:</p>
+                            <ul>
+                                <li>First-order absorption kinetics from the oral cavity</li>
+                                <li>Distribution between plasma and tissue compartments</li>
+                                <li>Elimination through various pathways</li>
+                                <li>Individual patient parameters like age, weight, and baseline levels</li>
+                            </ul>
+                            <p>These simulations help optimize dosing strategies for clinical trials.</p>`;
+                    }
+                    else if (userMessage.toLowerCase().includes('chart') || 
+                             userMessage.toLowerCase().includes('graph')) {
+                        response = `<p>Here's an example of how plasma nitrite levels typically change after N1O1 lozenge administration:</p>
+                            <div class="chart-placeholder" data-chart-data='{"type":"line","data":{"labels":["0","30","60","90","120","180","240","300","360"],"datasets":[{"label":"Plasma Nitrite (μM)","data":[0.2,1.8,3.5,4.2,3.8,3.1,2.4,1.5,0.8],"borderColor":"#0D6EFD","backgroundColor":"rgba(13,110,253,0.1)","fill":true,"tension":0.4}]},"options":{"responsive":true,"scales":{"y":{"title":{"display":true,"text":"Plasma Nitrite (μM)"},"suggestedMin":0},"x":{"title":{"display":true,"text":"Time (minutes)"}}},"plugins":{"title":{"display":true,"text":"Plasma Nitrite Response to N1O1 Lozenge","font":{"size":16}}}}}'>
+                            </div>
+                            <p>This represents a typical response curve in a healthy adult. Individual results may vary based on metabolism, nutritional status, and other factors.</p>`;
                     }
                     else {
-                        response = "I'm here to help with questions about nitric oxide, the N1O1 clinical trials, or the simulation tools. Feel free to ask anything specific!";
+                        response = "<p>I'm here to help with questions about <strong>nitric oxide</strong>, the <strong>N1O1 clinical trials</strong>, or our <strong>simulation tools</strong>.</p><p>Feel free to ask about specific aspects of NO biochemistry, vasodilation, or the clinical applications of our research!</p>";
                     }
                     
                     // Add response to chat
