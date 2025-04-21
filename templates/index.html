@@ -118,18 +118,57 @@
 {% block scripts %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Get the Ask N1O1ai button in the feature section
+    // Get the buttons
     const indexChatBtn = document.getElementById('indexChatBtn');
+    const learnMoreBtn = document.getElementById('learnMoreBtn');
     
     // Get the NO molecule chat button from base.html
     const noMoleculeBtn = document.getElementById('no-molecule-chat-button');
     
-    // Connect the Ask N1O1ai button to the main chat interface in base.html
+    // Function to open chat with an automatic prompt
+    function openChatWithPrompt(prompt) {
+      // First open the chat window by clicking the NO molecule button
+      if (noMoleculeBtn) {
+        noMoleculeBtn.click();
+        
+        // Wait for chat to fully initialize
+        setTimeout(() => {
+          // Get the chat input field and send button
+          const chatInput = document.getElementById('no-chat-input');
+          const sendBtn = document.getElementById('no-chat-send');
+          
+          if (chatInput) {
+            // Set input value to our prompt
+            chatInput.value = prompt;
+            
+            // Call the global sendMessage function directly if it exists
+            if (typeof sendMessage === 'function') {
+              sendMessage();
+            } 
+            // Otherwise click the send button
+            else if (sendBtn) {
+              sendBtn.click();
+            }
+          }
+        }, 500); // Short delay to ensure chat is ready
+      }
+    }
+    
+    // Connect the Ask N1O1ai button to the main chat interface
     if (indexChatBtn && noMoleculeBtn) {
       indexChatBtn.addEventListener('click', function(e) {
         e.preventDefault();
         // Click the NO molecule button to open the chat
         noMoleculeBtn.click();
+      });
+    }
+    
+    // Connect the Learn More button to open chat with capabilities prompt
+    if (learnMoreBtn && noMoleculeBtn) {
+      learnMoreBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Open chat with specific prompt about platform capabilities
+        openChatWithPrompt("Tell me about the full capabilities and features of the N1O1 Clinical Trials platform.");
       });
     }
   });
