@@ -183,20 +183,82 @@
                         loadingDiv.innerHTML = '<div class="no-chat-bubble">Thinking...</div>';
                         chatMessages.appendChild(loadingDiv);
                         
-                        // Simulate response (replace with actual API call if available)
-                        setTimeout(function() {
+                        // Get session ID from localStorage or create new one
+                        let sessionId = localStorage.getItem('n1o1-chat-session-id');
+                        
+                        // Prepare attachment if file was uploaded
+                        let attachment = null;
+                        const fileInput = document.getElementById('no-chat-file-input');
+                        if (fileInput && fileInput.files.length > 0) {
+                            const file = fileInput.files[0];
+                            attachment = {
+                                name: file.name,
+                                type: file.type,
+                                size: file.size,
+                                dataUrl: file.dataUrl
+                            };
+                        }
+                        
+                        // Call the API
+                        fetch('/api/assistant', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                message: message,
+                                session_id: sessionId,
+                                attachment: attachment
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
                             // Remove loading indicator
                             chatMessages.removeChild(loadingDiv);
                             
-                            // Add assistant response
-                            const assistantMsg = document.createElement('div');
-                            assistantMsg.className = 'no-chat-message assistant';
-                            assistantMsg.innerHTML = `<div class="no-chat-bubble">I'm N1O1ai, your nitric oxide research assistant. I'd be happy to help with information about our nitric oxide supplements, clinical trials, or using the simulator.</div>`;
-                            chatMessages.appendChild(assistantMsg);
+                            if (data.status === 'success') {
+                                // Store session ID
+                                if (data.session_id) {
+                                    localStorage.setItem('n1o1-chat-session-id', data.session_id);
+                                }
+                                
+                                // Add assistant response
+                                const assistantMsg = document.createElement('div');
+                                assistantMsg.className = 'no-chat-message assistant';
+                                assistantMsg.innerHTML = `<div class="no-chat-bubble">${data.response}</div>`;
+                                chatMessages.appendChild(assistantMsg);
+                            } else {
+                                // Show error
+                                const errorMsg = document.createElement('div');
+                                errorMsg.className = 'no-chat-message assistant';
+                                errorMsg.innerHTML = `<div class="no-chat-bubble error">I'm having trouble connecting right now. Please try again shortly.</div>`;
+                                chatMessages.appendChild(errorMsg);
+                            }
+                            
+                            // Clear any file input
+                            if (fileInput) {
+                                fileInput.value = '';
+                            }
                             
                             // Scroll to bottom
                             chatMessages.scrollTop = chatMessages.scrollHeight;
-                        }, 1000);
+                        })
+                        .catch(error => {
+                            // Remove loading indicator
+                            chatMessages.removeChild(loadingDiv);
+                            
+                            // Show error message
+                            const errorMsg = document.createElement('div');
+                            errorMsg.className = 'no-chat-message assistant';
+                            errorMsg.innerHTML = `<div class="no-chat-bubble error">I'm having trouble connecting right now. Please try again shortly.</div>`;
+                            chatMessages.appendChild(errorMsg);
+                            
+                            // Log error to console
+                            console.error('Chat API error:', error);
+                            
+                            // Scroll to bottom
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        });
                     }
                 }
             }
@@ -231,6 +293,13 @@
                 </div>
             </div>
             <div class="no-chat-input-container">
+                <div class="no-chat-input-tools">
+                    <button id="no-chat-attach" class="no-chat-tool-btn" title="Attach Image">
+                        <i class="fas fa-image"></i>
+                    </button>
+                    <input type="file" id="no-chat-file-input" accept="image/*" style="display: none;">
+                    <span id="no-chat-file-name" class="no-chat-file-name"></span>
+                </div>
                 <textarea id="no-chat-input" class="no-chat-input" placeholder="Type your message here..." rows="2"></textarea>
                 <button id="no-chat-send" class="no-chat-send-btn">
                     <i class="fas fa-paper-plane"></i>
@@ -561,9 +630,46 @@
         /* Chat input styling */
         .no-chat-input-container {
             display: flex;
+            flex-direction: column;
             padding: 15px;
             background-color: #343a40;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 10px;
+        }
+        
+        .no-chat-input-tools {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .no-chat-tool-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+        
+        .no-chat-tool-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .no-chat-file-name {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-left: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
         }
         
         .no-chat-input {
@@ -811,6 +917,9 @@
             const sendBtn = document.getElementById('no-chat-send');
             const chatInput = document.getElementById('no-chat-input');
             const messagesContainer = document.getElementById('no-chat-messages');
+            const fileInput = document.getElementById('no-chat-file-input');
+            const attachBtn = document.getElementById('no-chat-attach');
+            const fileNameDisplay = document.getElementById('no-chat-file-name');
             
             // Drawing elements
             const drawingContainer = document.getElementById('no-chat-drawing-container');
@@ -939,6 +1048,36 @@
                     sendMessage();
                 }
             });
+            
+            // Handle file attachment
+            if (attachBtn && fileInput) {
+                attachBtn.addEventListener('click', function() {
+                    fileInput.click();
+                });
+                
+                fileInput.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const file = this.files[0];
+                        
+                        // Display file name
+                        if (fileNameDisplay) {
+                            fileNameDisplay.textContent = file.name;
+                        }
+                        
+                        // Convert the file to a data URL for sending
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            file.dataUrl = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        // Clear file name display if no file selected
+                        if (fileNameDisplay) {
+                            fileNameDisplay.textContent = '';
+                        }
+                    }
+                });
+            }
             
             // Add message to chat
             function addMessageToChat(role, content) {
