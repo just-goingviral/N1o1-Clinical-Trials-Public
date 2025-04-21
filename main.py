@@ -10,6 +10,7 @@ from models import db, Patient, Simulation, User, init_db
 from routes import analyzer_bp, api_bp, patient_bp, simulation_bp
 from routes.auth_routes import auth_bp
 from routes.notes_routes import notes_bp
+from routes.ai_tools import ai_tools_bp
 
 # Create Flask application
 app = Flask(__name__)
@@ -97,6 +98,7 @@ app.register_blueprint(patient_bp)
 app.register_blueprint(simulation_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(notes_bp)
+app.register_blueprint(ai_tools_bp)
 
 # Add redirect loop protection
 @app.before_request
