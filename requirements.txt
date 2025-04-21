@@ -21,3 +21,4 @@ flask-wtf
 flask-login
 werkzeug
 flask-wtf
+uuid
