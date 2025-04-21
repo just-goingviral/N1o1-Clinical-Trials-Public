@@ -446,7 +446,41 @@
       <i class="fas fa-code me-2"></i> API Documentation
     </a>
   </div>
+  
+  <!-- Loader Demo Section -->
+  <section id="loader-demo-section" class="py-4 slide-up">
+    <h2 class="section-title">Loading Animations Demo</h2>
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="feature-card">
+          <div class="card-body">
+            <div class="d-flex justify-content-center mb-3">
+              <div class="feature-icon d-inline-flex align-items-center justify-content-center">
+                <i class="fas fa-atom"></i>
+              </div>
+            </div>
+            <h3 class="fs-4 text-center mb-3">Molecular Animation Loader</h3>
+            <p class="small mb-4 text-center">These animations represent nitric oxide molecules, cell biology, and DNA to provide a visually engaging loading experience.</p>
+            <div class="d-flex justify-content-center mt-3 gap-2">
+              <button id="show-loader-btn" class="btn btn-n1o1 btn-sm px-3 py-2">
+                <i class="fas fa-play me-2"></i> Show Loader
+              </button>
+              <button id="switch-anim-btn" class="btn btn-n1o1 btn-sm px-3 py-2">
+                <i class="fas fa-sync me-2"></i> Switch Animation
+              </button>
+              <button id="hide-loader-btn" class="btn btn-n1o1 btn-sm px-3 py-2">
+                <i class="fas fa-stop me-2"></i> Hide Loader
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
+
+<!-- Add loader demo script -->
+<script src="/static/js/loader-demo.js"></script>
 {% endblock %}
 
 {% block scripts %}
