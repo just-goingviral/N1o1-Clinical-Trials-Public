@@ -84,7 +84,7 @@ function downloadImage(imageData, filename = 'plot.png') {
     document.body.removeChild(link);
 }
 
-// Create a loader element
+// Create a loader element (Legacy method - use n1o1Loader instead for new code)
 function createLoader(message = 'Loading...') {
     const loaderEl = document.createElement('div');
     loaderEl.className = 'text-center p-5';
@@ -99,6 +99,13 @@ function createLoader(message = 'Loading...') {
 
 // Show loading indicator
 function showLoading(containerId, message = 'Loading...') {
+    // Use the molecular loader animation if available
+    if (window.n1o1Loader) {
+        window.n1o1Loader.show(message);
+        return;
+    }
+    
+    // Fallback to basic loader
     const container = document.getElementById(containerId);
     if (container) {
         container.innerHTML = '';
@@ -108,6 +115,13 @@ function showLoading(containerId, message = 'Loading...') {
 
 // Hide loading indicator
 function hideLoading(containerId) {
+    // Use the molecular loader animation if available
+    if (window.n1o1Loader) {
+        window.n1o1Loader.hide();
+        return;
+    }
+    
+    // Fallback to basic loader removal
     const container = document.getElementById(containerId);
     if (container) {
         const loader = container.querySelector('.spinner-border')?.closest('.text-center');

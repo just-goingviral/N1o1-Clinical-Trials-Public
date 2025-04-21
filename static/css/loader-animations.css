@@ -1,0 +1,464 @@
+/* Nitric Oxide Molecule and Biology Loading Animations 
+ * Author: Dustin Salinas
+ * For N1O1 Clinical Trials Platform
+ */
+
+:root {
+  --n1o1-primary: #2063c9;
+  --n1o1-secondary: #178bea;
+  --n1o1-tertiary: #7ac2ff;
+  --n1o1-quaternary: #aed9ff;
+  --n1o1-blue-gradient: linear-gradient(135deg, #2063c9, #178bea);
+  --n1o1-highlight: #00ccff;
+}
+
+/* Loading overlay container */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(18, 28, 44, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+}
+
+.loading-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.loading-content {
+  text-align: center;
+  max-width: 90%;
+}
+
+.loading-message {
+  color: white;
+  font-size: 1.4rem;
+  margin-top: 2rem;
+  font-weight: 300;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.5s ease forwards 0.3s;
+}
+
+/* NO Molecule Animation */
+.no-molecule-loader {
+  width: 160px;
+  height: 160px;
+  position: relative;
+  perspective: 600px;
+  margin: 0 auto;
+}
+
+.no-molecule-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  animation: moleculeRotate 8s infinite linear;
+}
+
+.nitrogen {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  left: 30px;
+  top: 45px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #3b7eb9, #16325c);
+  box-shadow: 0 0 20px rgba(23, 139, 234, 0.6);
+  z-index: 2;
+}
+
+.oxygen {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  right: 30px;
+  top: 50px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #e05a47, #7a1c0e);
+  box-shadow: 0 0 20px rgba(224, 90, 71, 0.6);
+  z-index: 1;
+}
+
+.bond {
+  position: absolute;
+  top: 65px;
+  left: 60px;
+  width: 40px;
+  height: 6px;
+  background: linear-gradient(90deg, #3b7eb9, #e05a47);
+  transform: rotate(0deg);
+  z-index: 0;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.nitrogen::after, .oxygen::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.4);
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.electron {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: var(--n1o1-quaternary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--n1o1-highlight);
+}
+
+.electron-orbit {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  transform-style: preserve-3d;
+}
+
+.electron-orbit:nth-child(1) {
+  transform: rotateZ(30deg) rotateY(65deg);
+}
+
+.electron-orbit:nth-child(2) {
+  transform: rotateZ(-40deg) rotateX(70deg);
+}
+
+.electron-orbit:nth-child(3) {
+  transform: rotateY(60deg) rotateX(30deg);
+}
+
+.electron:nth-child(1) {
+  top: 10%;
+  left: 50%;
+  animation: orbitElectron 3s infinite linear;
+}
+
+.electron:nth-child(2) {
+  top: 50%;
+  left: 80%;
+  animation: orbitElectron 2.5s infinite linear 0.5s;
+}
+
+.electron:nth-child(3) {
+  top: 75%;
+  left: 30%;
+  animation: orbitElectron 4s infinite linear 1s;
+}
+
+/* Cell Biology Animation */
+.cell-loader {
+  width: 180px;
+  height: 180px;
+  position: relative;
+  margin: 0 auto;
+  display: none; /* Default to molecule animation */
+}
+
+.cell {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  left: 30px;
+  top: 30px;
+  border-radius: 50%;
+  background-color: rgba(23, 139, 234, 0.1);
+  border: 2px solid rgba(23, 139, 234, 0.4);
+  animation: pulsateCell 3s infinite ease-in-out;
+}
+
+.nucleus {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  left: 35px;
+  top: 35px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(23, 139, 234, 0.6), rgba(23, 139, 234, 0.2));
+  box-shadow: 0 0 15px rgba(23, 139, 234, 0.3);
+  animation: rotate 10s infinite linear;
+}
+
+.organelle {
+  position: absolute;
+  width: 20px;
+  height: 15px;
+  border-radius: 50%;
+  background-color: rgba(224, 90, 71, 0.6);
+  animation: moveOrganelle 6s infinite ease-in-out;
+}
+
+.organelle:nth-child(1) {
+  left: 75px;
+  top: 45px;
+  animation-delay: 0s;
+  width: 18px;
+  height: 12px;
+  background-color: rgba(23, 139, 234, 0.5);
+}
+
+.organelle:nth-child(2) {
+  left: 50px;
+  top: 80px;
+  animation-delay: 1s;
+  width: 22px;
+  height: 14px;
+  background-color: rgba(23, 139, 234, 0.5);
+}
+
+.organelle:nth-child(3) {
+  left: 85px;
+  top: 70px;
+  animation-delay: 2s;
+  width: 15px;
+  height: 11px;
+  background-color: rgba(224, 90, 71, 0.5);
+}
+
+.vesicle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.7);
+  animation: moveVesicle 7s infinite ease-in-out;
+}
+
+.vesicle:nth-child(1) {
+  left: 60px;
+  top: 50px;
+  animation-delay: 0.5s;
+}
+
+.vesicle:nth-child(2) {
+  left: 80px;
+  top: 65px;
+  animation-delay: 1.5s;
+}
+
+.vesicle:nth-child(3) {
+  left: 45px;
+  top: 75px;
+  animation-delay: 2.5s;
+}
+
+/* DNA Helix Animation */
+.dna-loader {
+  width: 100px;
+  height: 200px;
+  position: relative;
+  margin: 0 auto;
+  display: none; /* Default to molecule animation */
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.dna-strand {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation: rotateDNA 6s infinite linear;
+}
+
+.nucleotide-pair {
+  position: absolute;
+  width: 80px;
+  height: 10px;
+  left: 10px;
+  transform-style: preserve-3d;
+}
+
+.nucleotide-left, .nucleotide-right {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+}
+
+.nucleotide-left {
+  left: 0;
+  background-color: var(--n1o1-primary);
+}
+
+.nucleotide-right {
+  right: 0;
+  background-color: var(--n1o1-secondary);
+}
+
+.backbone-left, .backbone-right {
+  position: absolute;
+  width: 2px;
+  height: 200px;
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+.backbone-left {
+  left: 7px;
+}
+
+.backbone-right {
+  right: 7px;
+}
+
+.base-pair {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--n1o1-primary), var(--n1o1-secondary));
+  top: 7px;
+}
+
+/* Animations */
+@keyframes moleculeRotate {
+  0% {
+    transform: rotateY(0deg) rotateX(15deg);
+  }
+  100% {
+    transform: rotateY(360deg) rotateX(15deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes orbitElectron {
+  0% {
+    transform: rotate(0deg) translateX(50px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(50px) rotate(-360deg);
+  }
+}
+
+@keyframes pulsateCell {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes moveOrganelle {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(10px, 5px);
+  }
+  50% {
+    transform: translate(5px, 15px);
+  }
+  75% {
+    transform: translate(-5px, 5px);
+  }
+}
+
+@keyframes moveVesicle {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(15px, 10px);
+  }
+  50% {
+    transform: translate(25px, 5px);
+  }
+  75% {
+    transform: translate(10px, 20px);
+  }
+}
+
+@keyframes rotateDNA {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Additional animation types can be toggled via JavaScript */
+.loading-overlay.show-cell .no-molecule-loader,
+.loading-overlay.show-cell .dna-loader {
+  display: none;
+}
+
+.loading-overlay.show-cell .cell-loader {
+  display: block;
+}
+
+.loading-overlay.show-dna .no-molecule-loader,
+.loading-overlay.show-dna .cell-loader {
+  display: none;
+}
+
+.loading-overlay.show-dna .dna-loader {
+  display: block;
+}
+
+/* Loading dots animation for text */
+.loading-dots:after {
+  content: '.';
+  animation: dots 1.5s steps(5, end) infinite;
+}
+
+@keyframes dots {
+  0%, 20% {
+    content: '.';
+  }
+  40% {
+    content: '..';
+  }
+  60% {
+    content: '...';
+  }
+  80%, 100% {
+    content: '';
+  }
+}
