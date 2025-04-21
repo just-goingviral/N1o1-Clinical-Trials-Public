@@ -132,6 +132,6 @@ def system_health():
 
 # Run the application
 if __name__ == '__main__':
-    # Get port from environment variable or default to 8080 for Replit deployment
-    port = int(os.environ.get('PORT', 8080))
+    # Use port 5000 for deployment compatibility
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)

@@ -15,7 +15,7 @@ sqlalchemy
 openai
 requests
 fpdf
-python-uuid
+uuid
 flask-login
 flask-wtf
 flask-login
