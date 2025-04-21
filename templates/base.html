@@ -615,6 +615,7 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             line-height: 1.5;
             font-size: 0.95rem;
+            overflow: hidden;
         }
         
         .no-chat-message.assistant .no-chat-bubble {
@@ -653,6 +654,54 @@
             background: #0a58ca;
             border-radius: 0 0 0 16px;
             z-index: -1;
+        }
+        
+        /* Rich content support */
+        .no-chat-bubble img, 
+        .no-chat-bubble canvas {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 8px 0;
+            display: block;
+        }
+        
+        .no-chat-bubble table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+        
+        .no-chat-bubble table th,
+        .no-chat-bubble table td {
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .no-chat-bubble table th {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .no-chat-bubble pre, 
+        .no-chat-bubble code {
+            font-family: monospace;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 4px;
+            border-radius: 4px;
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        
+        .no-chat-bubble pre {
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .no-chat-bubble .chart-container {
+            width: 100%;
+            height: 300px;
+            margin: 15px 0;
+            position: relative;
         }
         
         /* Chat input styling */
