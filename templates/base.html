@@ -2,12 +2,7 @@
 <html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="N1O1 Clinical Trials - A comprehensive platform for simulating nitrite dynamics and managing clinical trials for nitric oxide therapeutics">
-    <meta name="theme-color" content="#16325c">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}N1O1 Clinical Trials{% endblock %}</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
@@ -18,9 +13,6 @@
     <link href="/static/css/tooltips.css" rel="stylesheet">
     <link href="/static/css/loader-animations.css" rel="stylesheet">
     <link href="/static/css/chatbot.css" rel="stylesheet">
-    <!-- Mobile icons -->
-    <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg">
-    <link rel="alternate icon" type="image/png" href="/static/img/favicon.png">
     <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -133,8 +125,22 @@
     <!-- Chat Coordinator Script -->
     <script src="/static/js/chat-coordinator.js"></script>
     
-    <!-- Responsive Utilities Script -->
-    <script src="/static/js/responsive-util.js"></script>
+    <!-- Ensure chatbot is properly displayed -->
+    <script>
+        window.addEventListener('load', function() {
+            // Make sure chatbot button is visible after page load
+            setTimeout(function() {
+                const chatButton = document.getElementById('no-molecule-chat-button');
+                if (chatButton) {
+                    chatButton.style.opacity = '1';
+                    // Force redraw to ensure button is rendered properly
+                    chatButton.style.display = 'none';
+                    chatButton.offsetHeight; // Force reflow
+                    chatButton.style.display = 'flex';
+                }
+            }, 500);
+        });
+    </script>
     
     <!-- NO molecule chat initialization script -->
     <script>
@@ -362,7 +368,7 @@
     
     <!-- NO molecule chatbot -->
     <div id="no-molecule-chat-button" class="no-molecule-chat-button">
-        <svg width="40" height="40" viewBox="0 0 60 60" class="no-molecule-svg">
+        <svg width="45" height="45" viewBox="0 0 60 60" class="no-molecule-svg">
             <!-- Nitrogen atom (larger) -->
             <circle cx="22" cy="30" r="12" fill="#3b7eb9" />
             <!-- Oxygen atom -->
@@ -370,11 +376,11 @@
             <!-- Bond between atoms -->
             <path d="M 22 30 L 42 30" stroke="#ffffff" stroke-width="3" stroke-dasharray="3,2" />
             <!-- Electron clouds/orbital visualization -->
-            <circle cx="22" cy="30" r="14" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.5" />
-            <circle cx="42" cy="30" r="12" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.5" />
+            <circle cx="22" cy="30" r="14" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.7" />
+            <circle cx="42" cy="30" r="12" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.7" />
             <!-- N and O symbols -->
-            <text x="22" y="34" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">N</text>
-            <text x="42" y="34" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">O</text>
+            <text x="22" y="34" font-family="Arial" font-size="13" font-weight="bold" fill="#ffffff" text-anchor="middle">N</text>
+            <text x="42" y="34" font-family="Arial" font-size="13" font-weight="bold" fill="#ffffff" text-anchor="middle">O</text>
         </svg>
     </div>
     
