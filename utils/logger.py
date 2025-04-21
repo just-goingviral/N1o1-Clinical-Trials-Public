@@ -28,19 +28,17 @@ def configure_logger(name=None):
         console_handler.setFormatter(console_format)
         
         # File handler
-
-    # Add log rotation to prevent large log files
-    from logging.handlers import RotatingFileHandler
-    
-    # Replace file handler with rotating file handler
-    file_handler = RotatingFileHandler(
-        log_file,
-        maxBytes=10485760,  # 10MB
-        backupCount=5
-    )
-
         log_file = os.path.join(logs_dir, f'nitrite_dynamics_{datetime.now().strftime("%Y%m%d")}.log')
-        file_handler = logging.FileHandler(log_file)
+        
+        # Add log rotation to prevent large log files
+        from logging.handlers import RotatingFileHandler
+        
+        # Create rotating file handler
+        file_handler = RotatingFileHandler(
+            log_file,
+            maxBytes=10485760,  # 10MB
+            backupCount=5
+        )
         file_handler.setLevel(logging.DEBUG)
         file_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         file_handler.setFormatter(file_format)

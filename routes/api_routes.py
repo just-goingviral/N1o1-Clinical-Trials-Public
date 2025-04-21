@@ -188,7 +188,9 @@ def log_error():
         return jsonify({
             'status': 'error',
             'message': f'Failed to log error: {str(e)}'
-        }), 500ST'])
+        }), 500
+
+@api_bp.route('/log-client-error', methods=['POST'])
 def log_client_error():
     """Endpoint to log client-side errors"""
     from utils.logger import get_module_logger
@@ -204,7 +206,7 @@ def log_client_error():
         return jsonify({'status': 'success', 'message': 'Error logged'})
     except Exception as e:
         logger.error(f"Error in error logging endpoint: {str(e)}")
-        return jsonify({'status': 'error', 'message': 'Failed to log error'}), 500, 500
+        return jsonify({'status': 'error', 'message': 'Failed to log error'}), 500
 
 # Load knowledge base content
 with open("attached_assets/clinical_assistant_knowledge.md", "r") as f:

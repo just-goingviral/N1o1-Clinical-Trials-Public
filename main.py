@@ -50,7 +50,6 @@ from flask_session import Session
 session_extension = Session(app)
 
 # Clean up old session files periodically
-@app.before_first_request
 def cleanup_sessions():
     """Clean up old session files"""
     import glob
@@ -148,6 +147,9 @@ with app.app_context():
             print(f"Creating new database at {db_file}")
         init_db()
         print("Database tables created successfully")
+        
+        # Run session cleanup on startup (replacing the before_first_request)
+        cleanup_sessions()
     except Exception as e:
         print(f"Error initializing database: {e}")
 
@@ -170,7 +172,7 @@ def system_health():
     try:
         # Test database connection
         with db.engine.connect() as conn:
-            conn.execute("SELECT 1")
+            conn.execute(db.text("SELECT 1"))
     except Exception as e:
         health["database"] = f"error: {str(e)}"
         
