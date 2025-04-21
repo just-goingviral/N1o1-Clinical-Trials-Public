@@ -6,6 +6,7 @@
     <title>N1O1 Clinical Trials - Simulation Visualization</title>
     <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
             padding-top: 2rem;
@@ -541,6 +542,47 @@
             const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             });
+            
+            // Helper function to extract simulation metrics
+            function getSimulationMetrics() {
+                // Extract baseline, peak, etc. from the chart data
+                const chart = Chart.getChart('nitriteChart');
+                if (!chart) {
+                    return {
+                        baseline: {{ simulation.parameters.baseline|default(0) }},
+                        peak: {{ simulation.parameters.peak|default(0) }},
+                        time_to_peak: {{ simulation.parameters.peak_time|default(0) }} / 60, // Convert to hours
+                        half_life: {{ simulation.parameters.half_life|default(0) }}
+                    };
+                }
+                
+                const data = chart.data.datasets[0].data;
+                const labels = chart.data.labels;
+                
+                // Find the maximum value and its index
+                let maxValue = 0;
+                let maxIndex = 0;
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i] > maxValue) {
+                        maxValue = data[i];
+                        maxIndex = i;
+                    }
+                }
+                
+                // Get baseline (first value)
+                const baseline = data[0];
+                
+                // Get peak value
+                const peak = maxValue;
+                
+                // Get time to peak (in hours)
+                const time_to_peak = labels[maxIndex] / 60;
+                
+                // Calculate half-life (simple approximation)
+                const half_life = {{ simulation.parameters.half_life|default(0) }};
+                
+                return { baseline, peak, time_to_peak, half_life };
+            }
             
             // Handle N1O1ai chat button
             const openChatBtn = document.getElementById('openChatBtn');
