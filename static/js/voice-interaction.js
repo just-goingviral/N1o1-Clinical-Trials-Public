@@ -222,7 +222,10 @@ document.addEventListener('DOMContentLoaded', function() {
  * Allows users to speak to the chatbot and get voice responses
  */
 
-let isRecording = false;
+// Prevent duplicate declaration
+if (typeof isRecording === 'undefined') {
+    let isRecording = false;
+}
 let mediaRecorder = null;
 let audioChunks = [];
 let recognizedText = "";

@@ -153,7 +153,16 @@ with app.app_context():
         # Run session cleanup on startup (replacing the before_first_request)
         cleanup_sessions()
     except Exception as e:
+        import traceback
+        error_detail = traceback.format_exc()
         print(f"Error initializing database: {e}")
+        print(f"Detailed error: {error_detail}")
+        
+# Add global error handler to catch and log all uncaught exceptions
+@app.errorhandler(Exception)
+def handle_exception(e):
+    app.logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
+    return "Well shoot, y'all! Somethin' went haywire with the application. Our code wranglers have been notified!", 500
 
 # Diagnostic route
 @app.route('/system/health')
