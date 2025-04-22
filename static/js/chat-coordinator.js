@@ -35,7 +35,7 @@ function initChatCoordination() {
             closeBtn: document.getElementById('chatCloseBtn')
         }
     };
-    
+
     // Initialize enhanced visualizations and effects
     if (window.N1O1Loader && window.N1O1Loader.generateGasParticles) {
         // Initialize gas particles for NO molecule
@@ -50,7 +50,7 @@ function initChatCoordination() {
     } else {
         console.log("NO gas particle animations not available");
     }
-    
+
     // Ensure the NO molecule button is properly visible
     const noButton = document.getElementById('no-molecule-chat-button');
     if (noButton) {
