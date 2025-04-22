@@ -4,7 +4,7 @@
  */
 
 // Global variables
-let mediaRecorder;
+let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
 
@@ -222,13 +222,12 @@ document.addEventListener('DOMContentLoaded', function() {
  * Allows users to speak to the chatbot and get voice responses
  */
 
-// Prevent duplicate declaration
-if (typeof isRecording === 'undefined') {
-    let isRecording = false;
-}
-let mediaRecorder = null;
-let audioChunks = [];
+// This section doesn't need to redefine variables
+// Just define a new variable for recognized text
 let recognizedText = "";
+
+// Use the global mediaRecorder and audioChunks
+// No need to redeclare them
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize voice interaction
