@@ -4,6 +4,13 @@ Patient management routes
 """
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from models import db, Patient
+import pandas as pd
+import os
+import uuid
+import logging
+from werkzeug.utils import secure_filename
+
+logger = logging.getLogger(__name__)
 
 patient_bp = Blueprint('patients', __name__, url_prefix='/patients')
 
@@ -115,3 +122,101 @@ def delete_patient(patient_id):
     except Exception as e:
         error_message = f"Error deleting patient: {str(e)}"
         return render_template('patient_view.html', patient=patient, error=error_message)
+
+@patient_bp.route('/import', methods=['GET', 'POST'])
+def import_patients():
+    """Import patients from Excel file"""
+    if request.method == 'POST':
+        # Check if file is present
+        if 'file' not in request.files:
+            return render_template('patients_import.html', error='No file selected')
+        
+        file = request.files['file']
+        
+        # Check if filename is empty
+        if file.filename == '':
+            return render_template('patients_import.html', error='No file selected')
+        
+        # Validate file format (xlsx or csv)
+        if not file.filename.lower().endswith(('.xlsx', '.csv')):
+            return render_template('patients_import.html', error='Invalid file format. Please upload an Excel (.xlsx) or CSV file')
+        
+        try:
+            # Read the file
+            if file.filename.endswith('.csv'):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+            
+            # Validate required columns
+            required_columns = ['age', 'weight_kg', 'baseline_no2']
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            
+            if missing_columns:
+                return render_template('patients_import.html', 
+                                    error=f"Missing required columns: {', '.join(missing_columns)}")
+            
+            # Process each row and create patients
+            patients_created = 0
+            patients_skipped = 0
+            errors = []
+            
+            for index, row in df.iterrows():
+                try:
+                    # Extract values, using empty string for missing optional fields
+                    name = row.get('name', '') if pd.notna(row.get('name', '')) else ''
+                    age = int(row['age']) if pd.notna(row['age']) else None
+                    weight_kg = float(row['weight_kg']) if pd.notna(row['weight_kg']) else None
+                    baseline_no2 = float(row['baseline_no2']) if pd.notna(row['baseline_no2']) else None
+                    notes = row.get('notes', '') if pd.notna(row.get('notes', '')) else ''
+                    
+                    # Validate required fields
+                    if age is None or weight_kg is None or baseline_no2 is None:
+                        patients_skipped += 1
+                        errors.append(f"Row {index+2}: Missing required data")
+                        continue
+                    
+                    # Create new patient
+                    patient = Patient(
+                        name=name,
+                        age=age,
+                        weight_kg=weight_kg,
+                        baseline_no2=baseline_no2,
+                        notes=notes
+                    )
+                    
+                    # Add to database
+                    db.session.add(patient)
+                    patients_created += 1
+                    
+                except Exception as e:
+                    patients_skipped += 1
+                    errors.append(f"Row {index+2}: {str(e)}")
+            
+            # Commit all changes at once
+            if patients_created > 0:
+                db.session.commit()
+            
+            # Prepare success message
+            success_message = f"Successfully imported {patients_created} patient(s)"
+            if patients_skipped > 0:
+                success_message += f". Skipped {patients_skipped} row(s)"
+            
+            # Show errors if any
+            if errors:
+                error_message = "<br>".join(errors[:5])
+                if len(errors) > 5:
+                    error_message += f"<br>...and {len(errors) - 5} more errors"
+                return render_template('patients_import.html', 
+                                    success=success_message,
+                                    error=f"Some rows had errors:<br>{error_message}")
+            
+            return render_template('patients_import.html', success=success_message)
+            
+        except Exception as e:
+            logger.exception("Error importing patients")
+            return render_template('patients_import.html', 
+                                error=f"Error processing file: {str(e)}")
+    
+    # GET request - show the import form
+    return render_template('patients_import.html')

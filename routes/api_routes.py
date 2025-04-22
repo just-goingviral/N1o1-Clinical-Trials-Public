@@ -35,6 +35,79 @@ else:
     logging.warning("Anthropic API key not found. Image processing will not work.")
 
 
+@api_bp.route('/transcribe-chat', methods=['POST'])
+def transcribe_chat_audio():
+    """Transcribe audio from chat for AI assistant interaction"""
+    temp_path = None
+    
+    try:
+        # Validate request
+        if 'audio' not in request.files:
+            return jsonify({'error': 'No audio file provided'}), 400
+        
+        audio_file = request.files['audio']
+        
+        if not audio_file.filename:
+            return jsonify({'error': 'No audio file selected'}), 400
+        
+        # Check file extension
+        def allowed_audio_file(filename):
+            """Check if file has an allowed audio extension"""
+            allowed_extensions = {'mp3', 'wav', 'ogg', 'webm', 'm4a'}
+            return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+            
+        if not allowed_audio_file(audio_file.filename):
+            return jsonify({'error': 'File type not supported. Please use MP3, WAV, OGG, or WebM format'}), 400
+        
+        # Save audio file temporarily
+        import os
+        import uuid
+        from datetime import datetime
+        
+        voice_dir = os.path.join('static', 'voice_recordings')
+        os.makedirs(voice_dir, exist_ok=True)
+        
+        file_ext = audio_file.filename.rsplit('.', 1)[1].lower()
+        temp_filename = f"chat_{uuid.uuid4()}.{file_ext}"
+        temp_path = os.path.join(voice_dir, temp_filename)
+        
+        audio_file.save(temp_path)
+        
+        # Check for OpenAI API key
+        if not OPENAI_API_KEY:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            return jsonify({'error': 'OpenAI API key not configured'}), 500
+        
+        # Send to OpenAI for transcription
+        with open(temp_path, 'rb') as audio_data:
+            transcript = client.audio.transcriptions.create(
+                file=audio_data,
+                model="whisper-1",
+                language="en"
+            )
+        
+        # Parse for commands
+        transcribed_text = transcript.text
+        
+        # Remove temporary file
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        
+        return jsonify({
+            'text': transcribed_text
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        
+        # Clean up temp file if it exists
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
+            
+        return jsonify({'error': str(e)}), 500
+
 @api_bp.route('/capture-research', methods=['POST'])
 def capture_research():
     """

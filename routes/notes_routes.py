@@ -29,19 +29,19 @@ def save_voice_recording(file):
         if not file:
             logger.warning("No file provided to save_voice_recording")
             return None
-            
+
         if not allowed_audio_file(file.filename):
             logger.warning(f"File type not allowed: {file.filename}")
             return None
-            
+
         # Generate a unique filename
         filename = secure_filename(file.filename)
         unique_filename = f"{uuid.uuid4()}_{filename}"
-        
+
         # Ensure directory exists
         voice_dir = os.path.join('static', 'voice_recordings')
         os.makedirs(voice_dir, exist_ok=True)
-        
+
         # Save file
         file_path = os.path.join(voice_dir, unique_filename)
         file.save(file_path)
@@ -72,7 +72,7 @@ def new_note():
     try:
         patients = Patient.query.all()
         simulations = Simulation.query.all()
-        
+
         if request.method == 'POST':
             try:
                 # Get form data
@@ -83,13 +83,13 @@ def new_note():
                 is_private = request.form.get('is_private') == 'on'
                 tags = request.form.get('tags', '').split(',')
                 tags = [tag.strip() for tag in tags if tag.strip()]
-                
+
                 # Validate input
                 if not title:
                     logger.warning(f"New note creation attempt without title by user {current_user.id}")
                     flash('Title is required', 'danger')
                     return redirect(url_for('notes.new_note'))
-                
+
                 # Handle voice recording if provided
                 voice_recording_path = None
                 if 'voice_recording' in request.files:
@@ -99,7 +99,7 @@ def new_note():
                         voice_recording_path = save_voice_recording(voice_file)
                         if not voice_recording_path:
                             flash('Could not save voice recording. Note created without audio.', 'warning')
-                
+
                 # Create new note
                 note = ClinicalNote(
                     user_id=current_user.id,
@@ -111,25 +111,51 @@ def new_note():
                     is_private=is_private,
                     tags=tags
                 )
-                
+
+                # Process file attachments
+                attachments = []
+                if 'attachments' in request.files:
+                    files = request.files.getlist('attachments')
+                    for file in files:
+                        if file and file.filename:
+                            filename = secure_filename(file.filename)
+                            unique_filename = f"{uuid.uuid4()}_{filename}"
+                            file_type = determine_file_type(filename)
+                            storage_dir = os.path.join('static', 'attachments', file_type)
+                            os.makedirs(storage_dir, exist_ok=True)
+                            file_path = os.path.join(storage_dir, unique_filename)
+                            file.save(file_path)
+                            attachments.append({
+                                'filename': filename,
+                                'path': file_path,
+                                'type': file_type,
+                                'size': os.path.getsize(file_path)
+                            })
+
+                if attachments:
+                    note.attachment = {
+                        'files': attachments,
+                        'count': len(attachments)
+                    }
+
                 db.session.add(note)
                 db.session.commit()
-                
+
                 logger.info(f"Note created successfully by user {current_user.id}, note_id: {note.id}")
                 flash('Note created successfully', 'success')
                 return redirect(url_for('notes.view_note', note_id=note.id))
-                
+
             except Exception as e:
                 db.session.rollback()
                 log_exception(logger, e, "creating new note")
                 flash(f'Error creating note: {str(e)}', 'danger')
                 return redirect(url_for('notes.new_note'))
-        
+
         return render_template('notes/new.html', 
                               patients=patients, 
                               simulations=simulations,
                               title="New Clinical Note")
-                              
+
     except Exception as e:
         log_exception(logger, e, "loading note creation page")
         flash('An error occurred while loading the page. Please try again.', 'danger')
@@ -142,19 +168,19 @@ def view_note(note_id):
     try:
         # Get the note or return 404
         note = ClinicalNote.query.get_or_404(note_id)
-        
+
         # Check if user has permission to view the note
         if note.user_id != current_user.id and note.is_private:
             logger.warning(f"Unauthorized view attempt for private note {note_id} by user {current_user.id}")
             flash('You do not have permission to view this note', 'danger')
             return redirect(url_for('notes.list_notes'))
-        
+
         logger.info(f"Note {note_id} viewed by user {current_user.id}")
-        
+
         # Get related data
         patient = None
         simulation = None
-        
+
         try:
             if note.patient_id:
                 patient = Patient.query.get(note.patient_id)
@@ -164,13 +190,13 @@ def view_note(note_id):
             log_exception(logger, related_error, "loading related data for note")
             # Don't block viewing the note if related data can't be loaded
             flash("Some related information couldn't be loaded", "warning")
-        
+
         return render_template('notes/view.html', 
                             note=note, 
                             patient=patient, 
                             simulation=simulation,
                             title=note.title)
-                            
+
     except Exception as e:
         log_exception(logger, e, f"viewing note {note_id}")
         flash('An error occurred while trying to view the note', 'danger')
@@ -183,13 +209,13 @@ def edit_note(note_id):
     try:
         # Get the note or return 404
         note = ClinicalNote.query.get_or_404(note_id)
-        
+
         # Check if user has permission to edit the note
         if note.user_id != current_user.id:
             logger.warning(f"Unauthorized edit attempt for note {note_id} by user {current_user.id}")
             flash('You do not have permission to edit this note', 'danger')
             return redirect(url_for('notes.list_notes'))
-        
+
         try:
             patients = Patient.query.all()
             simulations = Simulation.query.all()
@@ -198,7 +224,7 @@ def edit_note(note_id):
             patients = []
             simulations = []
             flash("Could not load some reference data. Not all options may be available.", "warning")
-        
+
         if request.method == 'POST':
             try:
                 # Get form data
@@ -209,19 +235,19 @@ def edit_note(note_id):
                 is_private = request.form.get('is_private') == 'on'
                 tags = request.form.get('tags', '').split(',')
                 tags = [tag.strip() for tag in tags if tag.strip()]
-                
+
                 # Validate input
                 if not title:
                     logger.warning(f"Edit note attempt without title for note {note_id} by user {current_user.id}")
                     flash('Title is required', 'danger')
                     return redirect(url_for('notes.edit_note', note_id=note.id))
-                
+
                 # Handle voice recording if provided
                 if 'voice_recording' in request.files:
                     voice_file = request.files['voice_recording']
                     if voice_file.filename:
                         logger.info(f"Processing new voice recording for note {note_id}")
-                        
+
                         # Delete old voice recording if exists
                         if note.voice_recording_path:
                             old_path = os.path.join('static', 'voice_recordings', note.voice_recording_path)
@@ -231,14 +257,14 @@ def edit_note(note_id):
                                     logger.info(f"Deleted old voice recording: {note.voice_recording_path}")
                             except Exception as file_error:
                                 log_exception(logger, file_error, "deleting old voice recording")
-                        
+
                         # Save new voice recording
                         voice_recording_path = save_voice_recording(voice_file)
                         if voice_recording_path:
                             note.voice_recording_path = voice_recording_path
                         else:
                             flash('Could not save voice recording. Note kept previous recording if any.', 'warning')
-                
+
                 # Update note
                 note.title = title
                 note.text_content = text_content
@@ -247,31 +273,31 @@ def edit_note(note_id):
                 note.is_private = is_private
                 note.tags = tags
                 note.updated_at = datetime.datetime.utcnow()
-                
+
                 db.session.commit()
-                
+
                 logger.info(f"Note {note_id} updated successfully by user {current_user.id}")
                 flash('Note updated successfully', 'success')
                 return redirect(url_for('notes.view_note', note_id=note.id))
-                
+
             except Exception as update_error:
                 db.session.rollback()
                 log_exception(logger, update_error, f"updating note {note_id}")
                 flash(f'Error updating note: {str(update_error)}', 'danger')
-                
+
                 # Reload the note to get original data
                 note = ClinicalNote.query.get_or_404(note_id)
-        
+
         # Convert tags list to comma-separated string for form
         tags_string = ', '.join(note.tags) if note.tags else ''
-        
+
         return render_template('notes/edit.html', 
                               note=note, 
                               patients=patients, 
                               simulations=simulations,
                               tags_string=tags_string,
                               title="Edit Clinical Note")
-                              
+
     except Exception as e:
         log_exception(logger, e, f"processing edit for note {note_id}")
         flash('An error occurred while editing the note', 'danger')
@@ -284,17 +310,17 @@ def delete_note(note_id):
     try:
         # Get the note or return 404
         note = ClinicalNote.query.get_or_404(note_id)
-        
+
         # Check if user has permission to delete the note
         if note.user_id != current_user.id:
             logger.warning(f"Unauthorized delete attempt for note {note_id} by user {current_user.id}")
             flash('You do not have permission to delete this note', 'danger')
             return redirect(url_for('notes.list_notes'))
-        
+
         # Store information for logging
         note_info = f"note_id={note_id}, title='{note.title}'"
         logger.info(f"Deleting note: {note_info} by user {current_user.id}")
-        
+
         # Delete voice recording if exists
         if note.voice_recording_path:
             try:
@@ -308,7 +334,7 @@ def delete_note(note_id):
                 # Log but continue with database deletion
                 log_exception(logger, file_error, "deleting voice recording file")
                 flash("Note deleted but could not remove voice recording file", "warning")
-        
+
         # Delete from database
         try:
             db.session.delete(note)
@@ -319,9 +345,9 @@ def delete_note(note_id):
             db.session.rollback()
             log_exception(logger, db_error, "deleting note from database")
             flash('Error deleting note from database', 'danger')
-            
+
         return redirect(url_for('notes.list_notes'))
-        
+
     except Exception as e:
         log_exception(logger, e, f"processing delete request for note {note_id}")
         flash('An error occurred while deleting the note', 'danger')
@@ -332,64 +358,64 @@ def delete_note(note_id):
 def transcribe_audio():
     """Transcribe audio recording using OPENAI API"""
     temp_path = None
-    
+
     try:
         # Validate request
         if 'audio' not in request.files:
             logger.warning("Transcription request missing audio file")
             return jsonify({'error': 'No audio file provided'}), 400
-        
+
         audio_file = request.files['audio']
-        
+
         if not audio_file.filename:
             logger.warning("Transcription request with empty filename")
             return jsonify({'error': 'No audio file selected'}), 400
-        
+
         if not allowed_audio_file(audio_file.filename):
             logger.warning(f"Transcription request with invalid file type: {audio_file.filename}")
             return jsonify({'error': 'File type not allowed. Supported types: mp3, wav, ogg, webm'}), 400
-        
+
         # Ensure directory exists
         voice_dir = os.path.join('static', 'voice_recordings')
         os.makedirs(voice_dir, exist_ok=True)
-        
+
         # Save audio file temporarily
         file_ext = audio_file.filename.rsplit('.', 1)[1].lower()
         temp_filename = f"temp_{uuid.uuid4()}.{file_ext}"
         temp_path = os.path.join(voice_dir, temp_filename)
-        
+
         logger.info(f"Saving temporary audio file for transcription: {temp_filename}")
         audio_file.save(temp_path)
-        
+
         # Check for OpenAI API key
         if not os.environ.get('OPENAI_API_KEY'):
             logger.error("OPENAI_API_KEY environment variable not set")
             return jsonify({'error': 'OpenAI API key not configured'}), 500
-        
+
         from openai import OpenAI
-        
+
         # Initialize OpenAI client
         client = OpenAI()
         logger.info("Sending audio for transcription")
-        
+
         # Transcribe audio
         with open(temp_path, "rb") as audio_file:
             transcript = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=audio_file
             )
-        
+
         # Clean up temporary file
         if os.path.exists(temp_path):
             os.remove(temp_path)
             temp_path = None
-        
+
         logger.info("Transcription successful")
         return jsonify({
             'success': True,
             'transcript': transcript.text
         })
-        
+
     except ModuleNotFoundError:
         logger.error("OpenAI package not installed")
         if temp_path and os.path.exists(temp_path):
@@ -400,11 +426,11 @@ def transcribe_audio():
     except Exception as e:
         # Log the exception with detailed information
         log_exception(logger, e, "transcribing audio")
-        
+
         # Clean up temporary file
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
-        
+
         # Provide appropriate error message based on exception type
         error_message = str(e)
         if "API key" in error_message.lower():
@@ -413,3 +439,21 @@ def transcribe_audio():
             return jsonify({'error': 'OpenAI rate limit exceeded. Please try again later.'}), 429
         else:
             return jsonify({'error': f'Transcription failed: {error_message}'}), 500
+
+
+def determine_file_type(filename):
+    """Determine the file type based on extension"""
+    ext = filename.split('.')[-1].lower()
+
+    if ext in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp']:
+        return 'images'
+    elif ext in ['mp4', 'webm', 'mov', 'avi', 'mkv']:
+        return 'videos'
+    elif ext in ['mp3', 'wav', 'ogg', 'm4a']:
+        return 'audio'
+    elif ext in ['xlsx', 'xls', 'csv']:
+        return 'spreadsheets'
+    elif ext in ['pdf', 'doc', 'docx', 'txt', 'rtf']:
+        return 'documents'
+    else:
+        return 'other'

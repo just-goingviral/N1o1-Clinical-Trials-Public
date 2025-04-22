@@ -64,7 +64,7 @@
                     </li>
                     {% endif %}
                 </ul>
-                
+
                 <ul class="navbar-nav">
                     {% if current_user is defined and current_user.is_authenticated %}
                     <li class="nav-item dropdown">
@@ -102,29 +102,33 @@
             </div>
         </div>
     </nav>
-    
+
     <main>
         {% block content %}{% endblock %}
     </main>
-    
+
     <footer class="footer mt-5 py-3 bg-dark">
         <div class="container text-center">
             <span class="text-muted">© 2025 N1O1 Clinical Trials - Dr. Nathan Bryan's Clinical Simulator</span>
         </div>
     </footer>
-    
+
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Scientific Glossary Script -->
     <script src="/static/js/scientific_glossary.js"></script>
-    
+
     <!-- Loading Animations Script -->
     <script src="/static/js/loader-animations.js"></script>
-    
+
     <!-- Chat Coordinator Script -->
     <script src="/static/js/chat-coordinator.js"></script>
-    
+    <!-- Voice Interaction Script -->
+    <script src="/static/js/voice-interaction.js"></script>
+    <!-- File Attachments Script -->
+    <script src="/static/js/file-attachments.js"></script>
+
     <!-- Ensure chatbot is properly displayed -->
     <script>
         window.addEventListener('load', function() {
@@ -141,7 +145,7 @@
             }, 500);
         });
     </script>
-    
+
     <!-- NO molecule chat initialization script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -153,7 +157,7 @@
             const chatInput = document.getElementById('no-chat-input');
             const sendBtn = document.getElementById('no-chat-send');
             const chatMessages = document.getElementById('no-chat-messages');
-            
+
             // Add click handlers for initial clickable items
             const setupClickableItems = function() {
                 const clickableItems = document.querySelectorAll('.clickable-item');
@@ -163,28 +167,28 @@
                         // Extract the text content without the icon
                         const rawText = this.textContent;
                         const cleanText = rawText.replace(/^\s*[\u2192\u25B6\u25BA\u25B8]/g, '').trim();
-                        
+
                         // Set the chat input with the selected topic
                         chatInput.value = "Tell me about " + cleanText;
-                        
+
                         // Focus the input
                         chatInput.focus();
-                        
+
                         // Optionally, automatically send the message
                         sendMessage();
                     });
                 });
             };
-            
+
             // Call this initially to set up the default clickable items
             setupClickableItems();
-            
+
             if (moleculeBtn && chatModal) {
                 // Toggle chat visibility when molecule button is clicked
                 moleculeBtn.addEventListener('click', function() {
                     chatModal.style.display = 'block';
                 });
-                
+
                 // Close chat when close button is clicked
                 if (closeBtn) {
                     closeBtn.addEventListener('click', function() {
@@ -195,12 +199,12 @@
                         expandBtn.title = 'Expand to full screen';
                     });
                 }
-                
+
                 // Expand chat to fullscreen when expand button is clicked
                 if (expandBtn) {
                     expandBtn.addEventListener('click', function() {
                         chatModal.classList.toggle('fullscreen');
-                        
+
                         if (chatModal.classList.contains('fullscreen')) {
                             expandBtn.innerHTML = '<i class="fas fa-compress"></i>';
                             expandBtn.title = 'Exit full screen';TML = '<i class="fas fa-compress"></i>';
@@ -209,20 +213,20 @@
                             expandBtn.innerHTML = '<i class="fas fa-expand"></i>';
                             expandBtn.title = 'Expand to full screen';
                         }
-                        
+
                         // Focus on input after resize
                         setTimeout(() => {
                             chatInput.focus();
                         }, 300);
                     });
                 }
-                
+
                 // Send message when button is clicked
                 if (sendBtn && chatInput && chatMessages) {
                     sendBtn.addEventListener('click', function() {
                         sendMessage();
                     });
-                    
+
                     // Send message when Enter key is pressed
                     chatInput.addEventListener('keydown', function(e) {
                         if (e.key === 'Enter' && !e.shiftKey) {
@@ -230,33 +234,33 @@
                             sendMessage();
                         }
                     });
-                    
+
                     // Function to send message
                     function sendMessage() {
                         const message = chatInput.value.trim();
                         if (!message) return;
-                        
+
                         // Add user message to chat
                         const userMsgDiv = document.createElement('div');
                         userMsgDiv.className = 'no-chat-message user';
                         userMsgDiv.innerHTML = `<div class="no-chat-bubble">${message}</div>`;
                         chatMessages.appendChild(userMsgDiv);
-                        
+
                         // Clear input
                         chatInput.value = '';
-                        
+
                         // Scroll to bottom
                         chatMessages.scrollTop = chatMessages.scrollHeight;
-                        
+
                         // Add loading indicator
                         const loadingDiv = document.createElement('div');
                         loadingDiv.className = 'no-chat-message assistant';
                         loadingDiv.innerHTML = '<div class="no-chat-bubble">Thinking...</div>';
                         chatMessages.appendChild(loadingDiv);
-                        
+
                         // Get session ID from localStorage or create new one
                         let sessionId = localStorage.getItem('n1o1-chat-session-id');
-                        
+
                         // Prepare attachment if file was uploaded
                         let attachment = null;
                         const fileInput = document.getElementById('no-chat-file-input');
@@ -269,7 +273,7 @@
                                 dataUrl: file.dataUrl
                             };
                         }
-                        
+
                         // Call the API
                         fetch('/api/assistant', {
                             method: 'POST',
@@ -286,20 +290,20 @@
                         .then(data => {
                             // Remove loading indicator
                             chatMessages.removeChild(loadingDiv);
-                            
+
                             if (data.status === 'success') {
                                 // Store session ID
                                 if (data.session_id) {
                                     localStorage.setItem('n1o1-chat-session-id', data.session_id);
                                 }
-                                
+
                                 // Add assistant response
                                 const assistantMsg = document.createElement('div');
                                 assistantMsg.className = 'no-chat-message assistant';
-                                
+
                                 // Process response - convert bullet points to clickable items
                                 let processedResponse = data.response;
-                                
+
                                 // Check if there are clickable topics (look for bullet points)
                                 if (processedResponse.includes('<ul>') && processedResponse.includes('<li>')) {
                                     // Convert standard bullet points to clickable items
@@ -308,23 +312,23 @@
                                         '<li><a href="#" class="clickable-item"><i class="fas fa-arrow-right"></i>$1</a></li>'
                                     );
                                 }
-                                
+
                                 assistantMsg.innerHTML = `<div class="no-chat-bubble">${processedResponse}</div>`;
                                 chatMessages.appendChild(assistantMsg);
-                                
+
                                 // Add click handlers for the clickable items
                                 const clickableItems = assistantMsg.querySelectorAll('.clickable-item');
                                 clickableItems.forEach(item => {
                                     item.addEventListener('click', function(e) {
                                         e.preventDefault();
                                         const topicText = this.textContent.trim();
-                                        
+
                                         // Set the chat input with the selected topic
                                         chatInput.value = "Tell me about " + topicText;
-                                        
+
                                         // Focus the input
                                         chatInput.focus();
-                                        
+
                                         // Optionally, automatically send the message
                                         sendMessage();
                                     });
@@ -336,28 +340,28 @@
                                 errorMsg.innerHTML = `<div class="no-chat-bubble error">I'm having trouble connecting right now. Please try again shortly.</div>`;
                                 chatMessages.appendChild(errorMsg);
                             }
-                            
+
                             // Clear any file input
                             if (fileInput) {
                                 fileInput.value = '';
                             }
-                            
+
                             // Scroll to bottom
                             chatMessages.scrollTop = chatMessages.scrollHeight;
                         })
                         .catch(error => {
                             // Remove loading indicator
                             chatMessages.removeChild(loadingDiv);
-                            
+
                             // Show error message
                             const errorMsg = document.createElement('div');
                             errorMsg.className = 'no-chat-message assistant';
                             errorMsg.innerHTML = `<div class="no-chat-bubble error">I'm having trouble connecting right now. Please try again shortly.</div>`;
                             chatMessages.appendChild(errorMsg);
-                            
+
                             // Log error to console
                             console.error('Chat API error:', error);
-                            
+
                             // Scroll to bottom
                             chatMessages.scrollTop = chatMessages.scrollHeight;
                         });
@@ -366,7 +370,7 @@
             }
         });
     </script>
-    
+
     <!-- NO molecule chatbot -->
     <div id="no-molecule-chat-button" class="no-molecule-chat-button">
         <svg width="45" height="45" viewBox="0 0 60 60" class="no-molecule-svg">
@@ -384,7 +388,7 @@
             <text x="42" y="34" font-family="Arial" font-size="13" font-weight="bold" fill="#ffffff" text-anchor="middle">O</text>
         </svg>
     </div>
-    
+
     <!-- Chat Interface Modal -->
     <div id="no-chat-modal" class="no-chat-modal">
         <div class="no-chat-container">
@@ -463,7 +467,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- NO Molecule Chat CSS -->
     <style>
         /* Chatbot button styling */
@@ -485,42 +489,42 @@
             border: 2px solid rgba(255, 255, 255, 0.2);
             margin-left: auto;
         }
-        
+
         .no-molecule-chat-button:hover {
             transform: scale(1.1);
             box-shadow: 0 5px 20px rgba(13, 110, 253, 0.4);
         }
-        
+
         .no-molecule-svg {
             width: 55%;
             height: 55%;
             transition: all 0.3s ease;
         }
-        
+
         .no-molecule-svg circle {
             transition: transform 0.5s ease, fill 0.3s ease;
             filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
         }
-        
+
         .no-molecule-chat-button:hover .no-molecule-svg circle:nth-child(1) {
             fill: #5b9ed9; /* Lighter blue for nitrogen */
             transform: translate(-2px, -2px);
         }
-        
+
         .no-molecule-chat-button:hover .no-molecule-svg circle:nth-child(2) {
             fill: #f07a67; /* Lighter red for oxygen */
             transform: translate(2px, 2px);
         }
-        
+
         .no-molecule-chat-button:hover .no-molecule-svg path {
             stroke: #ffffff;
             stroke-dasharray: 2,1; /* More energetic bond appearance */
         }
-        
+
         .no-molecule-chat-button:hover .no-molecule-svg text {
             font-weight: bold;
         }
-        
+
         .no-molecule-chat-button:hover .no-molecule-svg circle:nth-child(4),
         .no-molecule-chat-button:hover .no-molecule-svg circle:nth-child(5) {
             stroke: #ffffff;
@@ -528,13 +532,13 @@
             stroke-width: 1.5;
             animation: pulseOrbit 2s infinite;
         }
-        
+
         @keyframes pulseOrbit {
             0% { stroke-opacity: 0.3; transform: scale(1); }
             50% { stroke-opacity: 0.8; transform: scale(1.05); }
             100% { stroke-opacity: 0.3; transform: scale(1); }
         }
-        
+
         /* Chat modal styling */
         .no-chat-modal {
             display: none;
@@ -553,7 +557,7 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             transition: all 0.3s ease-in-out;
         }
-        
+
         /* Fullscreen mode */
         .no-chat-modal.fullscreen {
             top: 0;
@@ -567,14 +571,14 @@
             max-width: none;
             animation: none;
         }
-        
+
         /* Control buttons in header */
         .no-chat-controls {
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        
+
         .no-chat-control-btn {
             background: rgba(255, 255, 255, 0.15);
             border: none;
@@ -589,11 +593,11 @@
             font-size: 0.9rem;
             transition: all 0.2s;
         }
-        
+
         .no-chat-control-btn:hover {
             background: rgba(255, 255, 255, 0.25);
         }
-        
+
         @keyframes chatExpand {
             0% {
                 opacity: 0;
@@ -614,14 +618,14 @@
                 border-radius: 20px;
             }
         }
-        
+
         .no-chat-container {
             display: flex;
             flex-direction: column;
             height: 100%;
             background: linear-gradient(180deg, #212529 0%, #343a40 100%);
         }
-        
+
         /* Chat header styling */
         .no-chat-header {
             display: flex;
@@ -632,7 +636,7 @@
             color: white;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .no-chat-header h5 {
             margin: 0;
             font-size: 1.15rem;
@@ -641,7 +645,7 @@
             align-items: center;
             letter-spacing: 0.3px;
         }
-        
+
         .no-chat-header h5 i {
             margin-right: 8px;
             background: rgba(255, 255, 255, 0.2);
@@ -649,7 +653,7 @@
             border-radius: 50%;
             font-size: 0.9rem;
         }
-        
+
         .no-chat-close-btn {
             background: rgba(255, 255, 255, 0.15);
             border: none;
@@ -664,12 +668,12 @@
             justify-content: center;
             transition: all 0.2s;
         }
-        
+
         .no-chat-close-btn:hover {
             background: rgba(255, 255, 255, 0.25);
             transform: rotate(90deg);
         }
-        
+
         /* Chat messages styling */
         .no-chat-messages {
             flex: 1;
@@ -682,27 +686,27 @@
             scrollbar-width: thin;
             scrollbar-color: #495057 #212529;
         }
-        
+
         .no-chat-messages::-webkit-scrollbar {
             width: 6px;
         }
-        
+
         .no-chat-messages::-webkit-scrollbar-track {
             background: #212529;
         }
-        
+
         .no-chat-messages::-webkit-scrollbar-thumb {
             background-color: #495057;
             border-radius: 10px;
         }
-        
+
         .no-chat-message {
             display: flex;
             margin-bottom: 5px;
             max-width: 85%;
             animation: messageIn 0.3s ease-out;
         }
-        
+
         @keyframes messageIn {
             from {
                 opacity: 0;
@@ -713,12 +717,12 @@
                 transform: translateY(0);
             }
         }
-        
+
         .no-chat-message.user {
             justify-content: flex-end;
             align-self: flex-end;
         }
-        
+
         .no-chat-bubble {
             padding: 12px 16px;
             border-radius: 18px;
@@ -727,14 +731,14 @@
             font-size: 0.95rem;
             overflow: hidden;
         }
-        
+
         .no-chat-message.assistant .no-chat-bubble {
             background-color: #343a40;
             color: #e9ecef;
             border-bottom-left-radius: 4px;
             position: relative;
         }
-        
+
         .no-chat-message.assistant .no-chat-bubble::before {
             content: "";
             position: absolute;
@@ -746,14 +750,14 @@
             border-radius: 0 0 16px 0;
             z-index: -1;
         }
-        
+
         .no-chat-message.user .no-chat-bubble {
             background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
             color: white;
             border-bottom-right-radius: 4px;
             position: relative;
         }
-        
+
         .no-chat-message.user .no-chat-bubble::before {
             content: "";
             position: absolute;
@@ -765,7 +769,7 @@
             border-radius: 0 0 0 16px;
             z-index: -1;
         }
-        
+
         /* Rich content support */
         .no-chat-bubble img, 
         .no-chat-bubble canvas {
@@ -774,24 +778,24 @@
             margin: 8px 0;
             display: block;
         }
-        
+
         .no-chat-bubble table {
             width: 100%;
             border-collapse: collapse;
             margin: 10px 0;
             font-size: 0.9rem;
         }
-        
+
         .no-chat-bubble table th,
         .no-chat-bubble table td {
             padding: 8px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .no-chat-bubble table th {
             background-color: rgba(255, 255, 255, 0.1);
         }
-        
+
         .no-chat-bubble pre, 
         .no-chat-bubble code {
             font-family: monospace;
@@ -801,19 +805,19 @@
             overflow-x: auto;
             max-width: 100%;
         }
-        
+
         .no-chat-bubble pre {
             padding: 10px;
             margin: 10px 0;
         }
-        
+
         .no-chat-bubble .chart-container {
             width: 100%;
             height: 300px;
             margin: 15px 0;
             position: relative;
         }
-        
+
         /* Chat input styling */
         .no-chat-input-container {
             display: flex;
@@ -823,13 +827,13 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             gap: 10px;
         }
-        
+
         .no-chat-input-tools {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
+
         .no-chat-tool-btn {
             background: rgba(255, 255, 255, 0.1);
             border: none;
@@ -844,11 +848,11 @@
             transition: all 0.2s ease;
             font-size: 0.9rem;
         }
-        
+
         .no-chat-tool-btn:hover {
             background: rgba(255, 255, 255, 0.2);
         }
-        
+
         .no-chat-file-name {
             font-size: 0.85rem;
             color: rgba(255, 255, 255, 0.7);
@@ -858,7 +862,7 @@
             text-overflow: ellipsis;
             max-width: 200px;
         }
-        
+
         .no-chat-input {
             flex: 1;
             padding: 12px 16px;
@@ -872,13 +876,13 @@
             transition: all 0.2s;
             box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
         }
-        
+
         .no-chat-input:focus {
             outline: none;
             border-color: #0D6EFD;
             box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
         }
-        
+
         .no-chat-send-btn {
             width: 45px;
             height: 45px;
@@ -893,16 +897,16 @@
             transition: all 0.2s;
             box-shadow: 0 2px 6px rgba(13, 110, 253, 0.3);
         }
-        
+
         .no-chat-send-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(13, 110, 253, 0.4);
         }
-        
+
         .no-chat-send-btn:active {
             transform: translateY(0);
         }
-        
+
         /* Drawing container styling */
         .no-chat-drawing-container {
             display: none;
@@ -917,7 +921,7 @@
             border-radius: 20px;
             overflow: hidden;
         }
-        
+
         .no-chat-drawing-header {
             display: flex;
             justify-content: space-between;
@@ -926,7 +930,7 @@
             background: linear-gradient(90deg, #0D6EFD 0%, #0a58ca 100%);
             color: white;
         }
-        
+
         .no-chat-drawing-header h5 {
             margin: 0;
             font-size: 1.15rem;
@@ -934,14 +938,14 @@
             display: flex;
             align-items: center;
         }
-        
+
         .no-chat-drawing-canvas {
             width: 100%;
             height: calc(100% - 130px);
             background-color: #2b3035;
             cursor: crosshair;
         }
-        
+
         .no-chat-drawing-tools {
             display: flex;
             flex-direction: column;
@@ -950,7 +954,7 @@
             gap: 10px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .no-chat-color-options,
         .no-chat-size-options,
         .no-chat-action-options {
@@ -959,7 +963,7 @@
             gap: 12px;
             flex-wrap: wrap;
         }
-        
+
         .no-chat-color-btn {
             width: 30px;
             height: 30px;
@@ -968,13 +972,13 @@
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        
+
         .no-chat-color-btn:hover,
         .no-chat-color-btn.active {
             transform: scale(1.15);
             box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
         }
-        
+
         .no-chat-size-btn {
             width: 40px;
             height: 40px;
@@ -987,34 +991,34 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        
+
         .size-circle {
             background-color: white;
             border-radius: 50%;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
-        
+
         .size-small {
             width: 6px;
             height: 6px;
         }
-        
+
         .size-medium {
             width: 12px;
             height: 12px;
         }
-        
+
         .size-large {
             width: 20px;
             height: 20px;
         }
-        
+
         .no-chat-size-btn:hover,
         .no-chat-size-btn.active {
             background-color: rgba(255, 255, 255, 0.15);
             border-color: rgba(255, 255, 255, 0.4);
         }
-        
+
         .no-chat-tool-btn {
             width: 40px;
             height: 40px;
@@ -1029,13 +1033,13 @@
             transition: all 0.2s;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
-        
+
         .no-chat-tool-btn:hover {
             background-color: #6c757d;
             transform: translateY(-2px);
             box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
         }
-        
+
         /* Responsive adjustments */
         @media (max-width: 576px) {
             .no-chat-modal {
@@ -1045,14 +1049,14 @@
                 height: 70vh;
                 max-height: 550px;
             }
-            
+
             .no-molecule-chat-button {
                 right: 15px;
                 bottom: 15px;
             }
         }
     </style>
-    
+
     <!-- NO Molecule Chat JS -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1064,7 +1068,7 @@
                     allowHtml: true,
                     delay: 100
                 });
-                
+
                 // Then scan for additional terms in the content
                 try {
                     // Main content containers to scan
@@ -1076,10 +1080,10 @@
                         '.card-text',
                         '.lead'
                     ];
-                    
+
                     // Join selectors with commas for a single query
                     const combinedSelector = contentSelectors.join(', ');
-                    
+
                     // Scan with enhanced options for better performance
                     window.N1O1Glossary.scanForScientificTerms(combinedSelector, {
                         includeBasic: true,
@@ -1088,7 +1092,7 @@
                         limitReplacement: true, // Limit to one occurrence per term for better performance
                         preserveExisting: true  // Don't replace terms that already have tooltips
                     });
-                    
+
                     console.log('Scientific terminology tooltips initialized');
                 } catch (error) {
                     console.error('Error initializing scientific tooltips:', error);
@@ -1096,7 +1100,7 @@
             } else {
                 console.warn('N1O1Glossary not available. Scientific tooltips will not be initialized.');
             }
-            
+
             // Setup NO Molecule Chat
             const noButton = document.getElementById('no-molecule-chat-button');
             const chatModal = document.getElementById('no-chat-modal');
@@ -1107,7 +1111,7 @@
             const fileInput = document.getElementById('no-chat-file-input');
             const attachBtn = document.getElementById('no-chat-attach');
             const fileNameDisplay = document.getElementById('no-chat-file-name');
-            
+
             // Drawing elements
             const drawingContainer = document.getElementById('no-chat-drawing-container');
             const drawingCanvas = document.getElementById('no-chat-drawing');
@@ -1117,12 +1121,12 @@
             const sendDrawingBtn = document.getElementById('no-chat-send-drawing');
             const colorButtons = document.querySelectorAll('.no-chat-color-btn');
             const sizeButtons = document.querySelectorAll('.no-chat-size-btn');
-            
+
             let isDrawing = false;
             let lastX = 0;
             let lastY = 0;
             const ctx = drawingCanvas.getContext('2d');
-            
+
             // Drawing settings
             const drawingSettings = {
                 color: '#0D6EFD',
@@ -1130,24 +1134,24 @@
                 history: [],
                 currentStep: -1
             };
-            
+
             // Set canvas dimensions
             function resizeCanvas() {
                 const containerRect = drawingContainer.getBoundingClientRect();
                 drawingCanvas.width = containerRect.width;
                 drawingCanvas.height = containerRect.height - 110; // Subtract header and toolbar heights
-                
+
                 // Set default drawing style
                 updateDrawingStyle();
-                
+
                 // Set active classes for the default color and size
                 document.querySelector(`.no-chat-color-btn[data-color="${drawingSettings.color}"]`)?.classList.add('active');
                 document.querySelector(`.no-chat-size-btn[data-size="${drawingSettings.lineWidth}"]`)?.classList.add('active');
-                
+
                 // Draw any existing content
                 redrawFromHistory();
             }
-            
+
             // Update the drawing style
             function updateDrawingStyle() {
                 ctx.strokeStyle = drawingSettings.color;
@@ -1155,79 +1159,79 @@
                 ctx.lineCap = 'round';
                 ctx.lineWidth = drawingSettings.lineWidth;
             }
-            
+
             // Add a step to the history
             function addToHistory(data) {
                 // If we've gone back in history and are now drawing a new path, remove the "future" history
                 if (drawingSettings.currentStep < drawingSettings.history.length - 1) {
                     drawingSettings.history = drawingSettings.history.slice(0, drawingSettings.currentStep + 1);
                 }
-                
+
                 drawingSettings.history.push(data);
                 drawingSettings.currentStep = drawingSettings.history.length - 1;
             }
-            
+
             // Clear the canvas and history
             function clearCanvas() {
                 ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
                 drawingSettings.history = [];
                 drawingSettings.currentStep = -1;
             }
-            
+
             // Redraw from history
             function redrawFromHistory() {
                 ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-                
+
                 for (let i = 0; i <= drawingSettings.currentStep; i++) {
                     const item = drawingSettings.history[i];
-                    
+
                     if (item.type === 'path') {
                         ctx.beginPath();
                         ctx.strokeStyle = item.color;
                         ctx.lineWidth = item.lineWidth;
-                        
+
                         const points = item.points;
                         ctx.moveTo(points[0].x, points[0].y);
-                        
+
                         for (let j = 1; j < points.length; j++) {
                             ctx.lineTo(points[j].x, points[j].y);
                         }
-                        
+
                         ctx.stroke();
                     }
                 }
             }
-            
+
             // Open chat modal with animation
             noButton.addEventListener('click', function() {
                 chatModal.style.display = 'block';
                 // Create gas particle effects
                 createGasParticles();
             });
-            
+
             // Close chat modal
             closeBtn.addEventListener('click', function() {
                 chatModal.style.display = 'none';
             });
-            
+
             // Send a message
             function sendMessage() {
                 const message = chatInput.value.trim();
                 if (message === '') return;
-                
+
                 // Add user message to chat
                 addMessageToChat('user', message);
-                
+
                 // Clear input
                 chatInput.value = '';
-                
+
                 // Simulate sending to backend (in a real app, this would be a fetch request)
                 simulateResponse(message);
             }
-            
+
             // Send button click
             sendBtn.addEventListener('click', sendMessage);
-            
+
             // Enter key to send
             chatInput.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -1235,22 +1239,22 @@
                     sendMessage();
                 }
             });
-            
+
             // Handle file attachment
             if (attachBtn && fileInput) {
                 attachBtn.addEventListener('click', function() {
                     fileInput.click();
                 });
-                
+
                 fileInput.addEventListener('change', function() {
                     if (this.files && this.files[0]) {
                         const file = this.files[0];
-                        
+
                         // Display file name
                         if (fileNameDisplay) {
                             fileNameDisplay.textContent = file.name;
                         }
-                        
+
                         // Convert the file to a data URL for sending
                         const reader = new FileReader();
                         reader.onload = function(e) {
@@ -1265,15 +1269,15 @@
                     }
                 });
             }
-            
+
             // Add message to chat with rich content support
             function addMessageToChat(role, content) {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `no-chat-message ${role}`;
-                
+
                 const bubbleDiv = document.createElement('div');
                 bubbleDiv.className = 'no-chat-bubble';
-                
+
                 // Check if content is HTML or contains Markdown-like formatting
                 if (content.includes('<p>') || content.includes('<ul>') || 
                     content.includes('<img') || content.includes('<h') ||
@@ -1289,20 +1293,20 @@
                         .replace(/\*(.*?)\*/g, '<em>$1</em>')
                         .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>')
                         + '</p>';
-                    
+
                     bubbleDiv.innerHTML = formattedText;
                 }
-                
+
                 messageDiv.appendChild(bubbleDiv);
                 messagesContainer.appendChild(messageDiv);
-                
+
                 // Scroll to bottom
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                
+
                 // Process any special content like images, charts, etc.
                 processRichBubbleContent(bubbleDiv);
             }
-            
+
             // Process rich content in bubbles
             function processRichBubbleContent(bubble) {
                 // Look for image placeholders and load actual images
@@ -1318,7 +1322,7 @@
                         };
                     }
                 });
-                
+
                 // Process any chart placeholders
                 const chartPlaceholders = bubble.querySelectorAll('.chart-placeholder');
                 chartPlaceholders.forEach(placeholder => {
@@ -1326,16 +1330,16 @@
                         // Try to parse chart data
                         if (placeholder.dataset.chartData) {
                             const chartData = JSON.parse(placeholder.dataset.chartData);
-                            
+
                             // Create canvas for chart
                             const chartContainer = document.createElement('div');
                             chartContainer.className = 'chart-container';
                             const canvas = document.createElement('canvas');
                             chartContainer.appendChild(canvas);
-                            
+
                             // Replace placeholder with canvas
                             placeholder.parentNode.replaceChild(chartContainer, placeholder);
-                            
+
                             // Create chart
                             new Chart(canvas, chartData);
                         }
@@ -1344,48 +1348,48 @@
                     }
                 });
             }
-            
+
             // Simulate AI response
             function simulateResponse(userMessage) {
                 // Check for drawing command
                 if (userMessage.toLowerCase().includes('draw') || 
                     userMessage.toLowerCase().includes('sketch') || 
                     userMessage.toLowerCase().includes('diagram')) {
-                    
+
                     // Add typing indicator
                     const typingDiv = document.createElement('div');
                     typingDiv.className = 'no-chat-message assistant';
                     typingDiv.innerHTML = '<div class="no-chat-bubble">Typing...</div>';
                     messagesContainer.appendChild(typingDiv);
-                    
+
                     setTimeout(() => {
                         // Remove typing indicator
                         messagesContainer.removeChild(typingDiv);
-                        
+
                         // Add response
                         addMessageToChat('assistant', "I've opened a drawing canvas for you. You can sketch whatever you'd like!");
-                        
+
                         // Open drawing canvas
                         drawingContainer.style.display = 'block';
                         resizeCanvas();
                     }, 1000);
-                    
+
                     return;
                 }
-                
+
                 // Add typing indicator
                 const typingDiv = document.createElement('div');
                 typingDiv.className = 'no-chat-message assistant';
                 typingDiv.innerHTML = '<div class="no-chat-bubble">Typing...</div>';
                 messagesContainer.appendChild(typingDiv);
-                
+
                 setTimeout(() => {
                     // Remove typing indicator
                     messagesContainer.removeChild(typingDiv);
-                    
+
                     // Generate a response based on the user message
                     let response = "";
-                    
+
                     if (userMessage.toLowerCase().includes('hello') || 
                         userMessage.toLowerCase().includes('hi')) {
                         response = "<p>Hello! I'm <strong>N1O1ai</strong>, your nitric oxide research assistant.</p><p>How can I help you today?</p>";
@@ -1433,19 +1437,19 @@
                     else {
                         response = "<p>I'm here to help with questions about <strong>nitric oxide</strong>, the <strong>N1O1 clinical trials</strong>, or our <strong>simulation tools</strong>.</p><p>Feel free to ask about specific aspects of NO biochemistry, vasodilation, or the clinical applications of our research!</p>";
                     }
-                    
+
                     // Add response to chat
                     addMessageToChat('assistant', response);
                 }, 1500);
             }
-            
+
             // Canvas drawing functionality
             let currentPath = null;
-            
+
             drawingCanvas.addEventListener('mousedown', function(e) {
                 isDrawing = true;
                 [lastX, lastY] = [e.offsetX, e.offsetY];
-                
+
                 // Start a new path
                 currentPath = {
                     type: 'path',
@@ -1454,22 +1458,22 @@
                     points: [{x: lastX, y: lastY}]
                 };
             });
-            
+
             drawingCanvas.addEventListener('mousemove', function(e) {
                 if (!isDrawing) return;
-                
+
                 // Record the point
                 currentPath.points.push({x: e.offsetX, y: e.offsetY});
-                
+
                 // Draw the line
                 ctx.beginPath();
                 ctx.moveTo(lastX, lastY);
                 ctx.lineTo(e.offsetX, e.offsetY);
                 ctx.stroke();
-                
+
                 [lastX, lastY] = [e.offsetX, e.offsetY];
             });
-            
+
             drawingCanvas.addEventListener('mouseup', function() {
                 if (isDrawing && currentPath && currentPath.points.length > 1) {
                     // Save the completed path to history
@@ -1478,7 +1482,7 @@
                 }
                 isDrawing = false;
             });
-            
+
             drawingCanvas.addEventListener('mouseout', function() {
                 if (isDrawing && currentPath && currentPath.points.length > 1) {
                     // Save the path if mouse leaves the canvas
@@ -1487,16 +1491,16 @@
                 }
                 isDrawing = false;
             });
-            
+
             // Touch support for mobile
             drawingCanvas.addEventListener('touchstart', function(e) {
                 e.preventDefault();
                 isDrawing = true;
-                
+
                 const touch = e.touches[0];
                 const rect = drawingCanvas.getBoundingClientRect();
                 [lastX, lastY] = [touch.clientX - rect.left, touch.clientY - rect.top];
-                
+
                 // Start a new path
                 currentPath = {
                     type: 'path',
@@ -1505,28 +1509,28 @@
                     points: [{x: lastX, y: lastY}]
                 };
             });
-            
+
             drawingCanvas.addEventListener('touchmove', function(e) {
                 e.preventDefault();
                 if (!isDrawing) return;
-                
+
                 const touch = e.touches[0];
                 const rect = drawingCanvas.getBoundingClientRect();
                 const offsetX = touch.clientX - rect.left;
                 const offsetY = touch.clientY - rect.top;
-                
+
                 // Record the point
                 currentPath.points.push({x: offsetX, y: offsetY});
-                
+
                 // Draw the line
                 ctx.beginPath();
                 ctx.moveTo(lastX, lastY);
                 ctx.lineTo(offsetX, offsetY);
                 ctx.stroke();
-                
+
                 [lastX, lastY] = [offsetX, offsetY];
             });
-            
+
             drawingCanvas.addEventListener('touchend', function() {
                 if (isDrawing && currentPath && currentPath.points.length > 1) {
                     // Save the completed path to history
@@ -1535,43 +1539,43 @@
                 }
                 isDrawing = false;
             });
-            
+
             // Color selection
             colorButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const color = this.getAttribute('data-color');
                     drawingSettings.color = color;
                     updateDrawingStyle();
-                    
+
                     // Update active class
                     colorButtons.forEach(btn => btn.classList.remove('active'));
                     this.classList.add('active');
                 });
             });
-            
+
             // Size selection
             sizeButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const size = parseInt(this.getAttribute('data-size'));
                     drawingSettings.lineWidth = size;
                     updateDrawingStyle();
-                    
+
                     // Update active class
                     sizeButtons.forEach(btn => btn.classList.remove('active'));
                     this.classList.add('active');
                 });
             });
-            
+
             // Clear drawing
             clearDrawingBtn.addEventListener('click', function() {
                 clearCanvas();
             });
-            
+
             // Save drawing
             saveDrawingBtn.addEventListener('click', function() {
                 // Convert canvas to data URL
                 const dataURL = drawingCanvas.toDataURL('image/png');
-                
+
                 // Create temporary link and trigger download
                 const link = document.createElement('a');
                 link.download = 'n1o1_drawing.png';
@@ -1579,11 +1583,11 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                
+
                 // Add message to chat
                 addMessageToChat('assistant', "Your drawing has been saved!");
             });
-            
+
             // Send drawing to chat (attach it as an image in the chat)
             if (sendDrawingBtn) {
                 sendDrawingBtn.addEventListener('click', function() {
@@ -1591,32 +1595,32 @@
                         alert('Please draw something before sending!');
                         return;
                     }
-                    
+
                     // Convert canvas to data URL
                     const dataURL = drawingCanvas.toDataURL('image/png');
-                    
+
                     // Add an image message to the chat
                     const messageDiv = document.createElement('div');
                     messageDiv.className = 'no-chat-message user';
-                    
+
                     const bubbleDiv = document.createElement('div');
                     bubbleDiv.className = 'no-chat-bubble';
-                    
+
                     const img = document.createElement('img');
                     img.src = dataURL;
                     img.style.maxWidth = '100%';
                     img.style.borderRadius = '5px';
-                    
+
                     bubbleDiv.appendChild(img);
                     messageDiv.appendChild(bubbleDiv);
                     messagesContainer.appendChild(messageDiv);
-                    
+
                     // Scroll to bottom
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                    
+
                     // Close drawing canvas
                     drawingContainer.style.display = 'none';
-                    
+
                     // Simulate response
                     setTimeout(() => {
                         // Add typing indicator
@@ -1624,36 +1628,36 @@
                         typingDiv.className = 'no-chat-message assistant';
                         typingDiv.innerHTML = '<div class="no-chat-bubble">Typing...</div>';
                         messagesContainer.appendChild(typingDiv);
-                        
+
                         setTimeout(() => {
                             // Remove typing indicator
                             messagesContainer.removeChild(typingDiv);
-                            
+
                             // Add response
                             addMessageToChat('assistant', "Thanks for sharing your drawing! It helps me understand what you're thinking about. Would you like to discuss any specific aspect of this diagram?");
                         }, 1500);
                     }, 500);
                 });
             }
-            
+
             // Close drawing panel
             closeDrawingBtn.addEventListener('click', function() {
                 drawingContainer.style.display = 'none';
             });
-            
+
             // Create gas particle animation effect when opening the chat
             function createGasParticles() {
                 const particles = 30;
                 const colors = ['#0D6EFD', '#DC3545', '#6C757D'];
-                
+
                 for (let i = 0; i < particles; i++) {
                     const particle = document.createElement('div');
                     particle.className = 'gas-particle';
-                    
+
                     // Random positioning and styling
                     const size = Math.random() * 10 + 5;
                     const color = colors[Math.floor(Math.random() * colors.length)];
-                    
+
                     particle.style.width = `${size}px`;
                     particle.style.height = `${size}px`;
                     particle.style.backgroundColor = color;
@@ -1662,20 +1666,20 @@
                     particle.style.right = `${Math.random() * 60 + 20}px`;
                     particle.style.top = `${Math.random() * 60 + (window.innerHeight / 2 - 30)}px`;
                     particle.style.opacity = Math.random() * 0.7 + 0.3;
-                    
+
                     // Animation
                     particle.style.animation = `gasParticle ${Math.random() * 2 + 1}s`;
                     particle.style.animationTimingFunction = 'ease-out';
-                    
+
                     document.body.appendChild(particle);
-                    
+
                     // Remove particle after animation
                     setTimeout(() => {
                         document.body.removeChild(particle);
                     }, 3000);
                 }
             }
-            
+
             // CSS for gas particles
             const style = document.createElement('style');
             style.textContent = `
@@ -1695,7 +1699,7 @@
             document.head.appendChild(style);
         });
     </script>
-    
+
     {% block scripts %}{% endblock %}
 </body>
 </html>

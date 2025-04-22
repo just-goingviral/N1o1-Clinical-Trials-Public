@@ -59,6 +59,95 @@
   transform: translate(2px, 2px);
 }
 
+/* Voice interaction styles */
+.voice-btn {
+  background: none;
+  border: none;
+  color: var(--no-chat-text);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 8px;
+  margin-right: 5px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.voice-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.voice-btn.recording {
+  color: #f44336;
+  animation: pulse 1.5s infinite;
+}
+
+.recording-indicator {
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 8px 16px;
+  border-radius: 16px;
+  margin: 10px auto;
+  width: fit-content;
+  color: var(--no-chat-text);
+}
+
+.recording-pulse {
+  width: 12px;
+  height: 12px;
+  background-color: #f44336;
+  border-radius: 50%;
+  margin-right: 8px;
+  animation: pulse 1.5s infinite;
+}
+
+.processing-indicator {
+  width: 12px;
+  height: 12px;
+  background-color: #2196F3;
+  border-radius: 50%;
+  margin-right: 8px;
+  animation: pulse 1.5s infinite;
+}
+
+.transcription-status {
+  padding: 8px 16px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  margin: 10px auto;
+  width: fit-content;
+  color: var(--no-chat-text);
+}
+
+.transcription-error {
+  padding: 8px 16px;
+  background-color: rgba(244, 67, 54, 0.1);
+  border-radius: 16px;
+  margin: 10px auto;
+  width: fit-content;
+  color: #f44336;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 /* Add a subtle pulse animation to make the button more noticeable */
 @keyframes pulse {
   0% {

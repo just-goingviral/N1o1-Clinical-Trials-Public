@@ -1,0 +1,76 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Import Patients - N1O1 Clinical Trials{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Import Patients</h1>
+    <a href="{{ url_for('patients.list_patients') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-arrow-left me-1"></i> Back to Patient List
+    </a>
+  </div>
+  
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Import Patients from Excel</h5>
+      <p class="card-text">
+        Upload an Excel file (.xlsx or .csv) with patient data to import multiple patients at once.
+      </p>
+      
+      {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+      {% endif %}
+      
+      {% if success %}
+      <div class="alert alert-success">{{ success }}</div>
+      {% endif %}
+      
+      <form action="{{ url_for('patients.import_patients') }}" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label for="file" class="form-label">Select Excel file</label>
+          <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.csv" required>
+        </div>
+        
+        <div class="mb-3">
+          <div class="card bg-dark">
+            <div class="card-body">
+              <h6 class="card-title">Required Excel Format</h6>
+              <p class="card-text">Your Excel file should include the following columns:</p>
+              <ul>
+                <li><strong>name</strong> - Patient name (optional)</li>
+                <li><strong>age</strong> - Patient age in years</li>
+                <li><strong>weight_kg</strong> - Patient weight in kilograms</li>
+                <li><strong>baseline_no2</strong> - Baseline nitrite level in μM</li>
+                <li><strong>notes</strong> - Additional notes (optional)</li>
+              </ul>
+              <p>
+                <a href="/static/templates/patient_import_template.xlsx" class="btn btn-sm btn-outline-primary">
+                  <i class="fas fa-download me-1"></i> Download Template
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-file-import me-1"></i> Import Patients
+        </button>
+      </form>
+    </div>
+  </div>
+  
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Import Single Patient</h5>
+      <p class="card-text">
+        Prefer to add patients one at a time? Use our patient form instead.
+      </p>
+      <a href="{{ url_for('patients.new_patient') }}" class="btn btn-outline-primary">
+        <i class="fas fa-user-plus me-1"></i> Add Single Patient
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -65,7 +65,7 @@
             </a>
         </div>
     </div>
-    
+
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -76,7 +76,7 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
-    
+
     <div class="card border-primary">
         <div class="card-header bg-primary text-white">
             <h3 class="mb-0">Create Note</h3>
@@ -87,7 +87,7 @@
                     <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="title" name="title" required>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="patient_id" class="form-label">Patient (Optional)</label>
@@ -100,7 +100,7 @@
                             {% endfor %}
                         </select>
                     </div>
-                    
+
                     <div class="col-md-6 mb-3">
                         <label for="simulation_id" class="form-label">Simulation (Optional)</label>
                         <select class="form-select" id="simulation_id" name="simulation_id">
@@ -113,12 +113,12 @@
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="mb-3">
                     <label for="text_content" class="form-label">Note Content</label>
                     <textarea class="form-control" id="text_content" name="text_content" rows="6"></textarea>
                 </div>
-                
+
                 <div class="card mb-4">
                     <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Voice Recording</h5>
@@ -131,9 +131,9 @@
                             <canvas class="visualizer-canvas" id="visualizer"></canvas>
                             <div class="recording-indicator"></div>
                         </div>
-                        
+
                         <div class="recording-timer" id="recordingTimer">00:00</div>
-                        
+
                         <div class="recording-controls">
                             <div class="btn-group" role="group">
                                 <button type="button" id="startRecording" class="btn btn-danger" disabled>
@@ -144,31 +144,41 @@
                                 </button>
                             </div>
                         </div>
-                        
+
                         <div id="audioPreview" class="d-none mt-3">
                             <label class="form-label">Preview Recording:</label>
                             <audio id="audioPlayer" controls></audio>
-                            
+
                             <div class="form-check mt-2">
                                 <input class="form-check-input" type="checkbox" id="transcribeAudio">
                                 <label class="form-check-label" for="transcribeAudio">
                                     Transcribe audio to text
                                 </label>
                             </div>
-                            
+
                             <div class="mt-3 text-center" id="transcriptionStatus"></div>
                         </div>
-                        
+
                         <input type="file" id="voice_recording_input" name="voice_recording" class="d-none" accept="audio/*">
                     </div>
                 </div>
-                
+
+                <div class="form-group mb-3">
+                    <label for="file-attachment" class="btn btn-outline-secondary">
+                        <i class="fas fa-paperclip me-1"></i> Attach Files
+                    </label>
+                    <input type="file" id="file-attachment" name="attachments" class="d-none" multiple>
+                    <small class="text-muted ms-2">(Images, Videos, Documents, Spreadsheets)</small>
+                    <div id="attachmentsList" class="mt-2"></div>
+                </div>
+
+
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label for="tags" class="form-label">Tags (comma separated)</label>
                         <input type="text" class="form-control" id="tags" name="tags" placeholder="e.g. clinical, follow-up, urgent">
                     </div>
-                    
+
                     <div class="col-md-6">
                         <label class="form-label d-block">&nbsp;</label>
                         <div class="form-check">
@@ -179,7 +189,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save me-1"></i> Save Note
@@ -207,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let analyser;
     let visualizerCanvas;
     let canvasContext;
-    
+
     // DOM elements
     const startButton = document.getElementById('startRecording');
     const stopButton = document.getElementById('stopRecording');
@@ -220,27 +230,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const microphoneStatus = document.getElementById('microphoneStatus');
     const voiceRecordingInput = document.getElementById('voice_recording_input');
     const visualizerContainer = document.querySelector('.recording-visualizer');
-    
+
     // Canvas setup
     visualizerCanvas = visualizer;
     canvasContext = visualizerCanvas.getContext('2d');
-    
+
     // Check for microphone access
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(function(mediaStream) {
             stream = mediaStream;
-            
+
             // Setup audio context for visualization
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const source = audioContext.createMediaStreamSource(stream);
             analyser = audioContext.createAnalyser();
             analyser.fftSize = 256;
             source.connect(analyser);
-            
+
             startButton.disabled = false;
             microphoneStatus.textContent = 'Microphone ready';
             microphoneStatus.className = 'badge bg-success';
-            
+
             // Stop the tracks to avoid background recording
             stream.getTracks().forEach(track => track.stop());
             stream = null;
@@ -250,73 +260,73 @@ document.addEventListener('DOMContentLoaded', function() {
             microphoneStatus.textContent = 'Microphone not available';
             microphoneStatus.className = 'badge bg-danger';
         });
-    
+
     // Start recording handler
     startButton.addEventListener('click', function() {
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(function(mediaStream) {
                 stream = mediaStream;
-                
+
                 // Setup audio context for visualization
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const source = audioContext.createMediaStreamSource(stream);
                 analyser = audioContext.createAnalyser();
                 analyser.fftSize = 256;
                 source.connect(analyser);
-                
+
                 // Start recording
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
-                
+
                 mediaRecorder.ondataavailable = function(e) {
                     if (e.data.size > 0) {
                         audioChunks.push(e.data);
                     }
                 };
-                
+
                 mediaRecorder.onstop = function() {
                     // Create audio blob
                     audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     audioUrl = URL.createObjectURL(audioBlob);
-                    
+
                     // Show audio preview
                     audioPlayer.src = audioUrl;
                     audioPreview.classList.remove('d-none');
-                    
+
                     // Create a File object from the Blob
                     const audioFile = new File([audioBlob], 'voice_recording.webm', { 
                         type: 'audio/webm',
                         lastModified: new Date().getTime() 
                     });
-                    
+
                     // Create a FileList-like object
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(audioFile);
                     voiceRecordingInput.files = dataTransfer.files;
-                    
+
                     // Stop the stream
                     if (stream) {
                         stream.getTracks().forEach(track => track.stop());
                     }
-                    
+
                     // Reset UI
                     visualizerContainer.classList.remove('recording');
                     cancelAnimationFrame(animationId);
                 };
-                
+
                 // Start the recording
                 mediaRecorder.start();
-                
+
                 // Update UI
                 startButton.disabled = true;
                 stopButton.disabled = false;
                 visualizerContainer.classList.add('recording');
-                
+
                 // Start timer
                 startTime = Date.now();
                 updateTimer();
                 timerInterval = setInterval(updateTimer, 1000);
-                
+
                 // Start visualizer
                 visualize();
             })
@@ -325,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Could not access microphone. Please check your browser permissions.');
             });
     });
-    
+
     // Stop recording handler
     stopButton.addEventListener('click', function() {
         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
@@ -335,14 +345,14 @@ document.addEventListener('DOMContentLoaded', function() {
             stopButton.disabled = true;
         }
     });
-    
+
     // Transcribe audio handler
     transcribeCheckbox.addEventListener('change', function() {
         if (this.checked && audioBlob) {
             transcribeAudio(audioBlob);
         }
     });
-    
+
     // Update timer display
     function updateTimer() {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
@@ -350,48 +360,48 @@ document.addEventListener('DOMContentLoaded', function() {
         const seconds = (elapsed % 60).toString().padStart(2, '0');
         recordingTimer.textContent = `${minutes}:${seconds}`;
     }
-    
+
     // Visualize audio
     let animationId;
     function visualize() {
         if (!analyser) return;
-        
+
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
-        
+
         canvasContext.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
-        
+
         function draw() {
             animationId = requestAnimationFrame(draw);
-            
+
             analyser.getByteFrequencyData(dataArray);
-            
+
             canvasContext.fillStyle = '#f8f9fa';
             canvasContext.fillRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
-            
+
             const barWidth = (visualizerCanvas.width / bufferLength) * 2.5;
             let x = 0;
-            
+
             for (let i = 0; i < bufferLength; i++) {
                 const barHeight = (dataArray[i] / 255) * visualizerCanvas.height;
-                
+
                 canvasContext.fillStyle = `rgba(13, 110, 253, ${(dataArray[i] / 255) * 0.8 + 0.2})`;
                 canvasContext.fillRect(x, visualizerCanvas.height - barHeight, barWidth, barHeight);
-                
+
                 x += barWidth + 1;
             }
         }
-        
+
         draw();
     }
-    
+
     // Transcribe audio using the API
     function transcribeAudio(blob) {
         transcriptionStatus.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Transcribing audio...';
-        
+
         const formData = new FormData();
         formData.append('audio', blob, 'recording.webm');
-        
+
         fetch('/notes/api/transcribe', {
             method: 'POST',
             body: formData
@@ -402,13 +412,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add transcription to the text content
                 const textContent = document.getElementById('text_content');
                 const currentText = textContent.value.trim();
-                
+
                 if (currentText) {
                     textContent.value = currentText + '\n\n' + data.transcript;
                 } else {
                     textContent.value = data.transcript;
                 }
-                
+
                 transcriptionStatus.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i> Transcription added to note</span>';
             } else {
                 transcriptionStatus.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> ' + (data.error || 'Transcription failed') + '</span>';
