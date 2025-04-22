@@ -26,14 +26,14 @@ window.n1o1Loader = {
             loaderEl.style.display = 'flex';
         }
     },
-    
+
     hide: function() {
         const loaderEl = document.getElementById('n1o1-loader');
         if (loaderEl) {
             loaderEl.style.display = 'none';
         }
     },
-    
+
     switchAnimation: function(type) {
         const animationEl = document.querySelector('.n1o1-molecule-animation');
         if (animationEl) {
@@ -51,66 +51,42 @@ window.n1o1Loader = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Find demo buttons
-    const showLoaderBtn = document.getElementById('show-loader-btn');
-    const switchAnimBtn = document.getElementById('switch-anim-btn');
-    const hideLoaderBtn = document.getElementById('hide-loader-btn');
-    
-    if (showLoaderBtn) {
-        showLoaderBtn.addEventListener('click', function() {
-            if (window.n1o1Loader) {
-                window.n1o1Loader.show("Processing simulation data...");
-            } else {
-                alert("Loader not initialized");
-            }
-        });
+    // Check if n1o1Loader exists (it might not be on every page)
+    if (typeof window.n1o1Loader === 'undefined') {
+        console.log("N1O1 Loader not available on this page");
+        return;
     }
-    
-    if (switchAnimBtn) {
-        switchAnimBtn.addEventListener('click', function() {
-            if (window.n1o1Loader) {
-                window.n1o1Loader.cycleAnimationType();
-            } else {
-                alert("Loader not initialized");
-            }
-        });
-    }
-    
-    if (hideLoaderBtn) {
-        hideLoaderBtn.addEventListener('click', function() {
-            if (window.n1o1Loader) {
+
+    // Initialize animation demo
+    const demoBtn = document.getElementById('start-loader-demo');
+    if (demoBtn) {
+        demoBtn.addEventListener('click', function() {
+            // Start with molecules animation
+            window.n1o1Loader.switchAnimation('molecules');
+            window.n1o1Loader.show("Analyzing nitric oxide molecule dynamics...");
+
+            // Cycle through animation types
+            setTimeout(() => {
+                window.n1o1Loader.switchAnimation('cells');
+                window.n1o1Loader.show("Processing cell signaling pathways...");
+            }, 3000);
+
+            // Switch to DNA animation
+            setTimeout(() => {
+                window.n1o1Loader.switchAnimation('dna');
+                window.n1o1Loader.show("Analyzing genetic expression patterns...");
+            }, 6000);
+
+            // Hide loader
+            setTimeout(() => {
                 window.n1o1Loader.hide();
-            } else {
-                alert("Loader not initialized");
-            }
+            }, 9000);
         });
     }
-    
-    // Demo loader on index page automatically if demo section exists
-    const loaderDemo = document.getElementById('loader-demo-section');
-    if (loaderDemo) {
-        // Show loader for 3 seconds after page load
-        setTimeout(() => {
-            if (window.n1o1Loader) {
-                window.n1o1Loader.show("Initializing N1O1 molecular simulation...");
-                
-                // Cycle through animation types
-                setTimeout(() => {
-                    window.n1o1Loader.switchAnimation('cells');
-                    window.n1o1Loader.show("Processing cell signaling pathways...");
-                }, 3000);
-                
-                // Switch to DNA animation
-                setTimeout(() => {
-                    window.n1o1Loader.switchAnimation('dna');
-                    window.n1o1Loader.show("Analyzing genetic expression patterns...");
-                }, 6000);
-                
-                // Hide loader
-                setTimeout(() => {
-                    window.n1o1Loader.hide();
-                }, 9000);
-            }
-        }, 1000);
+
+    // If there's an automatic demo parameter in URL, run demo
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('demo-loader') && demoBtn) {
+        setTimeout(() => demoBtn.click(), 1000);
     }
 });

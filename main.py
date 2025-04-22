@@ -161,8 +161,45 @@ with app.app_context():
 # Add global error handler to catch and log all uncaught exceptions
 @app.errorhandler(Exception)
 def handle_exception(e):
-    app.logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
-    return "Well shoot, y'all! Somethin' went haywire with the application. Our code wranglers have been notified!", 500
+    try:
+        # Get detailed error information
+        import traceback, sys
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        error_details = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+        
+        # Log error with details
+        app.logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
+        
+        # Get request information for debugging
+        request_info = ""
+        try:
+            request_info = f"\nURL: {request.url}\nMethod: {request.method}\nHeaders: {dict(request.headers)}\n"
+            if request.form:
+                request_info += f"Form data: {dict(request.form)}\n"
+        except Exception as req_err:
+            request_info = f"Could not get request info: {str(req_err)}"
+            
+        # Log complete error context
+        app.logger.error(f"Error context: {request_info}\n{error_details}")
+        
+        # Return user-friendly message
+        if 'text/html' in request.headers.get('Accept', ''):
+            # HTML response
+            return render_template('error.html', 
+                                  error_message="Well shoot, y'all! Somethin' went haywire with the application.",
+                                  error_code=500), 500
+        else:
+            # API response
+            return jsonify({
+                'error': 'Internal server error',
+                'message': "Well shoot, y'all! Somethin' went haywire with the application.",
+                'status': 'error',
+                'error_id': str(id(e))  # Gives a unique ID to track this error
+            }), 500
+    except Exception as handler_error:
+        # Last resort fallback if error handler itself fails
+        print(f"CRITICAL: Error handler failed: {str(handler_error)}")
+        return "Critical application error. Please contact support.", 500
 
 # Diagnostic route
 @app.route('/system/health')

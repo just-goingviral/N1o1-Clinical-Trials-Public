@@ -49,23 +49,93 @@
     
     // Find and convert all existing error messages on page load
     document.addEventListener('DOMContentLoaded', function() {
-        // Target common error message containers
-        const errorElements = document.querySelectorAll('.alert-danger, .error-message, [data-error-container]');
-        
-        errorElements.forEach(el => {
-            if (el.textContent && el.textContent.trim() !== '') {
-                el.textContent = window.convertToSouthernError(el.textContent);
-            }
-        });
+        try {
+            // Target common error message containers
+            const errorElements = document.querySelectorAll('.alert-danger, .error-message, [data-error-container]');
+            
+            errorElements.forEach(el => {
+                if (el.textContent && el.textContent.trim() !== '') {
+                    el.textContent = window.convertToSouthernError(el.textContent);
+                }
+            });
+            
+            // Add error listener to catch and style runtime errors
+            window.addEventListener('error', function(event) {
+                // Log to console
+                console.error('Caught runtime error:', event.error);
+                
+                // Log to server if API is available
+                if (window.fetch) {
+                    fetch('/api/log-client-error', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            source: 'client_runtime',
+                            error: event.error ? event.error.toString() : event.message,
+                            context: window.location.href
+                        })
+                    }).catch(e => console.warn('Failed to log error:', e));
+                }
+                
+                // Don't show alerts for every error - can flood the user
+                // Instead, add a status indicator if it doesn't exist
+                if (!document.getElementById('error-status-indicator')) {
+                    const indicator = document.createElement('div');
+                    indicator.id = 'error-status-indicator';
+                    indicator.style.cssText = 'position:fixed;bottom:10px;left:10px;background:rgba(220,53,69,0.8);color:white;padding:5px 10px;border-radius:3px;font-size:12px;z-index:9999;';
+                    indicator.innerHTML = window.convertToSouthernError('Errors detected');
+                    document.body.appendChild(indicator);
+                }
+            });
+        } catch (e) {
+            console.error('Error initializing error handler:', e);
+        }
     });
     
-    // Override the default alert for errors
-    const originalAlert = window.alert;
-    window.alert = function(message) {
-        if (message.toLowerCase().includes('error') || message.toLowerCase().includes('fail')) {
-            originalAlert(window.convertToSouthernError(message));
-        } else {
-            originalAlert(message);
+    // Override the default alert for errors - with resilient implementation
+    try {
+        const originalAlert = window.alert;
+        window.alert = function(message) {
+            try {
+                if (message && (message.toString().toLowerCase().includes('error') || 
+                               message.toString().toLowerCase().includes('fail'))) {
+                    originalAlert(window.convertToSouthernError(message));
+                } else {
+                    originalAlert(message);
+                }
+            } catch (e) {
+                // Fallback to original alert if our customization fails
+                console.error('Error in custom alert:', e);
+                originalAlert(message);
+            }
+        };
+    } catch (e) {
+        console.error('Failed to override alert:', e);
+    }
+    
+    // Global error handler for AJAX requests
+    if (window.jQuery) {
+        try {
+            $(document).ajaxError(function(event, jqXHR, settings, thrownError) {
+                console.error('AJAX error:', thrownError);
+                
+                // Log to server
+                fetch('/api/log-client-error', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        source: 'ajax',
+                        error: thrownError || jqXHR.statusText,
+                        context: settings.url
+                    })
+                }).catch(e => console.warn('Failed to log AJAX error:', e));
+            });
+        } catch (e) {
+            console.error('Failed to set up AJAX error handler:', e);
         }
-    };
+    }
 })();
