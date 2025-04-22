@@ -7,281 +7,146 @@
  * It creates a loading overlay with molecular, cellular, and DNA animations.
  */
 
-class N1O1Loader {
-  constructor() {
-    this.loadingMessages = [
-      "Calculating nitrite kinetics...",
-      "Simulating NO pathways...",
-      "Processing molecular interactions...",
-      "Analyzing patient data...",
-      "Optimizing simulation parameters...",
-      "Computing plasma concentrations...",
-      "Mapping vascular responses...",
-      "Modeling physiological outcomes...",
-      "Rendering molecular structures...",
-      "Validating simulation results..."
-    ];
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the loading animations
+    initLoadingAnimations();
 
-    this.animationTypes = ['molecule', 'cell', 'dna'];
-    this.currentAnimation = 'molecule';
-    this.isActive = false;
-    this.messageInterval = null;
-    this.generatedNucleotides = false;
-    
-    this.initialize();
-  }
+    // Generate gas particles for NO molecule in chat button
+    generateGasParticles();
+});
 
-  initialize() {
-    // Create loading overlay
-    if (!document.getElementById('n1o1-loading-overlay')) {
-      this.createLoadingElements();
-      this.setupEventListeners();
+function initLoadingAnimations() {
+    // Create the loading overlay if it doesn't exist
+    if (!document.querySelector('.loading-overlay')) {
+        const loadingOverlay = document.createElement('div');
+        loadingOverlay.className = 'loading-overlay';
+
+        const loadingContent = document.createElement('div');
+        loadingContent.className = 'loading-content';
+
+        // Create the NO molecule loader
+        const moleculeLoader = createNOMoleculeLoader();
+
+        // Create loading message
+        const loadingMessage = document.createElement('div');
+        loadingMessage.className = 'loading-message';
+        loadingMessage.innerHTML = 'Processing Nitric Oxide Dynamics...';
+
+        // Assemble the elements
+        loadingContent.appendChild(moleculeLoader);
+        loadingContent.appendChild(loadingMessage);
+        loadingOverlay.appendChild(loadingContent);
+
+        // Add to body
+        document.body.appendChild(loadingOverlay);
     }
-  }
+}
 
-  createLoadingElements() {
-    const overlay = document.createElement('div');
-    overlay.className = 'loading-overlay';
-    overlay.id = 'n1o1-loading-overlay';
-    
-    // Create content container
-    const content = document.createElement('div');
-    content.className = 'loading-content';
-    
-    // Create molecular animation
-    this.createMoleculeAnimation(content);
-    
-    // Create cell animation
-    this.createCellAnimation(content);
-    
-    // Create DNA animation
-    this.createDNAAnimation(content);
-    
-    // Create loading message
-    const message = document.createElement('div');
-    message.className = 'loading-message loading-dots';
-    message.id = 'loading-message';
-    message.textContent = this.getRandomMessage();
-    content.appendChild(message);
-    
-    overlay.appendChild(content);
-    document.body.appendChild(overlay);
-  }
-
-  createMoleculeAnimation(container) {
+function createNOMoleculeLoader() {
     const moleculeLoader = document.createElement('div');
     moleculeLoader.className = 'no-molecule-loader';
-    
-    const wrapper = document.createElement('div');
-    wrapper.className = 'no-molecule-wrapper';
-    
+
+    const moleculeWrapper = document.createElement('div');
+    moleculeWrapper.className = 'no-molecule-wrapper';
+
     // Create nitrogen atom
     const nitrogen = document.createElement('div');
     nitrogen.className = 'nitrogen';
-    wrapper.appendChild(nitrogen);
-    
+
     // Create oxygen atom
     const oxygen = document.createElement('div');
     oxygen.className = 'oxygen';
-    wrapper.appendChild(oxygen);
-    
+
     // Create bond
     const bond = document.createElement('div');
     bond.className = 'bond';
-    wrapper.appendChild(bond);
-    
-    // Add gas particles for diffusion effect
-    for (let i = 0; i < 8; i++) {
-      const particle = document.createElement('div');
-      particle.className = 'gas-particle';
-      
-      // Set random positions
-      particle.style.setProperty('--random-x', `${Math.floor(Math.random() * 60) - 30}px`);
-      particle.style.setProperty('--random-y', `${Math.floor(Math.random() * 100) - 50}px`);
-      
-      wrapper.appendChild(particle);
-    }
-    
-    // Create electron orbits
-    for (let i = 0; i < 3; i++) {
-      const orbit = document.createElement('div');
-      orbit.className = 'electron-orbit';
-      
-      // Create electrons
-      const electron = document.createElement('div');
-      electron.className = 'electron';
-      orbit.appendChild(electron);
-      
-      wrapper.appendChild(orbit);
-    }
-    
-    moleculeLoader.appendChild(wrapper);
-    container.appendChild(moleculeLoader);
-  }
 
-  createCellAnimation(container) {
-    const cellLoader = document.createElement('div');
-    cellLoader.className = 'cell-loader';
-    
-    // Create cell membrane
-    const cell = document.createElement('div');
-    cell.className = 'cell';
-    
-    // Create nucleus
-    const nucleus = document.createElement('div');
-    nucleus.className = 'nucleus';
-    cell.appendChild(nucleus);
-    
-    // Create organelles
-    for (let i = 0; i < 3; i++) {
-      const organelle = document.createElement('div');
-      organelle.className = 'organelle';
-      cell.appendChild(organelle);
-    }
-    
-    // Create vesicles
-    for (let i = 0; i < 3; i++) {
-      const vesicle = document.createElement('div');
-      vesicle.className = 'vesicle';
-      cell.appendChild(vesicle);
-    }
-    
-    cellLoader.appendChild(cell);
-    container.appendChild(cellLoader);
-  }
+    // Assemble the molecule
+    moleculeWrapper.appendChild(nitrogen);
+    moleculeWrapper.appendChild(oxygen);
+    moleculeWrapper.appendChild(bond);
+    moleculeLoader.appendChild(moleculeWrapper);
 
-  createDNAAnimation(container) {
-    const dnaLoader = document.createElement('div');
-    dnaLoader.className = 'dna-loader';
-    
-    const dnaStrand = document.createElement('div');
-    dnaStrand.className = 'dna-strand';
-    
-    // Create backbones
-    const backboneLeft = document.createElement('div');
-    backboneLeft.className = 'backbone-left';
-    dnaStrand.appendChild(backboneLeft);
-    
-    const backboneRight = document.createElement('div');
-    backboneRight.className = 'backbone-right';
-    dnaStrand.appendChild(backboneRight);
-    
-    // Create nucleotide pairs
-    for (let i = 0; i < 10; i++) {
-      const pair = document.createElement('div');
-      pair.className = 'nucleotide-pair';
-      pair.style.top = (i * 20) + 'px';
-      pair.style.transform = `rotateY(${i * 36}deg)`;
-      
-      const left = document.createElement('div');
-      left.className = 'nucleotide-left';
-      pair.appendChild(left);
-      
-      const right = document.createElement('div');
-      right.className = 'nucleotide-right';
-      pair.appendChild(right);
-      
-      const basePair = document.createElement('div');
-      basePair.className = 'base-pair';
-      pair.appendChild(basePair);
-      
-      dnaStrand.appendChild(pair);
-    }
-    
-    dnaLoader.appendChild(dnaStrand);
-    container.appendChild(dnaLoader);
-  }
-
-  setupEventListeners() {
-    // Add event listener for switching animation types (for future use)
-    document.addEventListener('keydown', (e) => {
-      if (this.isActive && e.key === 'Tab') {
-        e.preventDefault();
-        this.cycleAnimationType();
-      }
-    });
-  }
-
-  cycleAnimationType() {
-    const overlay = document.getElementById('n1o1-loading-overlay');
-    if (!overlay) return;
-    
-    // Remove current animation class
-    overlay.classList.remove(`show-${this.currentAnimation}`);
-    
-    // Get next animation index
-    const currentIndex = this.animationTypes.indexOf(this.currentAnimation);
-    const nextIndex = (currentIndex + 1) % this.animationTypes.length;
-    this.currentAnimation = this.animationTypes[nextIndex];
-    
-    // Add next animation class
-    if (this.currentAnimation !== 'molecule') {
-      overlay.classList.add(`show-${this.currentAnimation}`);
-    }
-  }
-
-  getRandomMessage() {
-    const randomIndex = Math.floor(Math.random() * this.loadingMessages.length);
-    return this.loadingMessages[randomIndex];
-  }
-
-  startCyclingMessages() {
-    const messageElement = document.getElementById('loading-message');
-    if (!messageElement) return;
-    
-    this.messageInterval = setInterval(() => {
-      messageElement.textContent = this.getRandomMessage();
-    }, 3000);
-  }
-
-  stopCyclingMessages() {
-    if (this.messageInterval) {
-      clearInterval(this.messageInterval);
-      this.messageInterval = null;
-    }
-  }
-
-  show(message = null) {
-    const overlay = document.getElementById('n1o1-loading-overlay');
-    const messageElement = document.getElementById('loading-message');
-    
-    if (overlay && messageElement) {
-      // Set custom message if provided
-      if (message) {
-        messageElement.textContent = message;
-        this.stopCyclingMessages();
-      } else {
-        messageElement.textContent = this.getRandomMessage();
-        this.startCyclingMessages();
-      }
-      
-      overlay.classList.add('active');
-      this.isActive = true;
-    }
-  }
-
-  hide() {
-    const overlay = document.getElementById('n1o1-loading-overlay');
-    
-    if (overlay) {
-      overlay.classList.remove('active');
-      this.isActive = false;
-      this.stopCyclingMessages();
-    }
-  }
-
-  setMessage(message) {
-    const messageElement = document.getElementById('loading-message');
-    
-    if (messageElement) {
-      messageElement.textContent = message;
-      this.stopCyclingMessages();
-    }
-  }
+    return moleculeLoader;
 }
 
-// Initialize loader
-const n1o1Loader = new N1O1Loader();
+function generateGasParticles() {
+    // Target the NO molecule chat button
+    const noMoleculeButton = document.querySelector('.no-molecule-chat-button');
 
-// Export for global use
-window.n1o1Loader = n1o1Loader;
+    if (noMoleculeButton) {
+        // Create gas particles
+        for (let i = 0; i < 8; i++) {
+            setTimeout(() => {
+                createGasParticle(noMoleculeButton);
+            }, i * 500);
+        }
+
+        // Continuously create gas particles
+        setInterval(() => {
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    createGasParticle(noMoleculeButton);
+                }, i * 300);
+            }
+        }, 4000);
+    }
+}
+
+function createGasParticle(parent) {
+    const particle = document.createElement('div');
+    particle.className = 'gas-particle';
+
+    // Random properties for the particle
+    const size = Math.random() * 6 + 4;
+    const tx = (Math.random() - 0.5) * 120;
+    const ty = (Math.random() - 0.5) * 120;
+    const duration = Math.random() * 3 + 2;
+    const isOxygen = Math.random() > 0.5;
+
+    // Set styles
+    particle.style.width = `${size}px`;
+    particle.style.height = `${size}px`;
+    particle.style.backgroundColor = isOxygen ? 'rgba(224, 90, 71, 0.8)' : 'rgba(59, 126, 185, 0.8)';
+    particle.style.left = `${Math.random() * 50 + 25}%`;
+    particle.style.top = `${Math.random() * 50 + 25}%`;
+    particle.style.setProperty('--tx', `${tx}px`);
+    particle.style.setProperty('--ty', `${ty}px`);
+    particle.style.animationDuration = `${duration}s`;
+
+    // Add to parent
+    parent.appendChild(particle);
+
+    // Remove after animation completes
+    setTimeout(() => {
+        if (particle.parentNode === parent) {
+            parent.removeChild(particle);
+        }
+    }, duration * 1000);
+}
+
+// Show loading overlay
+function showLoading(message = 'Processing Nitric Oxide Dynamics...') {
+    const overlay = document.querySelector('.loading-overlay');
+    const loadingMessage = document.querySelector('.loading-message');
+
+    if (overlay && loadingMessage) {
+        loadingMessage.textContent = message;
+        overlay.classList.add('active');
+    }
+}
+
+// Hide loading overlay
+function hideLoading() {
+    const overlay = document.querySelector('.loading-overlay');
+
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
+}
+
+// Export functions for global use
+window.N1O1Loader = {
+    show: showLoading,
+    hide: hideLoading
+};

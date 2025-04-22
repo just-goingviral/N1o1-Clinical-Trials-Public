@@ -5,6 +5,10 @@ import logging
 from flask import Blueprint, request, jsonify, current_app
 from anthropic import Anthropic, RateLimitError, APIConnectionError, APIStatusError
 import anthropic
+import matplotlib.pyplot as plt
+import base64
+from io import BytesIO
+from utils.matplotlib_config import configure_mpl_style, create_no_stylized_plot
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -28,13 +32,13 @@ RETRY_DELAY = 2  # seconds
 def claude_completion(prompt, model=DEFAULT_MODEL, temperature=0.7, max_tokens=2000):
     """
     Make a Claude API call with retry logic for rate limits and connection issues
-    
+
     Args:
         prompt (str): The prompt to send to Claude
         model (str): Model to use (defaults to claude-3-5-sonnet-20241022)
         temperature (float): Creativity parameter (0.0-1.0)
         max_tokens (int): Maximum tokens to generate
-        
+
     Returns:
         str: Claude's response
     """
@@ -61,7 +65,7 @@ def claude_completion(prompt, model=DEFAULT_MODEL, temperature=0.7, max_tokens=2
         except Exception as e:
             logger.error(f"Unexpected error: {str(e)}")
             return f"An unexpected error occurred: {str(e)}"
-    
+
     return "Unable to get a response after multiple attempts. Please try again later."
 
 # Function to validate request data
@@ -69,11 +73,11 @@ def validate_request(req_data, required_fields):
     """Validate that the request contains all required fields"""
     if not req_data:
         return False, "No data provided"
-    
+
     missing = [field for field in required_fields if field not in req_data]
     if missing:
         return False, f"Missing required fields: {', '.join(missing)}"
-    
+
     return True, ""
 
 # Endpoint for pre-screening patients
@@ -81,7 +85,7 @@ def validate_request(req_data, required_fields):
 def pre_screening():
     """
     Analyze patient data to determine eligibility for clinical trials
-    
+
     Expected JSON input:
     {
         "patient_data": {
@@ -102,28 +106,28 @@ def pre_screening():
         valid, error_msg = validate_request(data, ["patient_data", "trial_criteria"])
         if not valid:
             return jsonify({"status": "error", "message": error_msg}), 400
-        
+
         # Prepare prompt for Claude
         prompt = f"""
         Please analyze this patient's eligibility for our clinical trial based on the following data:
-        
+
         PATIENT DATA:
         {json.dumps(data['patient_data'], indent=2)}
-        
+
         TRIAL CRITERIA:
         Inclusion Criteria:
         {json.dumps(data['trial_criteria']['inclusion'], indent=2)}
-        
+
         Exclusion Criteria:
         {json.dumps(data['trial_criteria']['exclusion'], indent=2)}
-        
+
         Provide an assessment with the following information:
         1. Overall eligibility (eligible, potentially eligible with more information, or not eligible)
         2. Specific criteria that the patient meets
         3. Specific criteria that the patient does not meet
         4. Additional information that would be helpful to collect
         5. Recommendations for the research team
-        
+
         Format your response as JSON with the structure:
         {{
             "eligibility_status": string,
@@ -133,16 +137,16 @@ def pre_screening():
             "recommendations": list
         }}
         """
-        
+
         # Call Claude
         claude_response = claude_completion(prompt, temperature=0.3, max_tokens=2000)
-        
+
         # Extract the JSON portion from Claude's response
         try:
             # Look for JSON in the response
             json_start = claude_response.find('{')
             json_end = claude_response.rfind('}') + 1
-            
+
             if json_start >= 0 and json_end > json_start:
                 json_str = claude_response[json_start:json_end]
                 result = json.loads(json_str)
@@ -160,7 +164,7 @@ def pre_screening():
                 "message": "Could not parse structured data",
                 "raw_response": claude_response
             })
-            
+
     except Exception as e:
         logger.exception("Error in pre-screening endpoint")
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -170,7 +174,7 @@ def pre_screening():
 def generate_note():
     """
     Generate a structured clinical note based on visit data
-    
+
     Expected JSON input:
     {
         "patient_info": {
@@ -193,17 +197,17 @@ def generate_note():
         valid, error_msg = validate_request(data, ["patient_info", "visit_data", "note_type"])
         if not valid:
             return jsonify({"status": "error", "message": error_msg}), 400
-        
+
         # Prepare prompt for Claude
         prompt = f"""
         Please generate a professional {data['note_type']} note based on the following clinical information:
-        
+
         PATIENT INFORMATION:
         {json.dumps(data['patient_info'], indent=2)}
-        
+
         VISIT DATA:
         {json.dumps(data['visit_data'], indent=2)}
-        
+
         Follow the standard SOAP (Subjective, Objective, Assessment, Plan) format for clinical documentation.
         Make sure to:
         - Use proper medical terminology
@@ -212,15 +216,15 @@ def generate_note():
         - Suggest reasonable next steps or treatment plan related to nitric oxide therapy
         - Keep the note concise but comprehensive
         """
-        
+
         # Call Claude
         claude_response = claude_completion(prompt, temperature=0.4, max_tokens=2500)
-        
+
         return jsonify({
             "status": "success", 
             "note": claude_response
         })
-            
+
     except Exception as e:
         logger.exception("Error in generate-note endpoint")
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -230,7 +234,7 @@ def generate_note():
 def patient_sentiment():
     """
     Analyze patient feedback or comments for sentiment and key themes
-    
+
     Expected JSON input:
     {
         "patient_id": str,
@@ -244,18 +248,18 @@ def patient_sentiment():
         valid, error_msg = validate_request(data, ["patient_id", "feedback_text"])
         if not valid:
             return jsonify({"status": "error", "message": error_msg}), 400
-        
+
         # Prepare prompt for Claude
         prompt = f"""
         Analyze the following patient feedback for sentiment and key themes:
-        
+
         PATIENT ID: {data['patient_id']}
         SOURCE: {data.get('feedback_source', 'Not specified')}
         DATE: {data.get('feedback_date', 'Not specified')}
-        
+
         FEEDBACK TEXT:
         "{data['feedback_text']}"
-        
+
         Please provide:
         1. Overall sentiment (positive, neutral, negative, or mixed)
         2. Sentiment score (-1 to +1, where -1 is very negative and +1 is very positive)
@@ -263,7 +267,7 @@ def patient_sentiment():
         4. Any specific concerns that should be addressed
         5. Any specific positive experiences worth highlighting
         6. Suggestions for improvement based on the feedback
-        
+
         Format your response as JSON with the structure:
         {{
             "sentiment": string,
@@ -274,16 +278,16 @@ def patient_sentiment():
             "suggestions": list
         }}
         """
-        
+
         # Call Claude
         claude_response = claude_completion(prompt, temperature=0.2)
-        
+
         # Extract the JSON portion from Claude's response
         try:
             # Look for JSON in the response
             json_start = claude_response.find('{')
             json_end = claude_response.rfind('}') + 1
-            
+
             if json_start >= 0 and json_end > json_start:
                 json_str = claude_response[json_start:json_end]
                 result = json.loads(json_str)
@@ -301,7 +305,7 @@ def patient_sentiment():
                 "message": "Could not parse structured data",
                 "raw_analysis": claude_response
             })
-            
+
     except Exception as e:
         logger.exception("Error in patient-sentiment endpoint")
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -311,7 +315,7 @@ def patient_sentiment():
 def dynamic_consent():
     """
     Generate a personalized consent form based on patient demographics and trial information
-    
+
     Expected JSON input:
     {
         "patient_demographics": {
@@ -336,24 +340,24 @@ def dynamic_consent():
         valid, error_msg = validate_request(data, ["patient_demographics", "trial_info"])
         if not valid:
             return jsonify({"status": "error", "message": error_msg}), 400
-        
+
         format_type = data.get("format_type", "detailed")
-        
+
         # Prepare prompt for Claude
         prompt = f"""
         Generate a personalized clinical trial consent form for a patient with the following demographics:
-        
+
         PATIENT DEMOGRAPHICS:
         {json.dumps(data['patient_demographics'], indent=2)}
-        
+
         TRIAL INFORMATION:
         {json.dumps(data['trial_info'], indent=2)}
-        
+
         FORMAT TYPE: {format_type}
-        
+
         Guidelines for the {format_type} consent form:
         """
-        
+
         # Add format-specific instructions
         if format_type == "simplified":
             prompt += """
@@ -379,7 +383,7 @@ def dynamic_consent():
             - Follow standard consent form structure (purpose, procedures, risks, benefits, etc.)
             - Include appropriate references to regulations and oversight bodies
             """
-            
+
         prompt += """
         The consent form should include the following sections:
         1. Introduction to the trial
@@ -393,19 +397,19 @@ def dynamic_consent():
         9. Voluntary participation statement
         10. Contact information
         11. Signature section
-        
+
         Tailor the content to match the patient's demographics and medical literacy level.
         For the N1O1 Clinical Trials, focus on the nitric oxide pathways and therapeutic applications.
         """
-        
+
         # Call Claude
         claude_response = claude_completion(prompt, temperature=0.4, max_tokens=3000)
-        
+
         return jsonify({
             "status": "success", 
             "consent_form": claude_response
         })
-            
+
     except Exception as e:
         logger.exception("Error in dynamic-consent endpoint")
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -415,7 +419,7 @@ def dynamic_consent():
 def ai_report_writer():
     """
     Generate structured research reports based on clinical trial data
-    
+
     Expected JSON input:
     {
         "trial_data": {
@@ -435,14 +439,14 @@ def ai_report_writer():
         valid, error_msg = validate_request(data, ["trial_data", "report_type", "audience"])
         if not valid:
             return jsonify({"status": "error", "message": error_msg}), 400
-        
+
         # Prepare prompt for Claude
         prompt = f"""
         Generate a {data['report_type']} clinical trial report for {data['audience']} based on the following information:
-        
+
         TRIAL DATA:
         {json.dumps(data['trial_data'], indent=2)}
-        
+
         The report should:
         - Be written at an appropriate level for the specified audience ({data['audience']})
         - Follow standard structure for a {data['report_type']} report
@@ -450,11 +454,11 @@ def ai_report_writer():
         - Maintain scientific integrity and accuracy
         - Focus on nitric oxide pathways and clinical effects
         - Include appropriate limitations and considerations
-        
+
         For the N1O1 Clinical Trials platform, emphasize the nitric oxide clinical pathway implications
         and how the findings relate to the broader field of nitric oxide therapeutics.
         """
-        
+
         # Add specific instructions based on report type
         if data['report_type'] == "abstract":
             prompt += """
@@ -483,7 +487,7 @@ def ai_report_writer():
             - Discussion
             Include abstract, references (placeholder), acknowledgments, and declarations.
             """
-        
+
         # Add audience-specific instructions
         if data['audience'] == "patients":
             prompt += """
@@ -495,15 +499,37 @@ def ai_report_writer():
             Be comprehensive, precise, emphasize protocol adherence,
             address all safety endpoints, and reference relevant regulations.
             """
-        
+
         # Call Claude
         claude_response = claude_completion(prompt, temperature=0.4, max_tokens=3500)
-        
+
         return jsonify({
             "status": "success", 
             "report": claude_response
         })
-            
+
     except Exception as e:
         logger.exception("Error in ai-report-writer endpoint")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+def create_plot(x_data, y_data, title="NO Dynamics", x_label="Time", y_label="Concentration"):
+    """Create a matplotlib plot and return as base64 encoded string"""
+    # Use our enhanced styling
+    configure_mpl_style()
+
+    # Create stylized plot
+    fig, ax = create_no_stylized_plot(x_data, y_data, title, x_label, y_label)
+
+    # Save plot to a bytes buffer
+    buffer = BytesIO()
+    fig.savefig(buffer, format='png', dpi=120, bbox_inches='tight')
+    buffer.seek(0)
+
+    # Convert to base64 string
+    image_png = buffer.getvalue()
+    graph = base64.b64encode(image_png)
+    graph = graph.decode('utf-8')
+
+    plt.close(fig)
+
+    return graph

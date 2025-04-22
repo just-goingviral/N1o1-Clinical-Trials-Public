@@ -21,8 +21,8 @@ Chart.defaults.plugins.legend.labels.usePointStyle = true;
 // Color schemes
 const colorSchemes = {
     primary: [
-        'rgba(128, 0, 128, 1)',    // Purple (NO2-)
-        'rgba(0, 128, 0, 1)',      // Green (cGMP) 
+        'rgba(59, 126, 185, 1)',   // Blue (NO2-) - Nitrogen color
+        'rgba(46, 204, 113, 1)',   // Green (cGMP) 
         'rgba(0, 123, 255, 1)'     // Blue (Vasodilation)
     ],
     secondary: [
@@ -104,14 +104,25 @@ function createNODynamicsChartConfig(data, options = {}) {
     // Merge options
     const mergedOptions = {...defaultOptions, ...options};
     
-    // Create datasets
+    // Create datasets with enhanced visualization
     const datasets = [
         {
             label: 'Plasma NO₂⁻ (µM)',
             data: data.no2,
             borderColor: colorSchemes.primary[0],
-            backgroundColor: getBackgroundColor(colorSchemes.primary[0]),
-            borderWidth: 2,
+            backgroundColor: function(context) {
+                const chart = context.chart;
+                const {ctx, chartArea} = chart;
+                if (!chartArea) {
+                    return getBackgroundColor(colorSchemes.primary[0]);
+                }
+                // Create gradient background
+                const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                gradient.addColorStop(0, 'rgba(59, 126, 185, 0.1)');
+                gradient.addColorStop(1, 'rgba(59, 126, 185, 0.4)');
+                return gradient;
+            },
+            borderWidth: 3,
             pointRadius: 0,
             tension: 0.4
         },

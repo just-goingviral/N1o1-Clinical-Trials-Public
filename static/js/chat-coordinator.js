@@ -35,6 +35,19 @@ function initChatCoordination() {
             closeBtn: document.getElementById('chatCloseBtn')
         }
     };
+    
+    // Initialize enhanced visualizations and effects
+    if (window.N1O1Loader) {
+        // Initialize gas particles for NO molecule
+        setTimeout(() => {
+            try {
+                window.N1O1Loader.generateGasParticles();
+                console.log("N1O1 gas particle animation initialized");
+            } catch (e) {
+                console.warn("Could not initialize gas particles:", e);
+            }
+        }, 1000);
+    }
 
     // Identity verification to ensure the chatbot maintains its identity
     const noChatIdentity = {

@@ -1,162 +1,154 @@
 
 /**
- * Responsive Utility Module for N1O1 Clinical Trials
- * Handles responsive design adjustments and media query helpers
+ * N1O1 Responsive Utilities
+ * Provides responsive behavior and adaptations for different screen sizes
  */
 
-const ResponsiveUtil = (function() {
-    // Device breakpoints
-    const breakpoints = {
-        xs: 0,
-        sm: 576,
-        md: 768,
-        lg: 992,
-        xl: 1200,
-        xxl: 1400
-    };
-    
-    /**
-     * Check if the current viewport matches a breakpoint range
-     * @param {string} size - Size name (xs, sm, md, lg, xl, xxl)
-     * @returns {boolean} - Whether the current viewport matches the size
-     */
-    function isBreakpoint(size) {
-        const width = window.innerWidth;
-        
-        switch(size) {
-            case 'xs': return width < breakpoints.sm;
-            case 'sm': return width >= breakpoints.sm && width < breakpoints.md;
-            case 'md': return width >= breakpoints.md && width < breakpoints.lg;
-            case 'lg': return width >= breakpoints.lg && width < breakpoints.xl;
-            case 'xl': return width >= breakpoints.xl && width < breakpoints.xxl;
-            case 'xxl': return width >= breakpoints.xxl;
-            default: return false;
-        }
-    }
-    
-    /**
-     * Check if the current viewport is at least a certain size
-     * @param {string} size - Minimum size (sm, md, lg, xl, xxl)
-     * @returns {boolean} - Whether the current viewport is at least the specified size
-     */
-    function isAtLeast(size) {
-        const width = window.innerWidth;
-        const sizeValue = breakpoints[size] || 0;
-        return width >= sizeValue;
-    }
-    
-    /**
-     * Apply responsive adjustments based on current viewport size
-     * @param {Object} element - DOM element to adjust
-     * @param {Object} options - Adjustment options by breakpoint
-     */
-    function applyResponsiveStyles(element, options) {
-        if (!element) return;
-        
-        // Reset existing responsive styles
-        const responsiveClassesToRemove = Array.from(element.classList)
-            .filter(cls => cls.startsWith('responsive-'));
-        
-        element.classList.remove(...responsiveClassesToRemove);
-        
-        // Apply new styles based on current breakpoint
-        Object.keys(breakpoints).forEach(size => {
-            if (isBreakpoint(size) && options[size]) {
-                // Apply classes
-                if (options[size].classes) {
-                    element.classList.add(...options[size].classes);
-                }
-                
-                // Apply inline styles
-                if (options[size].styles) {
-                    Object.assign(element.style, options[size].styles);
-                }
-                
-                // Apply attributes
-                if (options[size].attributes) {
-                    Object.entries(options[size].attributes).forEach(([attr, value]) => {
-                        element.setAttribute(attr, value);
-                    });
-                }
-                
-                // Add marker class
-                element.classList.add(`responsive-${size}`);
-            }
-        });
-    }
-    
-    /**
-     * Initialize responsive listeners for dynamic adjustments
-     * @param {function} callback - Function to call when viewport size changes
-     * @returns {function} - Function to remove the listener
-     */
-    function initResponsiveListener(callback) {
-        if (typeof callback !== 'function') return () => {};
-        
-        const handler = () => {
-            callback();
-        };
-        
-        // Set initial state
-        handler();
-        
-        // Add resize listener
-        window.addEventListener('resize', handler);
-        
-        // Return cleanup function
-        return () => {
-            window.removeEventListener('resize', handler);
-        };
-    }
-    
-    // Adjust chat interface elements for mobile
-    function adjustChatInterface() {
-        const chatButton = document.getElementById('no-molecule-chat-button');
-        const chatContainer = document.getElementById('no-molecule-chat-container');
-        
-        if (!chatButton || !chatContainer) return;
-        
-        if (isBreakpoint('xs') || isBreakpoint('sm')) {
-            // Mobile adjustments
-            chatContainer.classList.add('mobile-chat');
-            chatButton.classList.add('mobile-button');
-        } else {
-            // Desktop adjustments
-            chatContainer.classList.remove('mobile-chat');
-            chatButton.classList.remove('mobile-button');
-        }
-    }
-    
-    // Public API
-    return {
-        isBreakpoint,
-        isAtLeast,
-        applyResponsiveStyles,
-        initResponsiveListener,
-        adjustChatInterface,
-        breakpoints
-    };
-})();
-
-// Initialize responsive adjustments when DOM is loaded
+// Initialize responsive elements when the document is ready
 document.addEventListener('DOMContentLoaded', function() {
-    // Set up responsive listener for the chat interface
-    ResponsiveUtil.initResponsiveListener(() => {
-        ResponsiveUtil.adjustChatInterface();
-    });
+    // Initialize responsive elements
+    initResponsiveElements();
     
-    // Apply any other responsive adjustments
-    const resizeElements = document.querySelectorAll('[data-responsive]');
+    // Handle window resize
+    window.addEventListener('resize', debounce(function() {
+        handleResponsiveChanges();
+    }, 250));
     
-    resizeElements.forEach(element => {
-        try {
-            const options = JSON.parse(element.dataset.responsive || '{}');
-            ResponsiveUtil.applyResponsiveStyles(element, options);
-        } catch (e) {
-            console.error('Error parsing responsive options:', e);
-        }
-    });
+    // Initial call to handle responsive behavior
+    handleResponsiveChanges();
+    
+    // Initialize back-to-top button
+    initBackToTopButton();
 });
 
-// Make available globally
-window.ResponsiveUtil = ResponsiveUtil;
+// Initialize responsive elements
+function initResponsiveElements() {
+    // Add touch-friendly behavior to buttons
+    const touchButtons = document.querySelectorAll('.btn, .card, .nav-link');
+    touchButtons.forEach(button => {
+        button.addEventListener('touchstart', function() {
+            this.classList.add('touch-active');
+        });
+        
+        button.addEventListener('touchend', function() {
+            this.classList.remove('touch-active');
+        });
+    });
+    
+    // Make tables responsive if not already
+    const tables = document.querySelectorAll('table:not(.table-responsive)');
+    tables.forEach(table => {
+        if (!table.parentElement.classList.contains('table-responsive')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-responsive';
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+        }
+    });
+}
+
+// Handle responsive changes based on screen size
+function handleResponsiveChanges() {
+    const width = window.innerWidth;
+    
+    // Mobile adjustments (screens smaller than 768px)
+    if (width < 768) {
+        // Replace long button text with icons on small screens
+        const buttonTexts = document.querySelectorAll('.btn-icon-only-xs .btn-text');
+        buttonTexts.forEach(text => {
+            text.style.display = 'none';
+        });
+        
+        // Adjust chart height for better mobile viewing
+        const chartContainers = document.querySelectorAll('.chart-container');
+        chartContainers.forEach(container => {
+            container.style.height = '300px';
+        });
+        
+        // Show mobile navigation if available
+        const mobileNav = document.getElementById('mobile-nav');
+        if (mobileNav) {
+            mobileNav.style.display = 'flex';
+        }
+        
+        // Apply mobile-friendly styling to forms
+        const formControls = document.querySelectorAll('.form-control, .form-select, .btn');
+        formControls.forEach(control => {
+            control.style.minHeight = '44px'; // Better touch targets
+        });
+    } else {
+        // Desktop adjustments
+        // Restore button text on larger screens
+        const buttonTexts = document.querySelectorAll('.btn-icon-only-xs .btn-text');
+        buttonTexts.forEach(text => {
+            text.style.display = 'inline';
+        });
+        
+        // Restore chart height on larger screens
+        const chartContainers = document.querySelectorAll('.chart-container');
+        chartContainers.forEach(container => {
+            container.style.height = '400px';
+        });
+        
+        // Hide mobile navigation on larger screens
+        const mobileNav = document.getElementById('mobile-nav');
+        if (mobileNav) {
+            mobileNav.style.display = 'none';
+        }
+        
+        // Reset form control heights
+        const formControls = document.querySelectorAll('.form-control, .form-select, .btn');
+        formControls.forEach(control => {
+            control.style.minHeight = '';
+        });
+    }
+}
+
+// Initialize back-to-top button
+function initBackToTopButton() {
+    // Create back-to-top button if it doesn't exist
+    if (!document.getElementById('back-to-top-btn')) {
+        const backToTopBtn = document.createElement('button');
+        backToTopBtn.id = 'back-to-top-btn';
+        backToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+        backToTopBtn.setAttribute('aria-label', 'Back to top');
+        backToTopBtn.setAttribute('title', 'Back to top');
+        document.body.appendChild(backToTopBtn);
+        
+        // Show button when user scrolls down
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.style.display = 'flex';
+            } else {
+                backToTopBtn.style.display = 'none';
+            }
+        });
+        
+        // Scroll to top when clicked
+        backToTopBtn.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
+}
+
+// Utility function to debounce events
+function debounce(func, wait) {
+    let timeout;
+    return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(function() {
+            func.apply(context, args);
+        }, wait);
+    };
+}
+
+// Export utility functions
+window.N1O1Responsive = {
+    refresh: handleResponsiveChanges,
+    init: initResponsiveElements
+};

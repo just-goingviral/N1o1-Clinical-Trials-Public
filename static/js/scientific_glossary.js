@@ -3,12 +3,15 @@
  * A glossary of scientific terms related to nitric oxide research and clinical trials
  */
 
+// Scientific glossary with enhanced visualization
 const SCIENTIFIC_TERMS = {
     // Nitric Oxide Basic Terminology
     "NO": {
         term: "Nitric Oxide (NO)",
         definition: "A gaseous signaling molecule produced naturally in the body that plays a crucial role in vasodilation, immune function, and neurotransmission.",
-        category: "basic"
+        category: "basic",
+        icon: "🧪",
+        color: "#3b7eb9"
     },
     "NO₂⁻": {
         term: "Nitrite (NO₂⁻)",
@@ -144,6 +147,78 @@ function getTermDefinition(term) {
  * @param {string} options.placement - Tooltip placement (top, bottom, left, right)
  * @param {boolean} options.allowHtml - Whether to allow HTML in tooltips
  * @param {number} options.delay - Delay in ms before showing tooltip
+
+// Initialize enhanced scientific tooltip functionality
+function initEnhancedScientificTooltips() {
+    // Find all elements with data-scientific-term attribute
+    const scientificTerms = document.querySelectorAll('[data-scientific-term]');
+    
+    scientificTerms.forEach(element => {
+        // Get the term key
+        const termKey = element.getAttribute('data-scientific-term');
+        
+        // If term exists in our glossary
+        if (SCIENTIFIC_TERMS[termKey]) {
+            const termInfo = SCIENTIFIC_TERMS[termKey];
+            
+            // Add visual indicator
+            const icon = termInfo.icon || '🔬';
+            const color = termInfo.color || '#2063c9';
+            
+            // Add styling to the element
+            element.style.borderBottom = `2px dotted ${color}`;
+            element.style.position = 'relative';
+            element.style.cursor = 'help';
+            element.style.transition = 'background-color 0.2s ease';
+            
+            // Add hover effect
+            element.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = `${color}22`; // Add slight background with transparency
+            });
+            
+            element.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = 'transparent';
+            });
+            
+            // Create tooltip content
+            const tooltipContent = `
+                <div style="font-weight: bold; margin-bottom: 4px;">${icon} ${termInfo.term}</div>
+                <div>${termInfo.definition}</div>
+                ${termInfo.category ? `<div style="margin-top: 5px; font-size: 0.8em; opacity: 0.7;">Category: ${termInfo.category}</div>` : ''}
+            `;
+            
+            // Initialize tooltip using Bootstrap if available, or create custom implementation
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                new bootstrap.Tooltip(element, {
+                    title: tooltipContent,
+                    html: true,
+                    placement: 'top',
+                    trigger: 'hover focus',
+                    container: 'body'
+                });
+            } else {
+                // Custom tooltip implementation if Bootstrap is not available
+                element.setAttribute('title', termInfo.definition);
+            }
+        }
+    });
+    
+    console.log('Enhanced scientific terminology tooltips initialized');
+}
+
+// Export functions
+window.N1O1Glossary = {
+    terms: SCIENTIFIC_TERMS,
+    initTooltips: initEnhancedScientificTooltips
+};
+
+// Initialize on DOM load
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof bootstrap !== 'undefined') {
+        initEnhancedScientificTooltips();
+    }
+});
+
  */
 function initScientificTooltips(container, options = {}) {
     // Set default options
