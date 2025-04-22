@@ -104,6 +104,13 @@
   left: 60px;
   width: 40px;
   height: 6px;
+  background: linear-gradient(90deg, #3b7eb9, #e05a47);
+  transform: rotate(0deg);
+  z-index: 0;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  animation: bondTransform 8s infinite alternate ease-in-out,
+             bondPulse 3s infinite alternate ease-in-out;
+}
 
 /* Gas particles */
 .gas-particle {

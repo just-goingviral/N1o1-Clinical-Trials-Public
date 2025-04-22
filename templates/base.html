@@ -158,7 +158,6 @@
                     if (window.innerWidth <= 576) {
                         chatButton.style.right = '15px';
                         chatButton.style.bottom = '15px';
-                        chatButton.style.zIndex = '9999';
                     }
                 }
 
@@ -167,7 +166,13 @@
                 if (chatModal) {
                     chatModal.style.display = 'none';
                 }
-            }, 500);
+                
+                // Hide any drawing containers that might be open
+                const drawingContainer = document.getElementById('no-chat-drawing-container');
+                if (drawingContainer) {
+                    drawingContainer.style.display = 'none';
+                }
+            }, 300);
         });
     </script>
 
@@ -232,10 +237,6 @@
 
                         if (chatModal.classList.contains('fullscreen')) {
                             expandBtn.innerHTML = '<i class="fas fa-compress"></i>';
-                            expandBtn.title = 'Exit full screen';
-                        } else {
-                            expandBtn.innerHTML = '<i class="fas fa-expand"></i>';
-                            expandBtn.title = 'Expand to full screen';;
                             expandBtn.title = 'Exit full screen';
                         } else {
                             expandBtn.innerHTML = '<i class="fas fa-expand"></i>';

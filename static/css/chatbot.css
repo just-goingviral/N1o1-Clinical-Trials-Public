@@ -461,11 +461,11 @@
     bottom: 15px;
     transform: none;
   }
-  
+
   .no-molecule-chat-button:hover {
     transform: scale(1.1);
   }
-  
+
   .no-chat-modal {
     width: 92%;
     height: 75vh;
@@ -473,7 +473,7 @@
     bottom: 90px;
     max-height: calc(100vh - 120px);
   }
-  
+
   .no-chat-modal.fullscreen {
     width: 100%;
     height: 100vh;
@@ -481,35 +481,35 @@
     bottom: 0;
     max-height: 100vh;
   }
-  
+
   .no-chat-header h5 {
     font-size: 1rem;
   }
-  
+
   .no-molecule-svg {
     width: 35px;
     height: 35px;
   }
-  
+
   .no-chat-bubble {
     padding: 10px 14px;
     font-size: 0.9rem;
     max-width: 95%;
   }
-  
+
   .no-chat-input-container {
     padding: 10px;
   }
-  
+
   .no-chat-send-btn {
     width: 36px;
     height: 36px;
   }
-  
+
   .no-chat-message {
     max-width: 90%;
   }
-  
+
   .no-chat-tool-btn {
     width: 32px;
     height: 32px;
@@ -524,11 +524,11 @@
     right: 2%;
     bottom: 80px;
   }
-  
+
   .no-chat-messages {
     padding: 12px;
   }
-  
+
   .no-chat-input {
     font-size: 13px;
     padding: 8px 10px;

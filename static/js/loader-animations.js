@@ -15,6 +15,14 @@ document.addEventListener('DOMContentLoaded', function() {
     generateGasParticles();
 });
 
+// Export functions to global scope
+window.N1O1Loader = {
+    initLoadingAnimations,
+    generateGasParticles,
+    createGasParticle,
+    createNOMoleculeLoader
+};
+
 function initLoadingAnimations() {
     // Create the loading overlay if it doesn't exist
     if (!document.querySelector('.loading-overlay')) {
@@ -91,6 +99,41 @@ function generateGasParticles() {
             }
         }, 4000);
     }
+}
+
+function createGasParticle(parentElement) {
+    // Create a gas particle
+    const particle = document.createElement('div');
+    particle.className = 'gas-particle';
+    
+    // Random styling
+    const size = Math.random() * 6 + 4;
+    const colors = ['#3b7eb9', '#e05a47', '#2ecc71', '#9b59b6'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    
+    // Position and styling
+    particle.style.width = `${size}px`;
+    particle.style.height = `${size}px`;
+    particle.style.backgroundColor = color;
+    particle.style.left = `${Math.random() * 70 + 15}%`;
+    particle.style.top = `${Math.random() * 70 + 15}%`;
+    particle.style.opacity = '0';
+    particle.style.position = 'absolute';
+    particle.style.borderRadius = '50%';
+    
+    // Set random direction
+    particle.style.setProperty('--tx', `${(Math.random() * 200 - 100)}px`);
+    particle.style.setProperty('--ty', `${(Math.random() * 200 - 100)}px`);
+    
+    // Add to parent
+    parentElement.appendChild(particle);
+    
+    // Remove after animation
+    setTimeout(() => {
+        if (particle.parentNode === parentElement) {
+            parentElement.removeChild(particle);
+        }
+    }, 4000);
 }
 
 function createGasParticle(parent) {

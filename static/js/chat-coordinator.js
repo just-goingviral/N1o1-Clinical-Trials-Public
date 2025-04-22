@@ -37,7 +37,7 @@ function initChatCoordination() {
     };
     
     // Initialize enhanced visualizations and effects
-    if (window.N1O1Loader) {
+    if (window.N1O1Loader && window.N1O1Loader.generateGasParticles) {
         // Initialize gas particles for NO molecule
         setTimeout(() => {
             try {
@@ -47,6 +47,15 @@ function initChatCoordination() {
                 console.warn("Could not initialize gas particles:", e);
             }
         }, 1000);
+    } else {
+        console.log("NO gas particle animations not available");
+    }
+    
+    // Ensure the NO molecule button is properly visible
+    const noButton = document.getElementById('no-molecule-chat-button');
+    if (noButton) {
+        noButton.style.opacity = '1';
+        noButton.style.zIndex = '9999';
     }
 
     // Identity verification to ensure the chatbot maintains its identity
