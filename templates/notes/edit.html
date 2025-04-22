@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
         transcriptionStatus.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Transcribing audio...';
         
         const formData = new FormData();
-        formData.append('audio', blob);
+        formData.append('audio', blob, 'recording.webm');
         
         fetch('/notes/api/transcribe', {
             method: 'POST',
