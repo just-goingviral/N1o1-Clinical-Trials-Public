@@ -1,3 +1,48 @@
+
+import logging
+import os
+from datetime import datetime
+
+def get_module_logger(module_name):
+    """Get a logger configured for a specific module"""
+    logger = logging.getLogger(module_name)
+    
+    # Set default level
+    logger.setLevel(logging.INFO)
+    
+    # Create formatter
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    
+    # Create console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+    
+    # Create file handler
+    os.makedirs('logs', exist_ok=True)
+    today = datetime.now().strftime('%Y%m%d')
+    file_handler = logging.FileHandler(f'logs/nitrite_dynamics_{today}.log')
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+    
+    # Add handlers to logger if they haven't been added already
+    if not logger.handlers:
+        logger.addHandler(console_handler)
+        logger.addHandler(file_handler)
+    
+    return logger
+
+# Default application logger
+app_logger = get_module_logger('app')
+
+def log_exception(logger, exception, context=""):
+    """Log an exception with traceback and context"""
+    import traceback
+    error_msg = f"Exception during {context}: {str(exception)}"
+    logger.error(error_msg)
+    logger.error(traceback.format_exc())
+    return error_msg
+
 """
 Logger utility for Nitrite Dynamics application
 Provides consistent logging across the application

@@ -57,12 +57,12 @@ function initChatCoordination() {
                 "I'm an AI",
                 "As an AI"
             ];
-            
+
             // Return true if no identity confusion is found
             return !identityConfusion.some(phrase => response.includes(phrase));
         }
     };
-    
+
 
     // Get all buttons that might trigger a chat open
     const allTriggerButtons = [
@@ -335,3 +335,31 @@ function processCharts(bubble) {
         new Chart(canvas, chartData);
     });
 }
+
+// Scroll chat to bottom
+function scrollChatToBottom() {
+    const container = document.querySelector('.chat-container');
+    if (container) {
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // Also try NO molecule chat container
+    const noContainer = document.getElementById('no-chat-messages');
+    if (noContainer) {
+        noContainer.scrollTop = noContainer.scrollHeight;
+    }
+}
+
+// Make sendMessage function globally available
+window.sendMessage = function() {
+    const noInput = document.getElementById('no-chat-input');
+    const noSendBtn = document.getElementById('no-chat-send');
+
+    if (noInput && noSendBtn) {
+        const message = noInput.value.trim();
+        if (message) {
+            // Trigger the NO molecule chat send functionality
+            noSendBtn.click();
+        }
+    }
+};

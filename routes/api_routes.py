@@ -282,8 +282,18 @@ def log_client_error():
         return jsonify({'status': 'error', 'message': 'Failed to log error'}), 500
 
 # Load knowledge base content
-with open("attached_assets/clinical_assistant_knowledge.md", "r") as f:
-    KNOWLEDGE_BASE = f.read()
+try:
+    with open("static/data/clinical_assistant_knowledge.md", "r") as f:
+        KNOWLEDGE_BASE = f.read()
+except FileNotFoundError:
+    KNOWLEDGE_BASE = """
+    # N1O1 Clinical Knowledge Base
+    
+    Nitric oxide (NO) is a signaling molecule produced naturally in the body that plays critical roles in vasodilation, blood pressure regulation, and various other physiological processes.
+    
+    The N1O1 product line includes proprietary formulations delivering nitrite and nitrate precursors designed to enhance NO bioavailability.
+    """
+    print("Knowledge base file not found, using fallback content")
 
 @api_bp.route('/assistant', methods=['POST'])
 def assistant_response():

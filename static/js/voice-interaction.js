@@ -395,3 +395,29 @@ function removeTranscriptionStatus() {
         statusElement.remove();
     }
 }
+
+function sendTranscribedText(text) {
+    const chatInput = document.getElementById('no-chat-input');
+    const sendButton = document.getElementById('no-chat-send');
+
+    if (chatInput && sendButton) {
+        chatInput.value = text;
+
+        // Use global sendMessage if available, otherwise click button
+        if (typeof window.sendMessage === 'function') {
+            window.sendMessage();
+        } else {
+            sendButton.click();
+        }
+
+        // Add feedback to user
+        showRecordingFeedback('Message sent!', 'success');
+    } else {
+        showRecordingFeedback('Chat interface not found', 'error');
+    }
+}
+
+function showRecordingFeedback(message, type) {
+    // Add your feedback implementation here
+    console.log(`Recording Feedback: ${message} (${type})`); // Placeholder
+}
