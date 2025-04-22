@@ -203,6 +203,42 @@ const N1O1Responsive = {
         btn.style.borderRadius = '0.25rem';
       });
     });
+    
+    // Improve forms on mobile
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+      const formGroups = form.querySelectorAll('.form-group, .mb-3');
+      formGroups.forEach(group => {
+        group.style.marginBottom = '1rem';
+      });
+      
+      const labels = form.querySelectorAll('label');
+      labels.forEach(label => {
+        label.style.fontSize = '0.9rem';
+        label.style.marginBottom = '0.25rem';
+      });
+    });
+    
+    // Make card content more readable on small screens
+    const cardBodies = document.querySelectorAll('.card-body');
+    cardBodies.forEach(body => {
+      body.style.padding = '0.75rem';
+    });
+    
+    // Optimize chatbot for mobile
+    const chatModal = document.getElementById('no-chat-modal');
+    if (chatModal) {
+      chatModal.classList.add('mobile-optimized');
+    }
+    
+    // Ensure touch targets are large enough
+    const allButtons = document.querySelectorAll('button, .btn, a.nav-link');
+    allButtons.forEach(btn => {
+      const rect = btn.getBoundingClientRect();
+      if (rect.height < 38) {
+        btn.style.minHeight = '38px';
+      }
+    });
   },
   
   /**

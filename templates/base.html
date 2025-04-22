@@ -122,12 +122,24 @@
     <!-- Loading Animations Script -->
     <script src="/static/js/loader-animations.js"></script>
 
+    <!-- Responsive Utilities -->
+    <script src="/static/js/responsive-util.js"></script>
     <!-- Chat Coordinator Script -->
     <script src="/static/js/chat-coordinator.js"></script>
     <!-- Voice Interaction Script -->
     <script src="/static/js/voice-interaction.js"></script>
     <!-- File Attachments Script -->
     <script src="/static/js/file-attachments.js"></script>
+
+    <!-- Initialize responsive behavior -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize responsive utilities
+            if (window.N1O1Responsive) {
+                window.N1O1Responsive.init();
+            }
+        });
+    </script>
 
     <!-- Ensure chatbot is properly displayed -->
     <script>
@@ -141,6 +153,19 @@
                     chatButton.style.display = 'none';
                     chatButton.offsetHeight; // Force reflow
                     chatButton.style.display = 'flex';
+                    
+                    // Ensure proper positioning on mobile
+                    if (window.innerWidth <= 576) {
+                        chatButton.style.right = '15px';
+                        chatButton.style.bottom = '15px';
+                        chatButton.style.zIndex = '9999';
+                    }
+                }
+                
+                // Make sure chatbot modal is hidden initially
+                const chatModal = document.getElementById('no-chat-modal');
+                if (chatModal) {
+                    chatModal.style.display = 'none';
                 }
             }, 500);
         });
