@@ -36,7 +36,6 @@ function initChatCoordination() {
         }
     };
 
-
     // Identity verification to ensure the chatbot maintains its identity
     const noChatIdentity = {
         name: "N1O1ai",
