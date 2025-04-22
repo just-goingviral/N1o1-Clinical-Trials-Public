@@ -39,27 +39,11 @@ function initChatCoordination() {
     // Identity verification to ensure the chatbot maintains its identity
     const noChatIdentity = {
         name: "N1O1ai",
-        role: "Clinical Trials AI Assistant",
-        expertise: [
-            "Nitric oxide pathways",
-            "Clinical trial management",
-            "Patient data analysis",
-            "Simulation interpretation",
-            "Research guidance"
-        ],
-        // This helps prevent any identity confusion in the chat interface
-        validateResponse: function(response) {
-            // Check if response has any identity confusion markers
-            const identityConfusion = [
-                "AI language model",
-                "AI assistant developed by",
-                "I'm an AI",
-                "As an AI"
-            ];
-
-            // Return true if no identity confusion is found
-            return !identityConfusion.some(phrase => response.includes(phrase));
-        }
+        role: "clinical trial assistant",
+        specialization: "nitric oxide research",
+        creator: "JustGoingViral",
+        model: "NitroSynt-4",
+        greeting: "Hi, I'm N1O1ai! Would you like help with the clinical trial app or guidance on our nitric oxide therapy tools?"
     };
 
 

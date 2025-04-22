@@ -1,279 +1,162 @@
+
 /**
- * N1O1 Clinical Trials Platform - Responsive Utilities
- * 
- * This file provides helper functions for creating a responsive user experience
- * across different device sizes.
+ * Responsive Utility Module for N1O1 Clinical Trials
+ * Handles responsive design adjustments and media query helpers
  */
 
-const N1O1Responsive = {
-  /**
-   * Initialize responsive behavior for the application
-   */
-  init: function() {
-    this.setupMobileMenu();
-    this.setupResponsiveCards();
-    this.setupResponsiveTables();
-    this.setupTouchFriendlyControls();
-    this.setupAccessibilitySupport();
+const ResponsiveUtil = (function() {
+    // Device breakpoints
+    const breakpoints = {
+        xs: 0,
+        sm: 576,
+        md: 768,
+        lg: 992,
+        xl: 1200,
+        xxl: 1400
+    };
     
-    // Listen for window resize events to adjust UI elements
-    window.addEventListener('resize', this.handleResize.bind(this));
-    
-    // Initial call to set up the UI based on current viewport
-    this.handleResize();
-  },
-  
-  /**
-   * Set up the mobile menu toggle behavior
-   */
-  setupMobileMenu: function() {
-    const menuToggle = document.querySelector('.navbar-toggler');
-    const mobileMenu = document.querySelector('#navbarMain');
-    
-    if (menuToggle && mobileMenu) {
-      // Ensure the mobile menu closes when a link is clicked
-      const navLinks = mobileMenu.querySelectorAll('.nav-link');
-      navLinks.forEach(link => {
-        link.addEventListener('click', () => {
-          if (window.innerWidth < 992) { // Bootstrap's lg breakpoint
-            const bsCollapse = new bootstrap.Collapse(mobileMenu);
-            bsCollapse.hide();
-          }
-        });
-      });
-    }
-  },
-  
-  /**
-   * Make cards responsive and touch-friendly
-   */
-  setupResponsiveCards: function() {
-    const cards = document.querySelectorAll('.card');
-    
-    cards.forEach(card => {
-      // Add touch ripple effect for mobile
-      card.addEventListener('touchstart', function(e) {
-        this.classList.add('touch-active');
-      });
-      
-      card.addEventListener('touchend', function(e) {
-        this.classList.remove('touch-active');
-      });
-    });
-  },
-  
-  /**
-   * Make tables responsive on small screens
-   */
-  setupResponsiveTables: function() {
-    const tables = document.querySelectorAll('table');
-    
-    tables.forEach(table => {
-      // If table isn't already wrapped in a responsive div
-      if (!table.parentElement.classList.contains('table-responsive')) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'table-responsive';
-        table.parentNode.insertBefore(wrapper, table);
-        wrapper.appendChild(table);
-      }
-    });
-  },
-  
-  /**
-   * Enhance controls to be more touch-friendly on mobile
-   */
-  setupTouchFriendlyControls: function() {
-    // Make buttons larger on touch devices
-    if ('ontouchstart' in window) {
-      const buttons = document.querySelectorAll('.btn');
-      buttons.forEach(btn => {
-        // For small buttons, make them slightly larger
-        if (btn.classList.contains('btn-sm')) {
-          btn.classList.remove('btn-sm');
-        }
+    /**
+     * Check if the current viewport matches a breakpoint range
+     * @param {string} size - Size name (xs, sm, md, lg, xl, xxl)
+     * @returns {boolean} - Whether the current viewport matches the size
+     */
+    function isBreakpoint(size) {
+        const width = window.innerWidth;
         
-        // Increase touch target size with padding
-        btn.style.padding = '0.75rem 1rem';
-      });
-      
-      // Add 'Back to Top' button for long pages on mobile
-      this.addBackToTopButton();
+        switch(size) {
+            case 'xs': return width < breakpoints.sm;
+            case 'sm': return width >= breakpoints.sm && width < breakpoints.md;
+            case 'md': return width >= breakpoints.md && width < breakpoints.lg;
+            case 'lg': return width >= breakpoints.lg && width < breakpoints.xl;
+            case 'xl': return width >= breakpoints.xl && width < breakpoints.xxl;
+            case 'xxl': return width >= breakpoints.xxl;
+            default: return false;
+        }
     }
-  },
-  
-  /**
-   * Add 'Back to Top' button for mobile users
-   */
-  addBackToTopButton: function() {
-    // Only add if it doesn't exist yet
-    if (!document.getElementById('back-to-top-btn')) {
-      const backToTopBtn = document.createElement('button');
-      backToTopBtn.id = 'back-to-top-btn';
-      backToTopBtn.className = 'btn btn-primary rounded-circle position-fixed';
-      backToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
-      backToTopBtn.style.bottom = '20px';
-      backToTopBtn.style.right = '20px';
-      backToTopBtn.style.display = 'none'; // Hidden by default
-      backToTopBtn.style.zIndex = '1000';
-      backToTopBtn.style.width = '50px';
-      backToTopBtn.style.height = '50px';
-      
-      backToTopBtn.addEventListener('click', () => {
-        window.scrollTo({
-          top: 0,
-          behavior: 'smooth'
+    
+    /**
+     * Check if the current viewport is at least a certain size
+     * @param {string} size - Minimum size (sm, md, lg, xl, xxl)
+     * @returns {boolean} - Whether the current viewport is at least the specified size
+     */
+    function isAtLeast(size) {
+        const width = window.innerWidth;
+        const sizeValue = breakpoints[size] || 0;
+        return width >= sizeValue;
+    }
+    
+    /**
+     * Apply responsive adjustments based on current viewport size
+     * @param {Object} element - DOM element to adjust
+     * @param {Object} options - Adjustment options by breakpoint
+     */
+    function applyResponsiveStyles(element, options) {
+        if (!element) return;
+        
+        // Reset existing responsive styles
+        const responsiveClassesToRemove = Array.from(element.classList)
+            .filter(cls => cls.startsWith('responsive-'));
+        
+        element.classList.remove(...responsiveClassesToRemove);
+        
+        // Apply new styles based on current breakpoint
+        Object.keys(breakpoints).forEach(size => {
+            if (isBreakpoint(size) && options[size]) {
+                // Apply classes
+                if (options[size].classes) {
+                    element.classList.add(...options[size].classes);
+                }
+                
+                // Apply inline styles
+                if (options[size].styles) {
+                    Object.assign(element.style, options[size].styles);
+                }
+                
+                // Apply attributes
+                if (options[size].attributes) {
+                    Object.entries(options[size].attributes).forEach(([attr, value]) => {
+                        element.setAttribute(attr, value);
+                    });
+                }
+                
+                // Add marker class
+                element.classList.add(`responsive-${size}`);
+            }
         });
-      });
-      
-      document.body.appendChild(backToTopBtn);
-      
-      // Show/hide based on scroll position
-      window.addEventListener('scroll', () => {
-        if (window.pageYOffset > 300) {
-          backToTopBtn.style.display = 'block';
+    }
+    
+    /**
+     * Initialize responsive listeners for dynamic adjustments
+     * @param {function} callback - Function to call when viewport size changes
+     * @returns {function} - Function to remove the listener
+     */
+    function initResponsiveListener(callback) {
+        if (typeof callback !== 'function') return () => {};
+        
+        const handler = () => {
+            callback();
+        };
+        
+        // Set initial state
+        handler();
+        
+        // Add resize listener
+        window.addEventListener('resize', handler);
+        
+        // Return cleanup function
+        return () => {
+            window.removeEventListener('resize', handler);
+        };
+    }
+    
+    // Adjust chat interface elements for mobile
+    function adjustChatInterface() {
+        const chatButton = document.getElementById('no-molecule-chat-button');
+        const chatContainer = document.getElementById('no-molecule-chat-container');
+        
+        if (!chatButton || !chatContainer) return;
+        
+        if (isBreakpoint('xs') || isBreakpoint('sm')) {
+            // Mobile adjustments
+            chatContainer.classList.add('mobile-chat');
+            chatButton.classList.add('mobile-button');
         } else {
-          backToTopBtn.style.display = 'none';
+            // Desktop adjustments
+            chatContainer.classList.remove('mobile-chat');
+            chatButton.classList.remove('mobile-button');
         }
-      });
-    }
-  },
-  
-  /**
-   * Add accessibility enhancements
-   */
-  setupAccessibilitySupport: function() {
-    // Add ARIA labels to elements without proper labeling
-    const unlabeledButtons = document.querySelectorAll('button:not([aria-label]):not([title])');
-    unlabeledButtons.forEach(btn => {
-      if (btn.innerText.trim() === '' && !btn.getAttribute('aria-label')) {
-        // Try to determine purpose from icon
-        if (btn.querySelector('.fa-plus')) {
-          btn.setAttribute('aria-label', 'Add new item');
-        } else if (btn.querySelector('.fa-edit')) {
-          btn.setAttribute('aria-label', 'Edit item');
-        } else if (btn.querySelector('.fa-trash')) {
-          btn.setAttribute('aria-label', 'Delete item');
-        }
-      }
-    });
-  },
-  
-  /**
-   * Handle window resize events to adjust UI
-   */
-  handleResize: function() {
-    const isMobile = window.innerWidth < 768; // Bootstrap's md breakpoint
-    
-    // Adjust UI based on viewport width
-    if (isMobile) {
-      // Mobile-specific adjustments
-      this.optimizeForMobile();
-    } else {
-      // Desktop-specific adjustments
-      this.optimizeForDesktop();
-    }
-  },
-  
-  /**
-   * Optimize UI for mobile devices
-   */
-  optimizeForMobile: function() {
-    // Simplify tables by hiding less important columns
-    const tables = document.querySelectorAll('table.responsive-table');
-    tables.forEach(table => {
-      const lowPriorityColumns = table.querySelectorAll('.low-priority');
-      lowPriorityColumns.forEach(col => {
-        col.style.display = 'none';
-      });
-    });
-    
-    // Adjust container padding
-    const containers = document.querySelectorAll('.container');
-    containers.forEach(container => {
-      container.style.padding = '0.75rem';
-    });
-    
-    // Stack buttons in button groups
-    const btnGroups = document.querySelectorAll('.btn-group:not(.mobile-wrap)');
-    btnGroups.forEach(group => {
-      group.classList.add('d-flex', 'flex-column', 'mobile-wrap');
-      const buttons = group.querySelectorAll('.btn');
-      buttons.forEach(btn => {
-        btn.classList.add('my-1', 'w-100');
-        btn.style.borderRadius = '0.25rem';
-      });
-    });
-    
-    // Improve forms on mobile
-    const forms = document.querySelectorAll('form');
-    forms.forEach(form => {
-      const formGroups = form.querySelectorAll('.form-group, .mb-3');
-      formGroups.forEach(group => {
-        group.style.marginBottom = '1rem';
-      });
-      
-      const labels = form.querySelectorAll('label');
-      labels.forEach(label => {
-        label.style.fontSize = '0.9rem';
-        label.style.marginBottom = '0.25rem';
-      });
-    });
-    
-    // Make card content more readable on small screens
-    const cardBodies = document.querySelectorAll('.card-body');
-    cardBodies.forEach(body => {
-      body.style.padding = '0.75rem';
-    });
-    
-    // Optimize chatbot for mobile
-    const chatModal = document.getElementById('no-chat-modal');
-    if (chatModal) {
-      chatModal.classList.add('mobile-optimized');
     }
     
-    // Ensure touch targets are large enough
-    const allButtons = document.querySelectorAll('button, .btn, a.nav-link');
-    allButtons.forEach(btn => {
-      const rect = btn.getBoundingClientRect();
-      if (rect.height < 38) {
-        btn.style.minHeight = '38px';
-      }
-    });
-  },
-  
-  /**
-   * Optimize UI for desktop devices
-   */
-  optimizeForDesktop: function() {
-    // Show all table columns
-    const tables = document.querySelectorAll('table.responsive-table');
-    tables.forEach(table => {
-      const lowPriorityColumns = table.querySelectorAll('.low-priority');
-      lowPriorityColumns.forEach(col => {
-        col.style.display = '';
-      });
-    });
-    
-    // Reset container padding
-    const containers = document.querySelectorAll('.container');
-    containers.forEach(container => {
-      container.style.padding = '';
-    });
-    
-    // Reset button groups
-    const btnGroups = document.querySelectorAll('.btn-group.mobile-wrap');
-    btnGroups.forEach(group => {
-      group.classList.remove('d-flex', 'flex-column', 'mobile-wrap');
-      const buttons = group.querySelectorAll('.btn');
-      buttons.forEach(btn => {
-        btn.classList.remove('my-1', 'w-100');
-        btn.style.borderRadius = '';
-      });
-    });
-  }
-};
+    // Public API
+    return {
+        isBreakpoint,
+        isAtLeast,
+        applyResponsiveStyles,
+        initResponsiveListener,
+        adjustChatInterface,
+        breakpoints
+    };
+})();
 
-// Initialize responsive behavior when document is ready
+// Initialize responsive adjustments when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-  N1O1Responsive.init();
+    // Set up responsive listener for the chat interface
+    ResponsiveUtil.initResponsiveListener(() => {
+        ResponsiveUtil.adjustChatInterface();
+    });
+    
+    // Apply any other responsive adjustments
+    const resizeElements = document.querySelectorAll('[data-responsive]');
+    
+    resizeElements.forEach(element => {
+        try {
+            const options = JSON.parse(element.dataset.responsive || '{}');
+            ResponsiveUtil.applyResponsiveStyles(element, options);
+        } catch (e) {
+            console.error('Error parsing responsive options:', e);
+        }
+    });
 });
+
+// Make available globally
+window.ResponsiveUtil = ResponsiveUtil;

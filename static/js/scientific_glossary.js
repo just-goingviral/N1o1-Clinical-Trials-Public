@@ -331,7 +331,9 @@ function scanForScientificTerms(container, options = {}) {
                 }
             });
         } else if (!container) {
-            // If no container is provided, use the document body
+            // If no container is provided, use document body
+            containerElements.push(document.body);
+        }se the document body
             containerElements.push(document.body);
         } else {
             console.error('Invalid container provided:', container);
