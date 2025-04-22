@@ -17,8 +17,8 @@
   position: fixed;
   right: 25px;
   bottom: 25px;
-  width: 60px;
-  height: 60px;
+  width: 65px;
+  height: 65px;
   border-radius: 50%;
   background-color: var(--no-chat-primary);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -29,6 +29,8 @@
   justify-content: center;
   transition: all 0.3s ease;
   margin-left: auto;
+  opacity: 1;
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .no-molecule-chat-button:hover {
@@ -37,8 +39,24 @@
 }
 
 .no-molecule-svg {
-  width: 40px;
-  height: 40px;
+  width: 45px;
+  height: 45px;
+  transition: all 0.3s ease;
+}
+
+.no-molecule-svg circle {
+  transition: transform 0.5s ease, fill 0.3s ease;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+}
+
+.no-molecule-chat-button:hover .no-molecule-svg circle:nth-child(1) {
+  fill: #5b9ed9; /* Lighter blue for nitrogen */
+  transform: translate(-2px, -2px);
+}
+
+.no-molecule-chat-button:hover .no-molecule-svg circle:nth-child(2) {
+  fill: #f07a67; /* Lighter red for oxygen */
+  transform: translate(2px, 2px);
 }
 
 /* Add a subtle pulse animation to make the button more noticeable */
