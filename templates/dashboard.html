@@ -3,90 +3,115 @@
 {% block title %}Dashboard - N1O1 Clinical Trials{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1 class="display-4 mb-4">N1O1 Clinical Trials</h1>
-    <p class="lead">Advanced Nitric Oxide Clinical Trial Tools for Dr. Nathan Bryan</p>
+<div class="container mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="h2 mb-1">N1O1 Clinical Trials</h1>
+            <p class="text-muted">Advanced Nitric Oxide Clinical Trial Tools</p>
+        </div>
+        <a href="/patients/new" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add New Patient
+        </a>
+    </div>
 
-        <div class="row mt-5">
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <i class="fas fa-users fa-3x mb-3 text-primary"></i>
-                        <h3 class="card-title">Patient Management</h3>
-                        <p class="card-text">View, add, and manage patient records in the clinical trial database.</p>
-                        <a href="/patients" class="btn btn-primary">Manage Patients</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <i class="fas fa-flask fa-3x mb-3 text-success"></i>
-                        <h3 class="card-title"><span data-scientific-term="NO₂⁻">NO₂⁻</span> Analysis</h3>
-                        <p class="card-text">Upload and analyze <span data-scientific-term="plasma nitrite">plasma nitrite</span> measurements to determine <span data-scientific-term="bioavailability">bioavailability</span> metrics.</p>
-                        <a href="/analyzer/" class="btn btn-success">Upload Data</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <i class="fas fa-chart-line fa-3x mb-3 text-info"></i>
-                        <h3 class="card-title">Simulation</h3>
-                        <p class="card-text">Run <span data-scientific-term="NO">NO</span> dynamics simulations to predict <span data-scientific-term="Cmax">Cmax</span>, <span data-scientific-term="Tmax">Tmax</span>, and <span data-scientific-term="AUC">AUC</span> with patient-specific parameters.</p>
-                        <a href="/simulations/new" class="btn btn-info">New Simulation</a>
+    <!-- Main action cards in compact display -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-users fa-2x text-primary me-3"></i>
+                    <div>
+                        <h5 class="card-title mb-1">Patient Management</h5>
+                        <a href="/patients" class="stretched-link">View and manage patients</a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row mt-4">
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">Recent Patients</h4>
-                        <div class="patient-list-container" id="recentPatients">
-                            <div class="text-center">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <a href="/patients/new" class="btn btn-sm btn-primary">
-                            <i class="fas fa-plus"></i> Add New Patient
-                        </a>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-flask fa-2x text-success me-3"></i>
+                    <div>
+                        <h5 class="card-title mb-1"><span data-scientific-term="NO₂⁻">NO₂⁻</span> Analysis</h5>
+                        <a href="/analyzer/" class="stretched-link">Upload and analyze data</a>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">N1O1 Research</h4>
-                        <p>The <span data-scientific-term="N1O1 Lozenge">N1O1 product line</span> is based on Dr. Nathan Bryan's pioneering research into <span data-scientific-term="NO">nitric oxide</span> therapies for cardiovascular health.</p>
-                        <p>Our scientific approach focuses on enhancing <span data-scientific-term="bioavailability">bioavailability</span> of <span data-scientific-term="NO₂⁻">nitrite</span> which converts to <span data-scientific-term="NO">NO</span> in the body.</p>
-                        <p>Key benefits of nitric oxide supplementation:</p>
-                        <ul>
-                            <li>Improved <span data-scientific-term="endothelium">endothelial</span> function</li>
-                            <li>Enhanced blood flow regulation through <span data-scientific-term="vasodilation">vasodilation</span></li>
-                            <li>Reduced arterial stiffness in conditions of <span data-scientific-term="hypoxia">hypoxia</span></li>
-                            <li>Improved exercise capacity by modulating <span data-scientific-term="cGMP">cGMP</span> pathways</li>
-                            <li>Support for immune function with measurable changes in <span data-scientific-term="plasma nitrite">plasma nitrite</span> levels</li>
-                        </ul>
-                        <p>Our simulations model both <span data-scientific-term="PK">pharmacokinetics</span> and <span data-scientific-term="half-life">half-life</span> of nitrite in the plasma using a <span data-scientific-term="compartmental model">multi-compartment model</span>.</p>
-                        <p><strong>Need help?</strong> Click the nitric oxide molecule on the right side of your screen to chat with our N1O1ai assistant.</p>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-chart-line fa-2x text-info me-3"></i>
+                    <div>
+                        <h5 class="card-title mb-1">Simulation</h5>
+                        <a href="/simulations/new" class="stretched-link">Run <span data-scientific-term="NO">NO</span> dynamics simulations</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- NO Molecule chat is implemented directly in base.html -->
+    <!-- Two-column layout with tabs for Research information -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-transparent border-bottom-0">
+                    <h5 class="mb-0">Recent Patients</h5>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="patient-list-container" id="recentPatients">
+                        <div class="text-center py-3">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-transparent border-bottom-0 p-3">
+                    <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">Overview</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="benefits-tab" data-bs-toggle="tab" data-bs-target="#benefits" type="button" role="tab" aria-controls="benefits" aria-selected="false">Benefits</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body pt-2">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+                            <p class="mb-2">The <span data-scientific-term="N1O1 Lozenge">N1O1 product line</span> is based on Dr. Nathan Bryan's pioneering research into <span data-scientific-term="nitric oxide">nitric oxide</span> therapies for cardiovascular health.</p>
+                            <p class="mb-2">Our scientific approach focuses on enhancing <span data-scientific-term="bioavailability">bioavailability</span> of <span data-scientific-term="NO₂⁻">nitrite</span> which converts to <span data-scientific-term="NO">NO</span> in the body.</p>
+                            <p class="mb-0">Our simulations model both <span data-scientific-term="PK">pharmacokinetics</span> and <span data-scientific-term="half-life">half-life</span> in the plasma using a <span data-scientific-term="compartmental model">multi-compartment model</span>.</p>
+                        </div>
+                        <div class="tab-pane fade" id="benefits" role="tabpanel" aria-labelledby="benefits-tab">
+                            <p class="mb-2">Key benefits of nitric oxide supplementation:</p>
+                            <ul class="mb-0">
+                                <li>Improved <span data-scientific-term="endothelium">endothelial</span> function</li>
+                                <li>Enhanced blood flow through <span data-scientific-term="vasodilation">vasodilation</span></li>
+                                <li>Reduced arterial stiffness in <span data-scientific-term="hypoxia">hypoxia</span></li>
+                                <li>Improved exercise capacity via <span data-scientific-term="cGMP">cGMP</span> pathways</li>
+                                <li>Support for immune function with measurable <span data-scientific-term="plasma nitrite">plasma nitrite</span> changes</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="text-end mt-2">
+                        <small><strong>Need help?</strong> Click the nitric oxide molecule to chat with our N1O1ai assistant.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- NO Molecule chat is implemented directly in base.html -->
 {% endblock %}
 
 {% block scripts %}
@@ -114,7 +139,7 @@
                     `;
                 }
             });
-            
+
         // NO molecule chat functionality is implemented in base.html
     });
 </script>
