@@ -1,4 +1,3 @@
-
 /**
  * N1O1 Voice Interaction Module
  * Handles voice recording and transcription for the application
@@ -24,24 +23,24 @@ function startRecording() {
         alert('Your browser does not support audio recording');
         return;
     }
-    
+
     if (isRecording) return;
     isRecording = true;
-    
+
     // Get user media with audio
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
             // Determine which audio format to use based on browser support
             let mimeType = 'audio/webm';
-            
+
             // Check for Safari/iOS which needs different format
             const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
             const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            
+
             if (isSafari || isiOS) {
                 mimeType = 'audio/mp4';
             }
-            
+
             // Create media recorder with appropriate options
             const options = { mimeType: mimeType };
             try {
@@ -51,43 +50,43 @@ function startRecording() {
                 console.warn('Preferred mime type not supported, using default');
                 mediaRecorder = new MediaRecorder(stream);
             }
-            
+
             audioChunks = [];
-            
+
             mediaRecorder.addEventListener('dataavailable', event => {
                 audioChunks.push(event.data);
             });
-            
+
             mediaRecorder.addEventListener('stop', () => {
                 // Create blob with appropriate type
                 const audioType = isSafari || isiOS ? 'audio/mp4' : 'audio/webm';
                 const audioBlob = new Blob(audioChunks, { type: audioType });
-                
+
                 // Process the recording
                 transcribeAudio(audioBlob);
-                
+
                 // Stop all tracks to release microphone
                 stream.getTracks().forEach(track => track.stop());
-                
+
                 isRecording = false;
-                
+
                 // Remove visual feedback
                 const recordingIndicator = document.getElementById('recording-indicator');
                 if (recordingIndicator) {
                     recordingIndicator.remove();
                 }
-                
+
                 // Update UI buttons
                 const voiceButtons = document.querySelectorAll('.voice-btn');
                 voiceButtons.forEach(btn => btn.classList.remove('recording'));
             });
-            
+
             mediaRecorder.start();
-            
+
             // Update UI to show recording status
             const voiceButtons = document.querySelectorAll('.voice-btn');
             voiceButtons.forEach(btn => btn.classList.add('recording'));
-            
+
             // Add visual feedback
             const messageArea = document.getElementById('no-chat-messages');
             if (messageArea) {
@@ -133,11 +132,11 @@ function transcribeAudio(audioBlob) {
         transcriptionStatus.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Transcribing audio...';
         transcriptionStatus.style.display = 'block';
     }
-    
+
     // Prepare form data with proper filename and extension
     const formData = new FormData();
     formData.append('audio', audioBlob, 'recording.webm');
-    
+
     // Send to server for transcription
     fetch('/notes/api/transcribe', {
         method: 'POST',
@@ -153,7 +152,7 @@ function transcribeAudio(audioBlob) {
                     transcriptionStatus.style.display = 'none';
                 }, 3000);
             }
-            
+
             // Get the target textarea to append transcription
             const noteContent = document.getElementById('content');
             if (noteContent) {
@@ -161,16 +160,16 @@ function transcribeAudio(audioBlob) {
                 if (noteContent.value && !noteContent.value.endsWith('\n\n')) {
                     noteContent.value += '\n\n';
                 }
-                
+
                 // Add the transcribed text
                 noteContent.value += data.text;
-                
+
                 // Focus the textarea and move cursor to end
                 noteContent.focus();
                 noteContent.selectionStart = noteContent.value.length;
                 noteContent.selectionEnd = noteContent.value.length;
             }
-            
+
             // Also check for chat input to append transcription
             const chatInput = document.getElementById('no-chat-input');
             if (chatInput) {
@@ -207,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleRecording(this);
         });
     });
-    
+
     // Set up voice recording in chat if present
     const chatVoiceBtn = document.getElementById('no-chat-voice');
     if (chatVoiceBtn) {
@@ -237,9 +236,9 @@ function initVoiceInteraction() {
     // Add voice button to chat interface
     const chatInput = document.getElementById('no-chat-input');
     const chatForm = document.getElementById('no-chat-form');
-    
+
     if (!chatInput || !chatForm) return;
-    
+
     // Create voice button
     const voiceButton = document.createElement('button');
     voiceButton.type = 'button';
@@ -247,7 +246,7 @@ function initVoiceInteraction() {
     voiceButton.className = 'btn voice-btn';
     voiceButton.innerHTML = '<i class="fas fa-microphone"></i>';
     voiceButton.title = 'Speak to N1O1ai';
-    
+
     // Insert voice button before send button
     const sendButton = chatForm.querySelector('button[type="submit"]');
     if (sendButton) {
@@ -255,14 +254,14 @@ function initVoiceInteraction() {
     } else {
         chatForm.appendChild(voiceButton);
     }
-    
+
     // Add event listener to voice button
     voiceButton.addEventListener('click', toggleVoiceRecording);
 }
 
 function toggleVoiceRecording() {
     const voiceButton = document.getElementById('voice-chat-button');
-    
+
     if (!isRecording) {
         // Start recording
         startRecording();
@@ -283,21 +282,21 @@ function startRecording() {
         .then(stream => {
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
-            
+
             mediaRecorder.addEventListener('dataavailable', event => {
                 audioChunks.push(event.data);
             });
-            
+
             mediaRecorder.addEventListener('stop', () => {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                 transcribeAudio(audioBlob);
-                
+
                 // Stop all tracks to release microphone
                 stream.getTracks().forEach(track => track.stop());
             });
-            
+
             mediaRecorder.start();
-            
+
             // Add visual feedback
             const messageArea = document.getElementById('no-chat-messages');
             if (messageArea) {
@@ -311,7 +310,7 @@ function startRecording() {
         .catch(err => {
             console.error('Error accessing microphone:', err);
             alert('Could not access your microphone. Please check your microphone permissions.');
-            
+
             // Reset button state
             const voiceButton = document.getElementById('voice-chat-button');
             if (voiceButton) {
@@ -326,7 +325,7 @@ function stopRecording() {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
         mediaRecorder.stop();
     }
-    
+
     // Remove recording indicator
     const recordingIndicator = document.getElementById('recording-indicator');
     if (recordingIndicator) {
@@ -337,10 +336,10 @@ function stopRecording() {
 function transcribeAudio(audioBlob) {
     const formData = new FormData();
     formData.append('audio', audioBlob, 'recording.webm');
-    
+
     // Display status in chat
     showTranscriptionStatus('Transcribing your message...');
-    
+
     fetch('/api/transcribe-chat', {
         method: 'POST',
         body: formData
@@ -351,15 +350,15 @@ function transcribeAudio(audioBlob) {
             showTranscriptionStatus('Error: ' + data.error, true);
             return;
         }
-        
+
         // Set the transcribed text to the input field
         const chatInput = document.getElementById('no-chat-input');
         if (chatInput) {
             chatInput.value = data.text;
-            
+
             // Remove transcription status
             removeTranscriptionStatus();
-            
+
             // If auto-send is enabled, send the message
             if (data.text && data.text.trim() !== '') {
                 const chatForm = document.getElementById('no-chat-form');
@@ -378,7 +377,7 @@ function transcribeAudio(audioBlob) {
 function showTranscriptionStatus(message, isError = false) {
     // Remove existing status
     removeTranscriptionStatus();
-    
+
     // Create status element
     const messageArea = document.getElementById('no-chat-messages');
     if (messageArea) {

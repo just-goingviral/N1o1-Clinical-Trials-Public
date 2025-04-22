@@ -232,7 +232,10 @@
 
                         if (chatModal.classList.contains('fullscreen')) {
                             expandBtn.innerHTML = '<i class="fas fa-compress"></i>';
-                            expandBtn.title = 'Exit full screen';TML = '<i class="fas fa-compress"></i>';
+                            expandBtn.title = 'Exit full screen';
+                        } else {
+                            expandBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                            expandBtn.title = 'Expand to full screen';;
                             expandBtn.title = 'Exit full screen';
                         } else {
                             expandBtn.innerHTML = '<i class="fas fa-expand"></i>';
@@ -428,7 +431,7 @@
                 <!-- Messages will be inserted here -->
                 <div class="no-chat-message assistant">
                     <div class="no-chat-bubble">
-                        <p>Hi, I'm N1O1ai! Would you like help with the clinical trial app or guidance on our nitric oxide therapeutics?</p>
+                        <p>Hi, I'm N1O1ai, your dedicated assistant for N1O1 Clinical Trials! Need help with the platform or guidance on nitric oxide therapeutics?</p>
                         <p>I can help with:</p>
                         <ul>
                             <li><a href="#" class="clickable-item"><i class="fas fa-arrow-right"></i> Understanding nitric oxide pathways</a></li>
