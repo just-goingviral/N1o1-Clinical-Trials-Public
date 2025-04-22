@@ -15,8 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
     generateGasParticles();
 });
 
-// Initialize N1O1Loader as an empty object if not already defined
+// Initialize loader objects with both uppercase and lowercase versions for compatibility
 window.N1O1Loader = window.N1O1Loader || {};
+window.n1o1Loader = window.n1o1Loader || {};
 
 function initLoadingAnimations() {
     // Create the loading overlay if it doesn't exist
@@ -161,7 +162,7 @@ function cycleAnimationType() {
     return animationTypes[currentAnimationIndex];
 }
 
-// Export functions for global use
+// Export functions for global use - both uppercase and lowercase for compatibility
 window.N1O1Loader = {
     show: showLoading,
     hide: hideLoading,
@@ -169,3 +170,6 @@ window.N1O1Loader = {
     createGasParticle: createGasParticle,
     generateGasParticles: generateGasParticles
 };
+
+// Also assign the same functions to lowercase version for backward compatibility
+window.n1o1Loader = window.N1O1Loader;
