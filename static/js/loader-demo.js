@@ -96,14 +96,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Cycle through animation types
                 setTimeout(() => {
-                    window.n1o1Loader.cycleAnimationType();
-                    window.n1o1Loader.setMessage("Processing cell signaling pathways...");
+                    window.n1o1Loader.switchAnimation('cells');
+                    window.n1o1Loader.show("Processing cell signaling pathways...");
                 }, 3000);
                 
                 // Switch to DNA animation
                 setTimeout(() => {
-                    window.n1o1Loader.cycleAnimationType();
-                    window.n1o1Loader.setMessage("Analyzing genetic expression patterns...");
+                    window.n1o1Loader.switchAnimation('dna');
+                    window.n1o1Loader.show("Analyzing genetic expression patterns...");
                 }, 6000);
                 
                 // Hide loader

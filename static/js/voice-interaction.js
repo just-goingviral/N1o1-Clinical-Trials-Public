@@ -4,7 +4,7 @@
  */
 
 // Global variables
-let mediaRecorder = null;
+let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
 
@@ -222,12 +222,11 @@ document.addEventListener('DOMContentLoaded', function() {
  * Allows users to speak to the chatbot and get voice responses
  */
 
-// This section doesn't need to redefine variables
-// Just define a new variable for recognized text
+// Secondary voice interaction implementation
+// Using different variable names to avoid conflicts
+let chatMediaRecorder = null;
+let chatAudioChunks = [];
 let recognizedText = "";
-
-// Use the global mediaRecorder and audioChunks
-// No need to redeclare them
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize voice interaction
@@ -282,22 +281,22 @@ function toggleVoiceRecording() {
 function startRecording() {
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
+            chatMediaRecorder = new MediaRecorder(stream);
+            chatAudioChunks = [];
 
-            mediaRecorder.addEventListener('dataavailable', event => {
-                audioChunks.push(event.data);
+            chatMediaRecorder.addEventListener('dataavailable', event => {
+                chatAudioChunks.push(event.data);
             });
 
-            mediaRecorder.addEventListener('stop', () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            chatMediaRecorder.addEventListener('stop', () => {
+                const audioBlob = new Blob(chatAudioChunks, { type: 'audio/webm' });
                 transcribeAudio(audioBlob);
 
                 // Stop all tracks to release microphone
                 stream.getTracks().forEach(track => track.stop());
             });
 
-            mediaRecorder.start();
+            chatMediaRecorder.start();
 
             // Add visual feedback
             const messageArea = document.getElementById('no-chat-messages');
@@ -324,8 +323,8 @@ function startRecording() {
 }
 
 function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
+    if (chatMediaRecorder && chatMediaRecorder.state !== 'inactive') {
+        chatMediaRecorder.stop();
     }
 
     // Remove recording indicator
