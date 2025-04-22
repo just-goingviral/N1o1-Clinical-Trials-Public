@@ -52,23 +52,27 @@ def view_simulation():
             try:
                 simulation = Simulation.query.order_by(Simulation.id.desc()).first()
                 if not simulation:
-                    return render_template('simulation_view.html', result_curve=[], error="No simulations found")
+                    return render_template('simulation_view.html', result_curve=[], error="No simulations found", 
+                                          title="Simulation View - N1O1 Clinical Trials")
             except Exception as db_error:
                 import logging
                 logging.error(f"Database error: {str(db_error)}")
                 return render_template('simulation_view.html', result_curve=[], 
-                                      error="Hold your horses, partner! The database done gone fishin'. Bless your heart, give it a minute and try again, y'hear?")
+                                      error="Hold your horses, partner! The database done gone fishin'. Bless your heart, give it a minute and try again, y'hear?",
+                                      title="Simulation Error - N1O1 Clinical Trials")
         else:
             try:
                 simulation = Simulation.query.get(simulation_id)
                 if not simulation:
                     return render_template('simulation_view.html', result_curve=[], 
-                                          error=f"Simulation with ID {simulation_id} not found")
+                                          error=f"Simulation with ID {simulation_id} not found",
+                                          title="Simulation Not Found - N1O1 Clinical Trials")
             except Exception as db_error:
                 import logging
                 logging.error(f"Database error: {str(db_error)}")
                 return render_template('simulation_view.html', result_curve=[], 
-                                      error="Hold your horses, partner! The database done gone fishin'. Bless your heart, give it a minute and try again, y'hear?")
+                                      error="Hold your horses, partner! The database done gone fishin'. Bless your heart, give it a minute and try again, y'hear?",
+                                      title="Simulation Error - N1O1 Clinical Trials")
 
         # Convert the result curve to the format expected by the template
         time_points = simulation.result_curve.get('time', [])
@@ -93,11 +97,13 @@ def view_simulation():
         return render_template('simulation_view.html', 
                               simulation=simulation,
                               patient=patient,
-                              result_curve=result_curve)
+                              result_curve=result_curve,
+                              title="Simulation Results - N1O1 Clinical Trials")
     except Exception as e:
         import logging
         logging.error(f"View simulation error: {str(e)}")
-        return render_template('simulation_view.html', result_curve=[], error=str(e))
+        return render_template('simulation_view.html', result_curve=[], error=str(e), 
+                              title="Simulation Error - N1O1 Clinical Trials")
 @simulation_bp.route('/advanced-view')
 def advanced_visualization():
     """Advanced visualization with multiple compartments"""

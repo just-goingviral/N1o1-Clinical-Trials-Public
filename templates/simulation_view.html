@@ -51,12 +51,12 @@
             <div class="col-lg-8">
                 <div class="p-4 mb-4 bg-dark rounded-3">
                     <h2 class="mb-4">Nitrite Level Simulation</h2>
-                    
+
                     {% if simulation %}
                     <div class="chart-container">
                         <canvas id="nitriteChart"></canvas>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="p-3 parameter-card">
@@ -89,24 +89,24 @@
                             <button type="button" class="btn btn-outline-info" id="downloadImage">Chart Image</button>
                             <button type="button" class="btn btn-outline-info" id="downloadReport">Full Report</button>
                         </div>
-                        
+
                         <h4 class="mt-3">Research Documentation</h4>
                         <div class="card border-info">
                             <div class="card-body">
                                 <h5 class="card-title">One-Click Research Capture</h5>
                                 <p class="card-text">Capture this simulation data and screenshot for your research documentation.</p>
-                                
+
                                 <div class="form-group mb-3">
                                     <label for="researchNotes" class="form-label">Research Notes</label>
                                     <textarea class="form-control" id="researchNotes" rows="3" placeholder="Add notes about this simulation for your research documentation..."></textarea>
                                 </div>
-                                
+
                                 <button type="button" class="btn btn-primary w-100" id="captureResearch">
                                     <i class="fas fa-camera me-2"></i> Capture for Research
                                 </button>
                             </div>
                         </div>
-                        
+
                         <!-- Success Modal -->
                         <div class="modal fade" id="captureSuccessModal" tabindex="-1" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
@@ -139,7 +139,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     {% else %}
                     <div class="no-data">
                         <div class="text-center">
@@ -177,7 +177,7 @@
                                 <!-- Will be populated via API -->
                             </select>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="modelType" class="form-label">
                                 Model Type
@@ -193,12 +193,12 @@
                             </select>
                             <small class="form-text text-muted">Select the mathematical model used to simulate nitrite dynamics.</small>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="dose" class="form-label">Dose (mg)</label>
                             <input type="number" class="form-control" id="dose" name="dose" value="30" min="0" max="1000">
                         </div>
-                        
+
                         <button type="submit" class="btn btn-primary w-100">Run Simulation</button>
                     </form>
                 </div>
@@ -231,25 +231,25 @@
                     }
                 })
                 .catch(error => console.error('Error loading patients:', error));
-            
+
             // Handle form submission via AJAX
             const simulationForm = document.getElementById('simulationForm');
             if (simulationForm) {
                 simulationForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    
+
                     const formData = {
                         patient_id: document.getElementById('patientSelect').value,
                         model_type: document.getElementById('modelType').value,
                         dose: parseFloat(document.getElementById('dose').value)
                     };
-                    
+
                     if (formData.patient_id === '') {
                         delete formData.patient_id;
                     } else {
                         formData.patient_id = parseInt(formData.patient_id);
                     }
-                    
+
                     fetch('/api/simulate', {
                         method: 'POST',
                         headers: {
@@ -271,18 +271,18 @@
                     });
                 });
             }
-            
+
             // Initialize the chart if we have simulation data
             {% if simulation %}
             const ctx = document.getElementById('nitriteChart').getContext('2d');
-            
+
             // Use the time and nitrite data provided by the route
             const timePoints = {{ simulation.result_curve.time|tojson }};
             const nitriteValues = {{ simulation.result_curve.no2|tojson }};
-            
+
             console.log('Time points:', timePoints);
             console.log('Nitrite values:', nitriteValues);
-            
+
             // Create the chart
             const nitriteChart = new Chart(ctx, {
                 type: 'line',
@@ -338,7 +338,7 @@
                     }
                 }
             });
-            
+
             // Handle download buttons
             document.getElementById('downloadCSV').addEventListener('click', function() {
                 // Create CSV content
@@ -346,7 +346,7 @@
                 for (let i = 0; i < timePoints.length; i++) {
                     csvContent += `${timePoints[i]},${nitriteValues[i]}\n`;
                 }
-                
+
                 // Create download link
                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
@@ -357,7 +357,7 @@
                 link.click();
                 document.body.removeChild(link);
             });
-            
+
             document.getElementById('downloadImage').addEventListener('click', function() {
                 const canvas = document.getElementById('nitriteChart');
                 const image = canvas.toDataURL('image/png');
@@ -368,32 +368,32 @@
                 link.click();
                 document.body.removeChild(link);
             });
-            
+
             document.getElementById('downloadReport').addEventListener('click', function() {
                 const simulationId = {{ simulation.id }};
                 const patientId = {{ simulation.patient_id if simulation.patient_id else 'null' }};
                 const simulationTime = new Date().toLocaleString();
-                
+
                 // Generate PDF report using jsPDF
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
-                
+
                 // Add title
                 doc.setFontSize(18);
                 doc.text('N1O1 Clinical Trials - Simulation Report', 15, 15);
-                
+
                 // Add report info
                 doc.setFontSize(12);
                 doc.text(`Simulation ID: ${simulationId}`, 15, 30);
                 doc.text(`Generated: ${simulationTime}`, 15, 37);
                 doc.text(`Patient ID: ${patientId !== null ? patientId : 'N/A'}`, 15, 44);
-                
+
                 // Add model information
                 doc.setFontSize(14);
                 doc.text('Simulation Parameters', 15, 55);
                 doc.setFontSize(11);
                 doc.text(`Model Type: {{ simulation.model_type }}`, 20, 62);
-                
+
                 {% if simulation.parameters %}
                 const parameters = {{ simulation.parameters|tojson }};
                 let yPos = 69;
@@ -402,24 +402,24 @@
                     yPos += 7;
                 }
                 {% endif %}
-                
+
                 // Add chart image
                 const canvas = document.getElementById('nitriteChart');
                 const chartImage = canvas.toDataURL('image/png');
                 doc.addImage(chartImage, 'PNG', 15, 120, 180, 100);
-                
+
                 // Add results summary
                 doc.addPage();
                 doc.setFontSize(14);
                 doc.text('Simulation Results Summary', 15, 15);
-                
+
                 doc.setFontSize(11);
                 const { baseline, peak, time_to_peak, half_life } = getSimulationMetrics();
                 doc.text(`Baseline NO2- (µM): ${baseline.toFixed(2)}`, 15, 25);
                 doc.text(`Peak NO2- (µM): ${peak.toFixed(2)}`, 15, 32);
                 doc.text(`Time to Peak (hours): ${time_to_peak.toFixed(2)}`, 15, 39);
                 doc.text(`Elimination Half-life (hours): ${half_life.toFixed(2)}`, 15, 46);
-                
+
                 // Add footer
                 const pageCount = doc.internal.getNumberOfPages();
                 for (let i = 1; i <= pageCount; i++) {
@@ -428,36 +428,36 @@
                     doc.text(`N1O1 Clinical Trials - Page ${i} of ${pageCount}`, 15, 285);
                     doc.text(`© Dr. Nathan Bryan - JustGoingViral - ${new Date().getFullYear()}`, 120, 285);
                 }
-                
+
                 // Save the PDF
                 const fileName = `N1O1_Simulation_${simulationId}_Report.pdf`;
                 doc.save(fileName);
             });
-            
+
             // Research Documentation Capture
             const captureResearchBtn = document.getElementById('captureResearch');
             const captureSuccessModal = new bootstrap.Modal(document.getElementById('captureSuccessModal'));
-            
+
             if (captureResearchBtn) {
                 captureResearchBtn.addEventListener('click', function() {
                     // Get the chart canvas as an image
                     const canvas = document.getElementById('nitriteChart');
                     const screenshot = canvas.toDataURL('image/png');
-                    
+
                     // Get the research notes
                     const notes = document.getElementById('researchNotes').value.trim();
-                    
+
                     // Create the data to send
                     const captureData = {
                         simulation_id: {{ simulation.id }},
                         screenshot: screenshot,
                         notes: notes
                     };
-                    
+
                     // Show loading indicator
                     captureResearchBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Capturing...';
                     captureResearchBtn.disabled = true;
-                    
+
                     // Send the data to the server
                     fetch('/api/capture-research', {
                         method: 'POST',
@@ -471,19 +471,19 @@
                         // Reset button
                         captureResearchBtn.innerHTML = '<i class="fas fa-camera me-2"></i> Capture for Research';
                         captureResearchBtn.disabled = false;
-                        
+
                         if (data.status === 'success') {
                             // Update the modal with the capture details
                             document.getElementById('captureSimId').textContent = data.data.simulation_id;
                             document.getElementById('captureTimestamp').textContent = data.data.timestamp;
-                            
+
                             // Set the link to view the captured data
                             const viewDataLink = document.getElementById('viewCapturedData');
                             viewDataLink.href = data.data.simulation_data_path;
-                            
+
                             // Show the success modal
                             captureSuccessModal.show();
-                            
+
                             // Clear the notes field
                             document.getElementById('researchNotes').value = '';
                         } else {
@@ -499,10 +499,10 @@
                 });
             }
             {% endif %}
-            
+
             // Make the research capture button responsive
             const mediaQuery = window.matchMedia('(max-width: 768px)');
-            
+
             function handleMobileChanges(e) {
                 const captureResearchBtn = document.getElementById('captureResearch');
                 if (captureResearchBtn) {
@@ -530,19 +530,19 @@
                     }
                 }
             }
-            
+
             // Check on load
             handleMobileChanges(mediaQuery);
-            
+
             // Listen for changes
             mediaQuery.addEventListener('change', handleMobileChanges);
-            
+
             // Initialize tooltips
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
             const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             });
-            
+
             // Helper function to extract simulation metrics
             function getSimulationMetrics() {
                 // Extract baseline, peak, etc. from the chart data
@@ -555,10 +555,10 @@
                         half_life: {{ simulation.parameters.half_life|default(0) }}
                     };
                 }
-                
+
                 const data = chart.data.datasets[0].data;
                 const labels = chart.data.labels;
-                
+
                 // Find the maximum value and its index
                 let maxValue = 0;
                 let maxIndex = 0;
@@ -568,22 +568,22 @@
                         maxIndex = i;
                     }
                 }
-                
+
                 // Get baseline (first value)
                 const baseline = data[0];
-                
+
                 // Get peak value
                 const peak = maxValue;
-                
+
                 // Get time to peak (in hours)
                 const time_to_peak = labels[maxIndex] / 60;
-                
+
                 // Calculate half-life (simple approximation)
                 const half_life = {{ simulation.parameters.half_life|default(0) }};
-                
+
                 return { baseline, peak, time_to_peak, half_life };
             }
-            
+
             // Handle N1O1ai chat button
             const openChatBtn = document.getElementById('openChatBtn');
             if (openChatBtn) {
@@ -592,12 +592,12 @@
                     const noChatButton = document.getElementById('no-molecule-chat-button');
                     if (noChatButton) {
                         noChatButton.click();
-                        
+
                         // Add a predefined question about model types after a delay
                         setTimeout(() => {
                             const chatInput = document.getElementById('no-chat-input');
                             const sendBtn = document.getElementById('no-chat-send');
-                            
+
                             if (chatInput && sendBtn) {
                                 chatInput.value = "Can you explain the different model types for nitric oxide simulations?";
                                 sendBtn.click();

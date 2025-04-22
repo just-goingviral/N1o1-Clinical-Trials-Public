@@ -375,3 +375,10 @@ window.sendMessage = function() {
         }
     }
 };
+
+// Export necessary functions for external use
+window.N1O1Chat = {
+    sendMessage: window.sendMessage,
+    processRichContent: processRichContent,
+    scrollChatToBottom: scrollChatToBottom
+};
