@@ -161,6 +161,44 @@ function initChatCoordination() {
                 });
             }
         });
+        // Handle N1O1ai chat button
+            const openChatBtn = document.getElementById('openChatBtn');
+            if (openChatBtn) {
+                openChatBtn.addEventListener('click', function() {
+                    // Find the NO molecule chat button and trigger a click on it
+                    const noChatButton = document.getElementById('no-molecule-chat-button');
+                    if (noChatButton) {
+                        noChatButton.click();
+
+                        // Add a predefined question based on the current page context
+                        setTimeout(() => {
+                            const chatInput = document.getElementById('no-chat-input');
+                            const sendBtn = document.getElementById('no-chat-send');
+
+                            if (chatInput && sendBtn) {
+                                // Check if we're on the simulation page
+                                const currentPath = window.location.pathname;
+                                let question = '';
+
+                                if (currentPath.includes('/simulations/view')) {
+                                    question = "Can you explain the different model types for nitric oxide simulations?";
+                                } else if (currentPath.includes('/simulations/advanced-view')) {
+                                    question = "What do the different compartments in the multi-compartment model represent?";
+                                } else if (currentPath.includes('/patients')) {
+                                    question = "How do patient parameters affect nitric oxide dynamics?";
+                                } else {
+                                    question = "Can you help me understand how to use the N1O1 clinical trial platform?";
+                                }
+
+                                chatInput.value = question;
+                                sendBtn.click();
+                            }
+                        }, 1000);
+                    } else {
+                        alert("Well shucks, partner! The chat assistant took a coffee break. Try again in a jiffy!");
+                    }
+                });
+            }
     }
 }
 

@@ -111,9 +111,20 @@ def advanced_visualization():
 
     if simulation_id:
         simulation = Simulation.query.get_or_404(simulation_id)
-        return render_template('advanced_visualization.html', simulation=simulation)
+        return render_template('advanced_visualization.html', simulation=simulation, 
+                               title="Advanced Visualization - N1O1 Clinical Trials")
 
-    return render_template('advanced_visualization.html')
+    # Get the most recent simulation if none specified
+    try:
+        simulation = Simulation.query.order_by(Simulation.id.desc()).first()
+        if simulation:
+            return render_template('advanced_visualization.html', simulation=simulation,
+                                   title="Advanced Visualization - N1O1 Clinical Trials")
+    except Exception as e:
+        import logging
+        logging.error(f"Database error in advanced view: {str(e)}")
+        
+    return render_template('advanced_visualization.html', title="Advanced Visualization - N1O1 Clinical Trials")
 
 @simulation_bp.route('/new', methods=['GET'])
 def new_simulation():
