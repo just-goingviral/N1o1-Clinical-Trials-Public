@@ -203,6 +203,7 @@
                         
                         if (chatModal.classList.contains('fullscreen')) {
                             expandBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                            expandBtn.title = 'Exit full screen';TML = '<i class="fas fa-compress"></i>';
                             expandBtn.title = 'Exit full screen';
                         } else {
                             expandBtn.innerHTML = '<i class="fas fa-expand"></i>';
@@ -540,8 +541,8 @@
             position: fixed;
             right: 25px;
             bottom: 25px;
-            width: 380px;
-            height: 550px;
+            width: 450px; 
+            height: 600px;
             background: #2b3035;
             border-radius: 20px;
             z-index: 1001;
