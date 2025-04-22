@@ -30,7 +30,7 @@ const SCIENTIFIC_TERMS = {
         definition: "An enzyme that is activated by nitric oxide and catalyzes the conversion of guanosine triphosphate (GTP) to cyclic guanosine monophosphate (cGMP).",
         category: "advanced"
     },
-    
+
     // Physiological Terms
     "vasodilation": {
         term: "Vasodilation",
@@ -52,7 +52,7 @@ const SCIENTIFIC_TERMS = {
         definition: "An enzyme expressed in endothelial cells that catalyzes the production of nitric oxide from L-arginine in the presence of oxygen.",
         category: "advanced"
     },
-    
+
     // Measurement and Clinical Terms
     "plasma nitrite": {
         term: "Plasma Nitrite",
@@ -74,7 +74,7 @@ const SCIENTIFIC_TERMS = {
         definition: "The study of how a drug is absorbed, distributed, metabolized, and excreted by the body over time.",
         category: "advanced"
     },
-    
+
     // Simulation and Analysis Terms
     "compartmental model": {
         term: "Compartmental Model",
@@ -96,7 +96,7 @@ const SCIENTIFIC_TERMS = {
         definition: "The time at which the maximum plasma concentration of a substance is observed after administration.",
         category: "advanced"
     },
-    
+
     // N1O1 Specific Terms
     "N1O1 Lozenge": {
         term: "N1O1 Lozenge",
@@ -112,12 +112,12 @@ const SCIENTIFIC_TERMS = {
  */
 function getTermDefinition(term) {
     const normalizedTerm = term.toLowerCase().trim();
-    
+
     // Try direct match first
     if (SCIENTIFIC_TERMS[normalizedTerm]) {
         return SCIENTIFIC_TERMS[normalizedTerm];
     }
-    
+
     // Try alternate forms
     for (const [key, value] of Object.entries(SCIENTIFIC_TERMS)) {
         if (normalizedTerm === key.toLowerCase() || 
@@ -125,7 +125,7 @@ function getTermDefinition(term) {
             return value;
         }
     }
-    
+
     // Check if term is part of any keys or definitions
     for (const [key, value] of Object.entries(SCIENTIFIC_TERMS)) {
         if (key.toLowerCase().includes(normalizedTerm) || 
@@ -133,7 +133,7 @@ function getTermDefinition(term) {
             return value;
         }
     }
-    
+
     return null;
 }
 
@@ -152,9 +152,9 @@ function initScientificTooltips(container, options = {}) {
         allowHtml: false,
         delay: 100
     };
-    
+
     const tooltipOptions = { ...defaultOptions, ...options };
-    
+
     // Ensure Bootstrap tooltips are available
     if (typeof bootstrap === 'undefined') {
         console.error('Bootstrap is not available. Ensure Bootstrap JS is loaded.');
@@ -167,14 +167,14 @@ function initScientificTooltips(container, options = {}) {
         }, 1000);
         return;
     }
-    
+
     if (!bootstrap.Tooltip) {
         console.error('Bootstrap tooltips not available.');
         return;
     }
-    
+
     const containerElements = [];
-    
+
     if (typeof container === 'string') {
         // If a string selector is provided, query all matching elements
         const elements = document.querySelectorAll(container);
@@ -198,47 +198,47 @@ function initScientificTooltips(container, options = {}) {
         console.error('Invalid container provided:', container);
         return;
     }
-    
+
     if (containerElements.length === 0) {
         console.warn('No valid container elements found');
         return;
     }
-    
+
     // Process each container element
     containerElements.forEach(containerElement => {
         try {
             // Add tooltips to elements with data-scientific-term attributes
             const termElements = containerElement.querySelectorAll('[data-scientific-term]');
-            
+
             if (termElements.length === 0) {
                 console.debug(`No scientific terms found in container: ${containerElement.tagName || 'unknown'}`);
             }
-            
+
             termElements.forEach(element => {
                 try {
                     // Clean up any existing tooltips on this element
                     if (element._tooltipInstance) {
                         element._tooltipInstance.dispose();
                     }
-                    
+
                     const term = element.getAttribute('data-scientific-term');
                     const definition = getTermDefinition(term);
-                    
+
                     if (definition) {
                         // Add category as data attribute for styling
                         if (definition.category) {
                             element.setAttribute('data-category', definition.category);
                         }
-                        
+
                         // Set up tooltip attributes
                         element.setAttribute('data-bs-toggle', 'tooltip');
                         element.setAttribute('data-bs-placement', tooltipOptions.placement);
                         element.setAttribute('data-bs-html', tooltipOptions.allowHtml ? 'true' : 'false');
                         element.setAttribute('title', definition.definition);
-                        
+
                         // Add visual indicator and styling for tooltip terms
                         element.classList.add('scientific-term');
-                        
+
                         // Initialize Bootstrap tooltip with options
                         const tooltip = new bootstrap.Tooltip(element, {
                             placement: tooltipOptions.placement,
@@ -250,7 +250,7 @@ function initScientificTooltips(container, options = {}) {
                             trigger: 'hover focus',
                             container: 'body'
                         });
-                        
+
                         // Store reference to tooltip instance for potential cleanup
                         element._tooltipInstance = tooltip;
                     } else {
@@ -258,12 +258,12 @@ function initScientificTooltips(container, options = {}) {
                         // Still add styling to indicate it's a scientific term
                         element.classList.add('scientific-term');
                         element.classList.add('undefined-term');
-                        
+
                         // Add a generic tooltip to indicate it's a scientific term
                         element.setAttribute('data-bs-toggle', 'tooltip');
                         element.setAttribute('data-bs-placement', tooltipOptions.placement);
                         element.setAttribute('title', 'Scientific term');
-                        
+
                         new bootstrap.Tooltip(element);
                     }
                 } catch (elementError) {
@@ -299,10 +299,10 @@ function scanForScientificTerms(container, options = {}) {
         excludeTerms: null,
         limitReplacement: false
     };
-    
+
     // Merge with provided options
     const scanOptions = { ...defaultOptions, ...options };
-    
+
     // Handle backward compatibility
     if (typeof arguments[1] === 'boolean') {
         scanOptions.includeBasic = arguments[1];
@@ -310,10 +310,10 @@ function scanForScientificTerms(container, options = {}) {
     if (typeof arguments[2] === 'boolean') {
         scanOptions.includeAdvanced = arguments[2];
     }
-    
+
     // Handle multiple containers
     const containerElements = [];
-    
+
     try {
         if (typeof container === 'string') {
             const elements = document.querySelectorAll(container);
@@ -333,18 +333,16 @@ function scanForScientificTerms(container, options = {}) {
         } else if (!container) {
             // If no container is provided, use document body
             containerElements.push(document.body);
-        }se the document body
-            containerElements.push(document.body);
         } else {
             console.error('Invalid container provided:', container);
             return;
         }
-        
+
         if (containerElements.length === 0) {
             console.warn('No valid container elements found');
             return;
         }
-        
+
         // Process each container element
         containerElements.forEach(containerElement => processSingleContainer(containerElement, scanOptions));
     } catch (error) {
@@ -363,10 +361,10 @@ function processSingleContainer(containerElement, options) {
         // Create a temporary element to hold the content
         const tempElement = document.createElement('div');
         tempElement.innerHTML = containerElement.innerHTML;
-        
+
         // Keep track of which terms we've already replaced if limiting replacements
         const replacedTerms = new Set();
-        
+
         // Process all text nodes in the container
         const walker = document.createTreeWalker(
             tempElement,
@@ -374,67 +372,67 @@ function processSingleContainer(containerElement, options) {
             null,
             false
         );
-        
+
         const nodesToReplace = [];
         let currentNode;
-        
+
         while (currentNode = walker.nextNode()) {
             // Skip nodes that are in scripts, styles, or already in tooltips
             if (isInUnwantedElement(currentNode)) {
                 continue;
             }
-            
+
             // Skip empty or whitespace-only nodes
             if (!currentNode.nodeValue.trim()) {
                 continue;
             }
-            
+
             let text = currentNode.nodeValue;
             let newHtml = text;
-            
+
             // Look for terms in the text
             for (const [key, value] of Object.entries(SCIENTIFIC_TERMS)) {
                 // Skip if we're limiting replacements and this term was already replaced
                 if (options.limitReplacement && replacedTerms.has(key)) {
                     continue;
                 }
-                
+
                 // Skip terms based on category filter
                 if ((value.category === 'basic' && !options.includeBasic) ||
                     (value.category === 'advanced' && !options.includeAdvanced) ||
                     (value.category === 'product' && !options.includeProduct)) {
                     continue;
                 }
-                
+
                 // Skip if not in onlyTerms (if specified)
                 if (options.onlyTerms && Array.isArray(options.onlyTerms) && 
                     !options.onlyTerms.includes(key)) {
                     continue;
                 }
-                
+
                 // Skip if in excludeTerms
                 if (options.excludeTerms && Array.isArray(options.excludeTerms) && 
                     options.excludeTerms.includes(key)) {
                     continue;
                 }
-                
+
                 // Regular expressions to find the term
                 // We need to handle both exact terms and terms within words
                 const exactRegExp = new RegExp(`\\b(${escapeRegExp(key)})\\b`, 'gi');
-                
+
                 // Replace exact matches with span elements
                 let replaced = false;
                 newHtml = newHtml.replace(exactRegExp, (match) => {
                     replaced = true;
                     return `<span class="scientific-term" data-scientific-term="${key}" data-category="${value.category}">${match}</span>`;
                 });
-                
+
                 // If we replaced and we're limiting, add to replacedTerms
                 if (replaced && options.limitReplacement) {
                     replacedTerms.add(key);
                 }
             }
-            
+
             // If modifications were made, queue the node for replacement
             if (newHtml !== text) {
                 nodesToReplace.push({
@@ -443,13 +441,13 @@ function processSingleContainer(containerElement, options) {
                 });
             }
         }
-        
+
         // Replace nodes with modified ones
         for (const {node, newHtml} of nodesToReplace) {
             try {
                 const replacementNode = document.createElement('span');
                 replacementNode.innerHTML = newHtml;
-                
+
                 // Replace the old node with the new content
                 if (node.parentNode) {
                     // We need to add all the children of the replacement node
@@ -457,14 +455,14 @@ function processSingleContainer(containerElement, options) {
                     while (replacementNode.firstChild) {
                         fragment.appendChild(replacementNode.firstChild);
                     }
-                    
+
                     node.parentNode.replaceChild(fragment, node);
                 }
             } catch (replaceError) {
                 console.error('Error replacing node:', replaceError);
             }
         }
-        
+
         // Only apply changes if nodes were actually replaced
         if (nodesToReplace.length > 0) {
             try {
@@ -473,14 +471,14 @@ function processSingleContainer(containerElement, options) {
                 if (containerElement.innerHTML !== tempElement.innerHTML) {
                     containerElement.innerHTML = tempElement.innerHTML;
                 }
-                
+
                 // Initialize tooltips on the newly created elements with enhanced options
                 initScientificTooltips(containerElement, {
                     placement: 'auto',
                     allowHtml: true,
                     delay: 200
                 });
-                
+
                 console.debug(`Processed ${nodesToReplace.length} text nodes with scientific terms in container`);
             } catch (updateError) {
                 console.error('Error updating container HTML:', updateError);
@@ -498,24 +496,24 @@ function processSingleContainer(containerElement, options) {
  */
 function isInUnwantedElement(node) {
     let parent = node.parentNode;
-    
+
     while (parent) {
         const tagName = parent.tagName?.toLowerCase();
-        
+
         if (['script', 'style', 'noscript', 'code', 'pre'].includes(tagName)) {
             return true;
         }
-        
+
         // Skip if already in a tooltip
         if (parent.hasAttribute && 
             (parent.hasAttribute('data-bs-toggle') || 
              parent.classList.contains('scientific-term'))) {
             return true;
         }
-        
+
         parent = parent.parentNode;
     }
-    
+
     return false;
 }
 

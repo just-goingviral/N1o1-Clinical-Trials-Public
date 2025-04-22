@@ -135,7 +135,7 @@ def pre_screening():
         """
         
         # Call Claude
-        claude_response = claude_completion(prompt, temperature=0.3)
+        claude_response = claude_completion(prompt, temperature=0.3, max_tokens=2000)
         
         # Extract the JSON portion from Claude's response
         try:

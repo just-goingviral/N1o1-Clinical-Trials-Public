@@ -91,6 +91,13 @@ function initChatCoordination() {
             if (chatInterfaces.molecule.expandBtn) {
                 chatInterfaces.molecule.expandBtn.addEventListener('click', function() {
                     chatInterfaces.molecule.modal.classList.toggle('fullscreen');
+                    if (chatInterfaces.molecule.modal.classList.contains('fullscreen')) {
+                        chatInterfaces.molecule.expandBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                        expandBtn.title = 'Exit full screen';
+                    } else {
+                        chatInterfaces.molecule.expandBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                        chatInterfaces.molecule.expandBtn.title = 'Expand to full screen';
+                    }
                 });
             }
         }
