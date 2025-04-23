@@ -1,0 +1,23 @@
+<div id="patient-chat-box" style="margin-top:20px;">
+  <h3>💬 Ask N1O1 Coach</h3>
+  <textarea id="patient-question" placeholder="Type your question..." rows="3" style="width:100%;"></textarea>
+  <button onclick="submitPatientQuestion()">Ask</button>
+  <p id="patient-response" style="margin-top:10px; font-style:italic;"></p>
+</div>
+<script>
+function submitPatientQuestion() {
+    const question = document.getElementById('patient-question').value;
+    fetch('/chat/patient', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: question, name: "Patient" })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('patient-response').innerText = data.reply || "No response.";
+    })
+    .catch(err => {
+        document.getElementById('patient-response').innerText = "Error talking to N1O1 Coach.";
+    });
+}
+</script>
