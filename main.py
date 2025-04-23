@@ -207,6 +207,7 @@ def system_health():
     """Check system health"""
     health = {
         "status": "online",
+        "timestamp": str(datetime.datetime.now()),
         "database": "connected",
         "session": "active" if session.get('_id') else "initialized",
         "blueprints": {
@@ -225,6 +226,11 @@ def system_health():
         health["database"] = f"error: {str(e)}"
         
     return jsonify(health)
+
+@app.route('/ping')
+def ping():
+    """Simple ping endpoint to keep the app alive"""
+    return "pong", 200
 
 # Run the application
 if __name__ == '__main__':
