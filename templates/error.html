@@ -1,4 +1,32 @@
 
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <div class="error-container">
+    <h1>Error {{ error_code|default('500') }}</h1>
+    <div class="error-message">
+      {{ error_message|default("Well shoot, y'all! Somethin' went haywire with the application.") }}
+    </div>
+    
+    <div class="error-actions">
+      <a href="{{ url_for('index') }}" class="btn btn-primary">Return to Home</a>
+      
+      {% if error_code == '500' %}
+      <div class="error-hint mt-3">
+        <p><strong>Try these steps:</strong></p>
+        <ol>
+          <li>Clear your browser cookies for this site</li>
+          <li>Try using a private/incognito window</li>
+          <li>Restart your browser</li>
+        </ol>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>

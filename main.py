@@ -103,29 +103,63 @@ app.register_blueprint(ai_tools_bp)
 app.register_blueprint(chat_bp)
 app.register_blueprint(consent_bp)
 
-# Add redirect loop protection
+# Add improved redirect loop protection
 @app.before_request
 def prevent_redirect_loops():
-    # Reset redirect counter on non-redirect pages
+    # Skip for static files and health checks
+    if request.path.startswith('/static') or request.path == '/ping' or request.path == '/system/health':
+        return None
+        
+    # Initialize session if needed
+    if 'redirect_count' not in session:
+        session['redirect_count'] = 0
+        
+    # Track the current URL to detect loops
+    if 'last_urls' not in session:
+        session['last_urls'] = []
+        
+    # Add current URL to history (keep last 5)
+    current_url = request.url
+    last_urls = session.get('last_urls', [])
+    last_urls.append(current_url)
+    session['last_urls'] = last_urls[-5:]
+    
+    # Check for repeat visits to same URL
+    if len(session['last_urls']) >= 3:
+        # If same URL appears 3 times in history, it's a loop
+        if session['last_urls'].count(current_url) >= 3:
+            session['redirect_count'] = 0
+            session['last_urls'] = []
+            return render_template('error.html', 
+                                  error_message="Redirect loop detected. Please try clearing your cookies.",
+                                  error_code=500), 500
+    
+    # Regular redirect counting logic
     if request.endpoint and not request.endpoint.endswith('_redirect'):
         session['redirect_count'] = 0
         return None
-
+        
     # Count redirects
-    if 'redirect_count' not in session:
-        session['redirect_count'] = 0
     session['redirect_count'] += 1
-
+    
     # If redirecting too many times, stop and show error
     if session['redirect_count'] > 4:
         session['redirect_count'] = 0
-        return f"Redirect loop detected at URL: {request.url}. Please try clearing your cookies or contact support.", 500
+        session['last_urls'] = []
+        return render_template('error.html', 
+                              error_message="Too many redirects detected. Please try clearing your cookies.",
+                              error_code=500), 500
 
 # Main routes
 @app.route('/')
 def index():
     """Main index page - dashboard"""
     try:
+        # Clear any redirect tracking when hitting the root route
+        session['redirect_count'] = 0
+        if 'last_urls' in session:
+            session['last_urls'] = []
+            
         # Ensure we're not redirecting to login in a loop
         if not current_user.is_authenticated:
             # If not authenticated, use a simple template that doesn't check authentication
