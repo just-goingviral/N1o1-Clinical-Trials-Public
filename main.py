@@ -1,4 +1,3 @@
-
 """
 N1O1 Clinical Trials - Main Application
 """
@@ -55,16 +54,16 @@ def cleanup_sessions():
     """Clean up old session files"""
     import glob
     from datetime import datetime, timedelta
-    
+
     session_dir = app.config['SESSION_FILE_DIR']
     now = datetime.now()
     session_files = glob.glob(os.path.join(session_dir, '*'))
-    
+
     for file_path in session_files:
         # Skip checking directories
         if os.path.isdir(file_path):
             continue
-            
+
         # Check if file is over 7 days old
         modified_time = datetime.fromtimestamp(os.path.getmtime(file_path))
         if now - modified_time > timedelta(days=7):
@@ -107,12 +106,12 @@ def prevent_redirect_loops():
     if request.endpoint and not request.endpoint.endswith('_redirect'):
         session['redirect_count'] = 0
         return None
-    
+
     # Count redirects
     if 'redirect_count' not in session:
         session['redirect_count'] = 0
     session['redirect_count'] += 1
-    
+
     # If redirecting too many times, stop and show error
     if session['redirect_count'] > 4:
         session['redirect_count'] = 0
@@ -149,7 +148,7 @@ with app.app_context():
             print(f"Creating new database at {db_file}")
         init_db()
         print("Database tables created successfully")
-        
+
         # Run session cleanup on startup (replacing the before_first_request)
         cleanup_sessions()
     except Exception as e:
@@ -157,7 +156,7 @@ with app.app_context():
         error_detail = traceback.format_exc()
         print(f"Error initializing database: {e}")
         print(f"Detailed error: {error_detail}")
-        
+
 # Add global error handler to catch and log all uncaught exceptions
 @app.errorhandler(Exception)
 def handle_exception(e):
@@ -166,10 +165,10 @@ def handle_exception(e):
         import traceback, sys
         exc_type, exc_value, exc_traceback = sys.exc_info()
         error_details = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-        
+
         # Log error with details
         app.logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
-        
+
         # Get request information for debugging
         request_info = ""
         try:
@@ -178,10 +177,10 @@ def handle_exception(e):
                 request_info += f"Form data: {dict(request.form)}\n"
         except Exception as req_err:
             request_info = f"Could not get request info: {str(req_err)}"
-            
+
         # Log complete error context
         app.logger.error(f"Error context: {request_info}\n{error_details}")
-        
+
         # Return user-friendly message
         if 'text/html' in request.headers.get('Accept', ''):
             # HTML response
@@ -219,7 +218,7 @@ def system_health():
             "simulation": True
         }
     }
-    
+
     try:
         # Test database connection
         with db.engine.connect() as conn:
@@ -227,7 +226,7 @@ def system_health():
     except Exception as e:
         health["database"] = f"error: {str(e)}"
         health["status"] = "degraded"
-        
+
     return jsonify(health)
 
 @app.route('/ping')
