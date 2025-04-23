@@ -16,6 +16,41 @@ def init_db():
     db.create_all()
     print("Database tables created successfully")
 
+class TrialCriteria(db.Model):
+    """Model for storing clinical trial eligibility criteria"""
+    __tablename__ = 'trial_criteria'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    min_age = db.Column(db.Integer, nullable=True)
+    max_age = db.Column(db.Integer, nullable=True)
+    min_no2 = db.Column(db.Float, nullable=True)  # μM
+    max_no2 = db.Column(db.Float, nullable=True)  # μM
+    other_criteria = db.Column(JSONB, nullable=True)  # Additional criteria as JSON
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<TrialCriteria #{self.id}: {self.name}>'
+        
+    def to_dict(self):
+        """Convert criteria to dictionary"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'min_age': self.min_age,
+            'max_age': self.max_age,
+            'min_no2': self.min_no2,
+            'max_no2': self.max_no2,
+            'other_criteria': self.other_criteria,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
 class Patient(db.Model):
     """Patient model for clinical trial participants"""
     __tablename__ = 'patients'
@@ -26,6 +61,8 @@ class Patient(db.Model):
     weight_kg = db.Column(db.Float, nullable=False)
     baseline_no2 = db.Column(db.Float, nullable=False)  # μM
     notes = db.Column(db.Text, nullable=True)
+    is_eligible = db.Column(db.Boolean, nullable=True)  # Eligibility for trial
+    eligibility_note = db.Column(db.Text, nullable=True)  # Notes about eligibility decision
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -248,6 +285,30 @@ class User(UserMixin, db.Model):
             'is_active': self.is_active
         }
 
+
+class Consent(db.Model):
+    """Model for storing patient consent records"""
+    __tablename__ = 'consents'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'))
+    signed_name = db.Column(db.String(120))
+    signed_date = db.Column(db.DateTime, default=datetime.utcnow)
+    understood_risks = db.Column(db.Boolean)
+    agreed_to_terms = db.Column(db.Boolean)
+    
+    def __repr__(self):
+        return f'<Consent for Patient #{self.patient_id} signed on {self.signed_date}>'
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'patient_id': self.patient_id,
+            'signed_name': self.signed_name,
+            'signed_date': self.signed_date.isoformat() if self.signed_date else None,
+            'understood_risks': self.understood_risks,
+            'agreed_to_terms': self.agreed_to_terms
+        }
 
 class ClinicalNote(db.Model):
     """Model for clinical notes with text and voice recording capabilities"""

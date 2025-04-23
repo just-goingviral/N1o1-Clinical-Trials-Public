@@ -206,6 +206,19 @@
             <i class="fas fa-flask me-1"></i> N1O1 Guidance
           </button>
           
+          <!-- Patient Education Chat Widget -->
+          <div id="patient-chat-box" style="display: none; position: fixed; bottom: 20px; right: 20px; width: 350px; 
+                                          background: #fff; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); 
+                                          z-index: 1000; padding: 15px; max-height: 500px; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <h3 style="margin: 0;">💬 Ask N1O1 Coach</h3>
+              <button onclick="togglePatientChat()" style="background: none; border: none; font-size: 20px; cursor: pointer;">×</button>
+            </div>
+            <textarea id="patient-question" placeholder="Type your question..." rows="3" style="width:100%; margin-bottom: 10px;"></textarea>
+            <button onclick="submitPatientQuestion()" style="background: #17a2b8; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Ask</button>
+            <p id="patient-response" style="margin-top:10px; font-style:italic;"></p>
+          </div>
+          
           <form method="POST" action="{{ url_for('patients.delete_patient', patient_id=patient.id) }}" class="ms-auto" onsubmit="return confirm('Are you sure you want to delete this patient? This action cannot be undone.');">
             <button type="submit" class="btn btn-outline-danger action-button">
               <i class="fas fa-trash-alt me-1"></i> Delete
@@ -388,6 +401,51 @@
         noMolecule.style.transform = `scale(${randomScale}) rotate(${randomRotate}deg)`;
       }, 2000);
     }
+  });
+  
+  // Patient Education Chat functions
+  function togglePatientChat() {
+    const chatBox = document.getElementById('patient-chat-box');
+    if (chatBox.style.display === 'none' || !chatBox.style.display) {
+      chatBox.style.display = 'block';
+    } else {
+      chatBox.style.display = 'none';
+    }
+  }
+  
+  function submitPatientQuestion() {
+    const question = document.getElementById('patient-question').value;
+    const responseElement = document.getElementById('patient-response');
+    
+    if (!question.trim()) {
+      responseElement.innerText = "Please enter a question.";
+      return;
+    }
+    
+    responseElement.innerText = "Thinking...";
+    
+    fetch('/chat/patient', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        question: question, 
+        name: "{{ patient.name }}" 
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      responseElement.innerText = data.reply || "No response from assistant.";
+    })
+    .catch(err => {
+      console.error("Error:", err);
+      responseElement.innerText = "Error talking to N1O1 Coach. Please try again.";
+    });
+  }
+  
+  // Add chat toggle to N1O1 Guidance button
+  document.querySelector('.btn-nitro').addEventListener('click', function(e) {
+    e.preventDefault();
+    togglePatientChat();
   });
 </script>
 {% endblock %}
