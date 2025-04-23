@@ -1,7 +1,11 @@
-from flask import request, jsonify
+
+from flask import Blueprint, request, jsonify
 from patient_education import ask_patient_bot
 
-@app.route('/chat/patient', methods=['POST'])
+# Create a blueprint for patient education routes
+patient_edu_bp = Blueprint('patient_edu', __name__, url_prefix='/chat')
+
+@patient_edu_bp.route('/patient', methods=['POST'])
 def patient_chat():
     data = request.json
     question = data.get("question")
@@ -11,3 +15,7 @@ def patient_chat():
 
     reply = ask_patient_bot(question, patient_name)
     return jsonify({"reply": reply})
+
+# To register in main.py:
+# from routes.patient_edu_routes import patient_edu_bp
+# app.register_blueprint(patient_edu_bp)
