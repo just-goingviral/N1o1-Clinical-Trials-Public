@@ -1,3 +1,4 @@
+
 modules = ["python-3.11", "postgresql-16"]
 
 [nix]
@@ -7,7 +8,7 @@ packages = ["cairo", "ffmpeg-full", "freetype", "ghostscript", "glibcLocales", "
 [deployment]
 deploymentTarget = "autoscale"
 build = ["sh", "-c", "pip install -r requirements.txt"]
-run = ["sh", "-c", "gunicorn --bind 0.0.0.0:5000 --timeout 300 --workers 1 --keep-alive 120 main:app"]
+run = ["sh", "-c", "gunicorn --bind 0.0.0.0:$PORT --timeout 300 --workers 1 --keep-alive 120 main:app"]
 
 [env]
 REPLIT_DISABLE_PACKAGE_LAYER = "1"
