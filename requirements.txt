@@ -19,3 +19,8 @@ flask-login
 flask-wtf
 werkzeug
 anthropic
+python-dotenv
+python-dotenv
+python-dotenv
+python-dotenv
+python-dotenv

@@ -5,7 +5,6 @@ Verify deployment readiness for N1O1 Clinical Trials
 """
 import os
 import sys
-import requests
 import subprocess
 from datetime import datetime
 
@@ -22,6 +21,9 @@ def print_warning(message):
 
 def print_error(message):
     print(f"❌ {message}")
+
+def print_info(message):
+    print(f"ℹ️ {message}")
 
 def check_files():
     """Check for critical files"""
@@ -62,12 +64,32 @@ def check_database():
     """Check database file"""
     print_header("Checking Database")
     
-    db_file = "no_dynamics.db"
+    db_file = 'no_dynamics.db'
     if os.path.exists(db_file):
+        print_success(f"Database file found: {db_file}")
+        # Check size
         size_mb = os.path.getsize(db_file) / (1024 * 1024)
-        print_success(f"Database file exists: {db_file} ({size_mb:.2f} MB)")
+        print_info(f"Database size: {size_mb:.2f} MB")
     else:
         print_warning("Database file not found. Will be created on first run.")
+
+def check_dependencies():
+    """Check dependencies"""
+    print_header("Checking Dependencies")
+    
+    required_packages = [
+        "flask", "gunicorn", "openai", "sqlalchemy", 
+        "flask_sqlalchemy", "matplotlib", "numpy", "python-dotenv"
+    ]
+    
+    for package in required_packages:
+        try:
+            # Try to import by removing dashes
+            import_name = package.replace("-", "_")
+            __import__(import_name)
+            print_success(f"{package} is installed")
+        except ImportError:
+            print_error(f"{package} is not installed")
 
 def check_deployment_config():
     """Check deployment configuration"""
@@ -106,22 +128,6 @@ def check_deployment_config():
     else:
         print_error("run_with_port.sh not found")
 
-def check_dependencies():
-    """Check dependencies"""
-    print_header("Checking Dependencies")
-    
-    required_packages = [
-        "flask", "gunicorn", "openai", "sqlalchemy", 
-        "flask_sqlalchemy", "matplotlib", "numpy"
-    ]
-    
-    for package in required_packages:
-        try:
-            __import__(package)
-            print_success(f"{package} is installed")
-        except ImportError:
-            print_error(f"{package} is not installed")
-
 def check_port():
     """Check if port is in use"""
     print_header("Checking Port Availability")
@@ -140,9 +146,6 @@ def check_port():
         s.close()
     except Exception as e:
         print_error(f"Error checking port: {str(e)}")
-
-def print_info(message):
-    print(f"ℹ️ {message}")
 
 def main():
     """Main function"""
