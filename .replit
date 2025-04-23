@@ -47,7 +47,7 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "gunicorn --bind 0.0.0.0:5000 --reuse-port --timeout 120 --workers 1 main:app"
+args = "gunicorn --bind 0.0.0.0:$PORT --reuse-port --timeout 120 --workers 1 main:app"
 
 [[workflows.workflow]]
 name = "Test AI Endpoints"
