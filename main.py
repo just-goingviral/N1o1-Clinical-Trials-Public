@@ -205,11 +205,13 @@ def handle_exception(e):
 @app.route('/system/health')
 def system_health():
     """Check system health"""
+    import datetime
     health = {
         "status": "online",
         "timestamp": str(datetime.datetime.now()),
         "database": "connected",
         "session": "active" if session.get('_id') else "initialized",
+        "port": os.environ.get('PORT', '5000'),
         "blueprints": {
             "analyzer": True,
             "api": True,
@@ -224,6 +226,7 @@ def system_health():
             conn.execute(db.text("SELECT 1"))
     except Exception as e:
         health["database"] = f"error: {str(e)}"
+        health["status"] = "degraded"
         
     return jsonify(health)
 

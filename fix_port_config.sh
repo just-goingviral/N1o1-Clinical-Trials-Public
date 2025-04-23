@@ -19,15 +19,22 @@ if [ -f Procfile ]; then
   echo "✅ Procfile updated"
 fi
 
-# Update workflow configuration
-echo "Updating Run Flask App workflow configuration..."
-cat > .replit.workflow.tmp << EOF
-[deployment]
-run = ["sh", "-c", "gunicorn --bind 0.0.0.0:\$PORT --timeout 300 --workers 1 --keep-alive 120 main:app"]
+# Create run.sh with PORT environment variable
+echo "Creating run.sh script..."
+cat > run.sh << 'EOF'
+#!/bin/bash
+export PORT=${PORT:-5000}
+echo "Starting server on port $PORT"
+gunicorn --bind 0.0.0.0:$PORT --timeout 300 --workers 1 --keep-alive 120 main:app
 EOF
 
 # Make the script executable
 chmod +x run.sh
+echo "✅ run.sh created and made executable"
+
+# Set PORT environment variable for current session
+export PORT=5000
+echo "✅ PORT environment variable set to 5000 for current session"
 
 echo "✅ Port configuration fixed"
 echo "Run your application using the 'Run' button, or execute: ./run.sh"
