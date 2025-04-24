@@ -1,40 +1,37 @@
-
 #!/bin/bash
-# Fix port configuration in all relevant files
+# Fix port configuration issues
+# Usage: ./fix_port_config.sh
 
-echo "N1O1 Clinical Trials - Port Configuration Fix"
-echo "============================================="
+echo "Starting port configuration fix process..."
 
-# Replace hardcoded port in .replit file
-if [ -f .replit ]; then
-  echo "Updating .replit file..."
-  sed -i 's/--bind 0.0.0.0:5000/--bind 0.0.0.0:$PORT/g' .replit
-  echo "✅ .replit updated"
+# Make sure we're using port 5000 consistently throughout the application
+# This helps ensure consistency between local development and production
+
+# Check if there are hardcoded ports other than 5000
+echo "Checking for hardcoded ports..."
+grep -r "app.run" --include="*.py" . | grep -v "5000" || echo "No hardcoded app.run ports found."
+grep -r "port=" --include="*.py" . | grep -v "5000" || echo "No hardcoded port= parameters found."
+grep -r "bind" --include="*.py" . | grep -v "5000" || echo "No hardcoded bind parameters found."
+
+# Fix main.py if it exists
+if [ -f main.py ]; then
+    echo "Updating port configuration in main.py..."
+    # Ensure we're using 0.0.0.0 and port 5000 from environment variable
+    sed -i 's/app.run(host=.*/app.run(host='\''0.0.0.0'\'', port=int(environ.get('\''PORT'\'', 5000)), debug=False)/' main.py || echo "No changes needed in main.py app.run"
 fi
 
-# Replace hardcoded port in Procfile
-if [ -f Procfile ]; then
-  echo "Updating Procfile..."
-  sed -i 's/--bind 0.0.0.0:5000/--bind 0.0.0.0:$PORT/g' Procfile
-  echo "✅ Procfile updated"
+# Fix app.py if it exists
+if [ -f app.py ]; then
+    echo "Updating port configuration in app.py..."
+    # Ensure we're using 0.0.0.0 and port 5000 from environment variable
+    sed -i 's/app.run(host=.*/app.run(host='\''0.0.0.0'\'', port=int(environ.get('\''PORT'\'', 5000)), debug=False)/' app.py || echo "No changes needed in app.py app.run"
 fi
 
-# Create run.sh with PORT environment variable
-echo "Creating run.sh script..."
-cat > run.sh << 'EOF'
-#!/bin/bash
-export PORT=${PORT:-5000}
-echo "Starting server on port $PORT"
-gunicorn --bind 0.0.0.0:$PORT --timeout 300 --workers 1 --keep-alive 120 main:app
-EOF
+# Create a PORT environment variable if it doesn't exist
+if [ -z "$PORT" ]; then
+    echo "Setting PORT environment variable to 5000"
+    export PORT=5000
+fi
 
-# Make the script executable
-chmod +x run.sh
-echo "✅ run.sh created and made executable"
-
-# Set PORT environment variable for current session
-export PORT=5000
-echo "✅ PORT environment variable set to 5000 for current session"
-
-echo "✅ Port configuration fixed"
-echo "Run your application using the 'Run' button, or execute: ./run.sh"
+echo "Port configuration fix complete."
+echo "Remember to restart your application for changes to take effect."
