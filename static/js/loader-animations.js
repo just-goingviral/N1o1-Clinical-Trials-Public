@@ -140,6 +140,14 @@ function showLoading(message = 'Processing Nitric Oxide Dynamics...') {
     }
 }
 
+// Set loading message
+function setMessage(message) {
+    const loadingMessage = document.querySelector('.loading-message');
+    if (loadingMessage) {
+        loadingMessage.textContent = message;
+    }
+}
+
 // Hide loading overlay
 function hideLoading() {
     const overlay = document.querySelector('.loading-overlay');
@@ -148,6 +156,8 @@ function hideLoading() {
         overlay.classList.remove('active');
     }
 }
+
+
 
 // Animation types for cycling
 const animationTypes = ['molecule', 'cell', 'dna', 'protein'];
@@ -166,6 +176,7 @@ function cycleAnimationType() {
 window.N1O1Loader = {
     show: showLoading,
     hide: hideLoading,
+    setMessage: setMessage,
     cycleAnimationType: cycleAnimationType,
     createGasParticle: createGasParticle,
     generateGasParticles: generateGasParticles
