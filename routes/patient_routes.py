@@ -55,6 +55,7 @@ def new_patient():
             flash('Patient created successfully!', 'success')
 
             # Redirect to patient list using url_for with _external=True to avoid redirect loops
+            # This is critical for avoiding redirect loops with custom domains
             return redirect(url_for('patients.list_patients', _external=True))
 
         except Exception as e:

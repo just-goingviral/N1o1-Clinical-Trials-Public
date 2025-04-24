@@ -5,6 +5,7 @@ from flask import Flask, render_template, redirect, url_for, session, jsonify, r
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 import os
+from werkzeug.middleware.proxy_fix import ProxyFix
 from models import db, Patient, Simulation, User, init_db
 from routes import analyzer_bp, api_bp, patient_bp, simulation_bp
 from routes.auth_routes import auth_bp
@@ -15,6 +16,17 @@ from routes.consent_routes import consent_bp
 
 # Create Flask application
 app = Flask(__name__)
+
+# Apply ProxyFix to handle forwarded headers from proxy servers
+# This is important for correct URL generation with custom domains and HTTPS
+app.wsgi_app = ProxyFix(
+    app.wsgi_app,
+    x_for=1,      # Number of trusted proxies for X-Forwarded-For
+    x_proto=1,    # Number of trusted proxies for X-Forwarded-Proto
+    x_host=1,     # Number of trusted proxies for X-Forwarded-Host
+    x_port=1,     # Number of trusted proxies for X-Forwarded-Port
+    x_prefix=1    # Number of trusted proxies for X-Forwarded-Prefix
+)
 
 # Configure database
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///no_dynamics.db')
