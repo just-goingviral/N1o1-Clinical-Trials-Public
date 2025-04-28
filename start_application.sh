@@ -1,20 +1,11 @@
 #!/bin/bash
-# This script ensures the application starts with proper port configuration
-# even if the PORT environment variable is not set
+# Simple startup script with explicit port
 
-# Set a fixed port for development
-export PORT=5000
-echo "Setting PORT environment variable to $PORT"
+# Use environment variable PORT or default to 5000
+PORT=${PORT:-5000}
 
-# Enable deployment mode for secure cookies
-export REPLIT_DEPLOYMENT=True
-echo "Enabling deployment mode for secure cookies"
+# Print startup message
+echo "Starting N1O1 Clinical Trials application on port $PORT"
 
-# Ensure session directory exists with proper permissions
-mkdir -p flask_session
-chmod 755 flask_session
-echo "Session directory checked"
-
-# Run gunicorn with explicit port binding
-echo "Starting gunicorn on port $PORT..."
-exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 main:app
+# Run with gunicorn
+exec gunicorn --bind "0.0.0.0:$PORT" --workers 1 --timeout 120 main:app

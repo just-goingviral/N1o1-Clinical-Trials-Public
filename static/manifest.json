@@ -1,0 +1,48 @@
+{
+  "name": "N1O1 Clinical Trials",
+  "short_name": "N1O1",
+  "description": "A comprehensive tool for modeling plasma nitrite dynamics in clinical trials",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1f5389",
+  "theme_color": "#3498db",
+  "icons": [
+    {
+      "src": "/static/images/n1o1-favicon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "orientation": "any",
+  "scope": "/",
+  "lang": "en-US",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "categories": ["health", "science", "medical", "research"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your clinical trials dashboard",
+      "url": "/"
+    },
+    {
+      "name": "Patients",
+      "short_name": "Patients",
+      "description": "Manage patient records",
+      "url": "/patients"
+    }
+  ],
+  "features": [
+    "Offline support",
+    "Local data storage",
+    "Background synchronization"
+  ]
+}

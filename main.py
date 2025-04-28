@@ -13,12 +13,16 @@ from routes.notes_routes import notes_bp
 from routes.ai_tools import ai_tools_bp
 from routes.chat_routes import chat_bp
 from routes.consent_routes import consent_bp
+from routes.offline_routes import offline_bp
 
 # Create Flask application
 app = Flask(__name__)
 
+# Fix for the "too many redirects" issue - explicitly set preferred URL scheme to HTTP
+app.config['PREFERRED_URL_SCHEME'] = 'http'
+
 # Apply ProxyFix to handle forwarded headers from proxy servers
-# This is important for correct URL generation with custom domains and HTTPS
+# This is important for correct URL generation with custom domains
 app.wsgi_app = ProxyFix(
     app.wsgi_app,
     x_for=1,      # Number of trusted proxies for X-Forwarded-For
@@ -54,16 +58,16 @@ app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_FILE_THRESHOLD'] = 100  # Limit number of session files
 app.config['SESSION_FILE_DIR'] = os.path.join(os.path.dirname(__file__), 'flask_session')
 app.config['SESSION_FILE_MODE'] = 384  # 0600 in octal
-# Set session cookie security based on environment
-# For custom domains with HTTPS, secure cookies are required
-# But also need to work in development with HTTP
-app.config['SESSION_COOKIE_SECURE'] = os.environ.get('REPLIT_DEPLOYMENT', False) == 'True'
+# Cookie security settings - Critical for preventing redirect loops
+app.config['SESSION_COOKIE_SECURE'] = False  # Always allow HTTP cookies regardless of protocol
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to cookies
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Restrict cookie sending to same site
 app.config['SESSION_COOKIE_PATH'] = '/'  # Set cookie path to root
 app.config['SESSION_COOKIE_DOMAIN'] = None  # Will match the domain that made the request
-app.config['SESSION_REFRESH_EACH_REQUEST'] = True  # Refresh the session cookie for each request
+app.config['SESSION_REFRESH_EACH_REQUEST'] = False  # Don't refresh cookies on each request to prevent loops
 app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours (in seconds)
+app.config['REMEMBER_COOKIE_SECURE'] = False  # Allow HTTP cookies for remember me functionality
+app.config['REMEMBER_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to remember cookies
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_key_for_testing')
 
 # Initialize database
@@ -124,64 +128,78 @@ app.register_blueprint(notes_bp)
 app.register_blueprint(ai_tools_bp)
 app.register_blueprint(chat_bp)
 app.register_blueprint(consent_bp)
+app.register_blueprint(offline_bp)
 
 # Add improved redirect loop protection
 @app.before_request
 def prevent_redirect_loops():
-    # Skip for static files and health checks
-    if request.path.startswith('/static') or request.path == '/ping' or request.path == '/system/health':
+    # Always skip for these resource types to avoid interference
+    if (request.path.startswith('/static') or 
+        request.path == '/ping' or 
+        request.path == '/system/health' or
+        request.path == '/offline' or
+        request.path == '/manifest.json' or
+        request.path == '/service-worker.js' or
+        request.path.startswith('/api/server-status')):
         return None
     
-    # If user is already authenticated and trying to access login, just redirect them home
+    # Redirect to dashboard if accessing login when already authenticated
     if current_user.is_authenticated and request.path == '/auth/login':
-        return redirect(url_for('index', _external=True))
+        return redirect(url_for('index', _scheme='http', _external=True))
     
-    # Initialize session if needed but don't track redirects for unauthenticated users visiting main page
-    if request.path == '/' and not current_user.is_authenticated:
-        # Reset any redirect tracking
+    # Don't track redirects on the homepage
+    if request.path == '/':
+        # Just reset counters without doing any other tracking
         if 'redirect_count' in session:
-            session['redirect_count'] = 0
+            session.pop('redirect_count')
         if 'last_urls' in session:
+            session.pop('last_urls')
+        return None
+    
+    # Skip tracking for ajax or API requests
+    if request.is_xhr or request.path.startswith('/api/'):
+        return None
+        
+    try:
+        # Initialize tracking vars if needed
+        if 'redirect_count' not in session:
+            session['redirect_count'] = 0
+        if 'last_urls' not in session:
             session['last_urls'] = []
-        return None
+            
+        # Only track redirects specifically
+        if request.endpoint and request.endpoint.endswith('_redirect'):
+            # Count redirects
+            session['redirect_count'] += 1
+            
+            # Only track the URL path for consistency
+            tracking_url = request.path
+            
+            # Store in history (limit to last 3)
+            last_urls = session.get('last_urls', [])
+            if tracking_url not in last_urls[-2:]:  # Only add if not already in recent history
+                last_urls.append(tracking_url)
+                session['last_urls'] = last_urls[-3:]
+            
+            # Emergency stop if too many redirects
+            if session['redirect_count'] > 10:
+                # Don't clear entire session, just reset counts
+                session.pop('redirect_count', None)
+                session.pop('last_urls', None)
+                
+                # Return a clear error page
+                return render_template('error.html', 
+                                    error_message="Redirect loop detected. Please try clearing your cookies or accessing with a different browser.",
+                                    error_code=400), 400
+        else:
+            # Reset counters for non-redirects
+            session['redirect_count'] = 0
+    except Exception as e:
+        # Log the error but don't stop the request
+        print(f"Error in redirect tracking: {str(e)}")
     
-    # Initialize session tracking variables
-    if 'redirect_count' not in session:
-        session['redirect_count'] = 0
-    if 'last_urls' not in session:
-        session['last_urls'] = []
-    
-    # Only track full URLs for authentication-related pages to avoid domain issues
-    tracking_url = request.path
-    
-    # Add current URL to history (keep last 5)
-    last_urls = session.get('last_urls', [])
-    last_urls.append(tracking_url)
-    session['last_urls'] = last_urls[-5:]
-    
-    # Check for repeat visits to same URL
-    if len(session['last_urls']) >= 3:
-        # If same URL appears 3 times in history, it's a loop
-        if session['last_urls'].count(tracking_url) >= 3:
-            session.clear()  # Clear entire session to fix potential corruption
-            return render_template('error.html', 
-                                  error_message="Redirect loop detected. We've cleared your session to fix this.",
-                                  error_code=500), 500
-    
-    # Regular redirect counting logic - reset for non-redirects
-    if request.endpoint and not request.endpoint.endswith('_redirect'):
-        session['redirect_count'] = 0
-        return None
-    
-    # Count redirects
-    session['redirect_count'] += 1
-    
-    # If redirecting too many times, stop and show error
-    if session['redirect_count'] > 4:
-        session.clear()  # Clear entire session
-        return render_template('error.html', 
-                              error_message="Too many redirects detected. We've cleared your session to fix this.",
-                              error_code=500), 500
+    # Continue with normal request processing
+    return None
 
 # Main routes
 @app.route('/')
@@ -209,7 +227,21 @@ def index():
 @app.route('/patient')
 def patients_redirect():
     """Redirect /patient to /patients"""
-    return redirect(url_for('patients.list_patients', _external=True))
+    return redirect(url_for('patients.list_patients', _scheme='http', _external=True))
+
+# Helper function for consistent URL generation with HTTP
+def safe_url_for(endpoint, **kwargs):
+    """Generate URLs consistently with HTTP scheme to prevent redirect loops"""
+    # Always force HTTP scheme
+    kwargs['_scheme'] = 'http'
+    kwargs['_external'] = True
+    return url_for(endpoint, **kwargs)
+
+# Add the helper to the global template context
+@app.context_processor
+def inject_safe_url_for():
+    """Inject safe_url_for into template context"""
+    return dict(safe_url_for=safe_url_for)
 
 # Initialize database and create tables if needed
 with app.app_context():
@@ -308,6 +340,15 @@ def ping():
 # Run the application
 if __name__ == '__main__':
     # Use PORT environment variable for deployment compatibility
-    from os import environ
-    port = int(environ.get('PORT', 5000))
+    # Always default to 5000 if not set or not valid
+    try:
+        port = int(os.environ.get('PORT', '5000'))
+        if port <= 0 or port > 65535:
+            print(f"Warning: Invalid PORT value: {port}, defaulting to 5000")
+            port = 5000
+    except (ValueError, TypeError):
+        print(f"Warning: Invalid PORT value: {os.environ.get('PORT')}, defaulting to 5000")
+        port = 5000
+        
+    print(f"Starting application on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)

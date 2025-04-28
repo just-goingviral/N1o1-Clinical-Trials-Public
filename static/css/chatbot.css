@@ -454,84 +454,180 @@
 
 /* Mobile responsive styles */
 @media (max-width: 768px) {
+  /* Chat button styles */
   .no-molecule-chat-button {
-    width: 55px;
-    height: 55px;
+    width: 60px;
+    height: 60px;
     right: 15px;
     bottom: 15px;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1050;
     transform: none;
   }
 
   .no-molecule-chat-button:hover {
     transform: scale(1.1);
   }
-
+  
+  /* Chat Modal styles */
   .no-chat-modal {
-    width: 92%;
-    height: 75vh;
-    right: 4%;
-    bottom: 90px;
-    max-height: calc(100vh - 120px);
-  }
-
-  .no-chat-modal.fullscreen {
     width: 100%;
-    height: 100vh;
+    height: 85vh;
     right: 0;
     bottom: 0;
+    border-radius: 15px 15px 0 0;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
+    max-height: none;
+  }
+  
+  /* Make fullscreen mode actually fullscreen */
+  .no-chat-modal.fullscreen {
+    height: 100vh;
+    bottom: 0;
+    right: 0;
+    border-radius: 0;
     max-height: 100vh;
   }
-
-  .no-chat-header h5 {
-    font-size: 1rem;
+  
+  /* Chat header adjustments */
+  .no-chat-header {
+    padding: 12px 15px;
+    flex-direction: row;
+    justify-content: space-between;
   }
-
+  
+  .no-chat-header h5 {
+    font-size: 1.1rem;
+    margin: 0;
+  }
+  
   .no-molecule-svg {
     width: 35px;
     height: 35px;
   }
-
-  .no-chat-bubble {
-    padding: 10px 14px;
-    font-size: 0.9rem;
-    max-width: 95%;
+  
+  /* Messages area */
+  .no-chat-messages {
+    padding: 10px;
+    max-height: calc(85vh - 120px);
   }
-
+  
+  .no-chat-modal.fullscreen .no-chat-messages {
+    max-height: calc(100vh - 120px);
+  }
+  
+  /* Message bubbles */
+  .no-chat-bubble {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    max-width: 85%;
+    border-radius: 15px;
+    font-size: 14px;
+  }
+  
+  /* Input container */
   .no-chat-input-container {
     padding: 10px;
+    background-color: rgba(22, 50, 92, 0.95); /* Slightly transparent for better contrast */
   }
-
+  
+  .no-chat-input {
+    font-size: 14px;
+    padding: 10px 12px;
+    border-radius: 20px;
+    max-height: 100px; /* Limit height for long inputs */
+    overflow-y: auto;
+  }
+  
+  /* File upload area */
+  .no-chat-file-upload {
+    margin-top: 5px;
+  }
+  
+  /* Touch-friendly controls */
+  .no-chat-tool-btn,
   .no-chat-send-btn {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-
-  .no-chat-message {
-    max-width: 90%;
+  
+  /* Improve scrolling experience */
+  .no-chat-messages {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
   }
-
-  .no-chat-tool-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 0.8rem;
+  
+  /* Clickable items in chat */
+  .clickable-item {
+    padding: 10px;
+    margin-bottom: 8px;
   }
 }
 
 /* Extra small screens */
 @media (max-width: 480px) {
+  .no-molecule-chat-button {
+    width: 50px;
+    height: 50px;
+    right: 10px;
+    bottom: 10px;
+  }
+  
+  .no-molecule-svg {
+    width: 30px;
+    height: 30px;
+  }
+  
   .no-chat-modal {
-    width: 96%;
-    right: 2%;
-    bottom: 80px;
+    width: 100%;
+    height: 90vh;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px 12px 0 0;
+  }
+  
+  .no-chat-modal.fullscreen {
+    border-radius: 0;
   }
 
   .no-chat-messages {
-    padding: 12px;
+    padding: 8px;
+    max-height: calc(90vh - 120px);
+  }
+  
+  .no-chat-input-container {
+    padding: 8px;
   }
 
   .no-chat-input {
     font-size: 13px;
     padding: 8px 10px;
+  }
+  
+  .no-chat-bubble {
+    padding: 8px 10px;
+    font-size: 13px;
+    max-width: 90%;
+  }
+  
+  /* Make button touch targets more accessible */
+  .no-chat-tool-btn,
+  .no-chat-send-btn {
+    min-width: 38px;
+    min-height: 38px;
+  }
+  
+  /* Ensure there's space at the bottom when the keyboard appears */
+  @supports (-webkit-touch-callout: none) {
+    /* iOS devices */
+    .no-chat-input-container {
+      padding-bottom: 15px;
+    }
   }
 }
 
@@ -561,4 +657,32 @@
 .no-chat-bubble ul li {
   margin-bottom: 4px;
   color: white;
+}
+
+/* Landscape orientation optimizations */
+@media (max-width: 768px) and (orientation: landscape) {
+  .no-chat-modal {
+    height: 85vh;
+    max-height: 85vh;
+  }
+  
+  .no-chat-messages {
+    max-height: calc(85vh - 110px);
+  }
+  
+  .no-chat-header {
+    padding: 8px 15px;
+  }
+  
+  .no-chat-input-container {
+    padding: 8px;
+  }
+  
+  /* Adjust for iPhone notch in landscape */
+  @supports (padding: max(0px)) {
+    .no-chat-modal {
+      padding-left: max(15px, env(safe-area-inset-left));
+      padding-right: max(15px, env(safe-area-inset-right));
+    }
+  }
 }

@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block title %}N1O1 Clinical Trials - Offline{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+  .offline-container {
+    text-align: center;
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .offline-icon {
+    width: 150px;
+    height: 150px;
+    margin: 2rem auto;
+  }
+
+  .offline-title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--bs-info);
+  }
+
+  .offline-message {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    color: var(--bs-secondary);
+  }
+
+  .cached-data-container {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .cached-data-title {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: var(--bs-primary);
+  }
+
+  .cached-data-list {
+    text-align: left;
+    list-style-type: none;
+    padding-left: 0;
+  }
+
+  .cached-data-list li {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  .retry-button {
+    margin-top: 2rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="offline-container">
+    <img src="{{ url_for('static', filename='images/offline-graphic.svg') }}" alt="Offline" class="offline-icon">
+    <h1 class="offline-title">You're Offline</h1>
+    <p class="offline-message">
+      It appears you've lost your internet connection. 
+      Don't worry, N1O1 Clinical Trials is designed to work offline.
+      You can continue working with cached data until your connection is restored.
+    </p>
+
+    <button id="retry-connection" class="btn btn-primary retry-button">
+      <i class="bi bi-arrow-repeat"></i> Retry Connection
+    </button>
+
+    <div id="cached-data-container" class="cached-data-container d-none">
+      <h2 class="cached-data-title">Available Offline Data</h2>
+      <ul id="cached-data-list" class="cached-data-list">
+        <!-- Cached data will be populated here via JavaScript -->
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const retryButton = document.getElementById('retry-connection');
+    const cachedDataContainer = document.getElementById('cached-data-container');
+    const cachedDataList = document.getElementById('cached-data-list');
+
+    // Check for cached data and display it
+    checkCachedData().then(hasData => {
+      if (hasData) {
+        cachedDataContainer.classList.remove('d-none');
+      }
+    });
+
+    // Retry connection button
+    retryButton.addEventListener('click', function() {
+      retryButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Checking...';
+      retryButton.disabled = true;
+      
+      fetch('/api/server-status')
+        .then(response => {
+          if (response.ok) {
+            window.location.href = '/';
+          } else {
+            throw new Error('Still offline');
+          }
+        })
+        .catch(error => {
+          console.error('Connection retry failed:', error);
+          retryButton.innerHTML = '<i class="bi bi-arrow-repeat"></i> Retry Connection';
+          retryButton.disabled = false;
+          
+          // Show a toast notification
+          const toastEl = document.createElement('div');
+          toastEl.className = 'toast align-items-center text-white bg-danger border-0';
+          toastEl.setAttribute('role', 'alert');
+          toastEl.setAttribute('aria-live', 'assertive');
+          toastEl.setAttribute('aria-atomic', 'true');
+          toastEl.innerHTML = `
+            <div class="d-flex">
+              <div class="toast-body">
+                Still offline. Please check your internet connection.
+              </div>
+              <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+          `;
+          document.body.appendChild(toastEl);
+          const toast = new bootstrap.Toast(toastEl);
+          toast.show();
+          
+          // Remove the toast after it's hidden
+          toastEl.addEventListener('hidden.bs.toast', function() {
+            toastEl.remove();
+          });
+        });
+    });
+    
+    // Function to check for cached data in IndexedDB
+    async function checkCachedData() {
+      // Check if IndexedDB is available
+      if (!window.indexedDB) {
+        return false;
+      }
+      
+      try {
+        // Try to load cached data types from offline-data.js
+        if (typeof window.OfflineData !== 'undefined' && window.OfflineData.getStoredData) {
+          // Get the list of data types from IndexedDB
+          const dataTypes = ['patients', 'simulations', 'measurements', 'notes'];
+          let hasAnyData = false;
+          
+          // Check each data type
+          for (const type of dataTypes) {
+            const items = await window.OfflineData.getStoredData(type);
+            if (items && items.length > 0) {
+              hasAnyData = true;
+              
+              // Create a list item for this data type
+              const li = document.createElement('li');
+              li.innerHTML = `<strong>${type.charAt(0).toUpperCase() + type.slice(1)}</strong>: ${items.length} item(s) available`;
+              cachedDataList.appendChild(li);
+            }
+          }
+          
+          return hasAnyData;
+        }
+      } catch (error) {
+        console.error('Error checking cached data:', error);
+      }
+      
+      return false;
+    }
+  });
+</script>
+{% endblock %}

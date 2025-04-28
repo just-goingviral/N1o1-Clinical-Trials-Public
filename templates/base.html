@@ -3,6 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2063c9">
+    <meta name="description" content="N1O1 Clinical Trials - Plasma Nitrite Level Simulation for Clinical Research">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="msapplication-TileColor" content="#2063c9">
+    
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+    
+    <!-- Favicon and app icons -->
+    <link rel="icon" type="image/svg+xml" href="/static/images/n1o1-favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/n1o1-apple-touch-icon.png">
+    
     <title>{% block title %}N1O1 Clinical Trials{% endblock %}</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
@@ -13,6 +26,7 @@
     <link href="/static/css/tooltips.css" rel="stylesheet">
     <link href="/static/css/loader-animations.css" rel="stylesheet">
     <link href="/static/css/chatbot.css" rel="stylesheet">
+    <link href="/static/css/responsive.css" rel="stylesheet">
     <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -34,8 +48,28 @@
         }
     </style>
     {% block head %}{% endblock %}
+
+    <!-- Service Worker Registration -->
+    <script>
+        // Register service worker for offline support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/js/service-worker.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful with scope:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.error('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+    </script>
 </head>
 <body>
+    <!-- Offline status indicator (hidden by default) -->
+    <div id="offline-status" style="display:none; position:fixed; top:60px; right:10px; background-color:#dc3545; color:#fff; padding:5px 10px; border-radius:4px; z-index:9999; font-size:0.9rem;">
+        <i class="fas fa-wifi-slash me-2"></i> You're offline
+    </div>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
@@ -154,15 +188,96 @@
     <script src="/static/js/file-attachments.js"></script>
     <!-- Southern Error Messages Script -->
     <script src="/static/js/error-messages.js"></script>
+    
+    <!-- Offline Support Scripts -->
+    <script src="/static/js/indexeddb-manager.js"></script>
+    <script src="/static/js/offline-data.js"></script>
+    <script src="/static/js/sync-manager.js"></script>
 
     <!-- Initialize responsive behavior -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize responsive utilities
-            if (window.N1O1Responsive) {
-                window.N1O1Responsive.init();
+            // Initialize responsive behaviors
+            try {
+                // Call functions directly from responsive-util.js
+                initResponsiveBehaviors();
+                
+                // Set up classes for viewport sizes
+                updateViewportClasses();
+                
+                // Initialize mobile-specific features
+                if (window.innerWidth < 768) {
+                    // Mobile optimizations
+                    makeTablesResponsive();
+                    enhanceSelectMenus();
+                    makeContentCollapsible();
+                    
+                    // Touch-specific optimizations
+                    if ('ontouchstart' in window) {
+                        enableSwipeSupport();
+                        initTouchBehaviors();
+                    }
+                }
+                
+                // Initialize charts if they exist
+                if (typeof initMobileCharts === 'function') {
+                    initMobileCharts();
+                }
+                
+                // Initialize chat if it exists
+                if (typeof initMobileChat === 'function') {
+                    initMobileChat();
+                }
+                
+                console.log('Responsive behaviors initialized successfully');
+            } catch (e) {
+                console.error('Error initializing responsive behaviors:', e);
             }
+            
+            // Initialize offline detector
+            initOfflineDetector();
         });
+        
+        // Handle online/offline status
+        function initOfflineDetector() {
+            const offlineStatus = document.getElementById('offline-status');
+            
+            // Update UI based on connection status
+            function updateOnlineStatus() {
+                if (navigator.onLine) {
+                    // Online
+                    document.body.classList.remove('offline-mode');
+                    document.body.classList.add('online-mode');
+                    
+                    if (offlineStatus) {
+                        offlineStatus.style.display = 'none';
+                    }
+                    
+                    // If we have pending changes, show sync UI
+                    if (window.N1O1 && window.N1O1.syncManager) {
+                        window.N1O1.syncManager.showPendingChanges();
+                    }
+                } else {
+                    // Offline
+                    document.body.classList.remove('online-mode');
+                    document.body.classList.add('offline-mode');
+                    
+                    if (offlineStatus) {
+                        offlineStatus.style.display = 'block';
+                    }
+                }
+            }
+            
+            // Initial status check
+            updateOnlineStatus();
+            
+            // Event listeners for changes
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
+            
+            // Check periodically 
+            setInterval(updateOnlineStatus, 30000);
+        }
     </script>
 
     <!-- Ensure chatbot is properly displayed -->
