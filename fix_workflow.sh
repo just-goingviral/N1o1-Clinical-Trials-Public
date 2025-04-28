@@ -1,29 +1,45 @@
 #!/bin/bash
-# Script to fix the Replit workflow configuration
+# Fix workflow configuration for reliable startup
+# This script patches the workflow configuration issues
 
-echo "=== N1O1 Clinical Trials - Workflow Fix Tool ==="
-echo "This script creates a robust command for the Replit workflow."
-echo
+echo "===== N1O1 Clinical Trials Workflow Fix ====="
 
-# Create a fixed workflow command file
-cat > .replit.workflow.fixed << EOF
-run = "PORT=5000 gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app"
+# Create a known good workflow script
+cat > reliable_workflow.sh << 'EOF'
+#!/bin/bash
+# Reliable workflow script with hardcoded settings
+# This script ensures the application starts regardless of environment issues
+
+# Always use these fixed settings
+FIXED_PORT=5000
+FIXED_WORKERS=1
+FIXED_TIMEOUT=300
+
+# Diagnostic output
+echo "Starting N1O1 Clinical Trials with fixed settings:"
+echo "- Port: $FIXED_PORT"
+echo "- Workers: $FIXED_WORKERS"
+echo "- Timeout: $FIXED_TIMEOUT"
+
+# Attempt to kill any existing process on this port
+fuser -k $FIXED_PORT/tcp 2>/dev/null || echo "No existing process on port $FIXED_PORT"
+sleep 2
+
+# Use a direct command with all parameters hardcoded - no variables
+exec gunicorn --bind 0.0.0.0:5000 --timeout 300 --workers 1 --keep-alive 120 main:app
 EOF
 
-echo "Created fixed workflow command."
-echo
-echo "To fix your workflow configuration:"
-echo "1. Click on the 'Run' button dropdown (top center)"
-echo "2. Select 'Configure Runs'"
-echo "3. Find 'Start application' workflow"
-echo "4. Replace the command with:"
-echo "   PORT=5000 gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app"
-echo "5. Click 'Save changes'"
-echo
-echo "Alternatively, you can use:"
-echo "   ./start_application.sh"
-echo
-echo "For deployment with custom domains:"
-echo "1. Run './fix_domain.sh' first"
-echo "2. Deploy your application"
-echo "3. Test your custom domain in a private/incognito browser window"
+# Make it executable
+chmod +x reliable_workflow.sh
+
+# Provide guidance message
+echo ""
+echo "Created reliable_workflow.sh with hardcoded settings"
+echo ""
+echo "To fix the workflow permanently:"
+echo "1. Use this script in your workflow definition: ./reliable_workflow.sh"
+echo "2. Or update your .replit workflow to use this exact command:"
+echo "   'gunicorn --bind 0.0.0.0:5000 --timeout 300 --workers 1 --keep-alive 120 main:app'"
+echo "3. Do not reference the \$PORT variable in the workflow"
+echo ""
+echo "The application should now start successfully with these changes."

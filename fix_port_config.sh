@@ -1,37 +1,38 @@
 #!/bin/bash
-# Fix port configuration issues
-# Usage: ./fix_port_config.sh
+# Fix port configuration issues in workflow
+# This script directly modifies workflow tasks to use a hardcoded port
 
-echo "Starting port configuration fix process..."
+echo "===== N1O1 Clinical Trials Port Configuration Fix ====="
 
-# Make sure we're using port 5000 consistently throughout the application
-# This helps ensure consistency between local development and production
+# Make sure there's a hardcoded port in the environment
+export PORT=5000
+echo "PORT environment variable set to 5000"
 
-# Check if there are hardcoded ports other than 5000
-echo "Checking for hardcoded ports..."
-grep -r "app.run" --include="*.py" . | grep -v "5000" || echo "No hardcoded app.run ports found."
-grep -r "port=" --include="*.py" . | grep -v "5000" || echo "No hardcoded port= parameters found."
-grep -r "bind" --include="*.py" . | grep -v "5000" || echo "No hardcoded bind parameters found."
+# Create a wrapper script specifically for the workflow
+cat > workflow_launcher.sh << 'EOF'
+#!/bin/bash
 
-# Fix main.py if it exists
-if [ -f main.py ]; then
-    echo "Updating port configuration in main.py..."
-    # Ensure we're using 0.0.0.0 and port 5000 from environment variable
-    sed -i 's/app.run(host=.*/app.run(host='\''0.0.0.0'\'', port=int(environ.get('\''PORT'\'', 5000)), debug=False)/' main.py || echo "No changes needed in main.py app.run"
-fi
+# Always use port 5000 regardless of environment variables
+# This ensures the workflow doesn't try to use an empty port
+PORT=5000
 
-# Fix app.py if it exists
-if [ -f app.py ]; then
-    echo "Updating port configuration in app.py..."
-    # Ensure we're using 0.0.0.0 and port 5000 from environment variable
-    sed -i 's/app.run(host=.*/app.run(host='\''0.0.0.0'\'', port=int(environ.get('\''PORT'\'', 5000)), debug=False)/' app.py || echo "No changes needed in app.py app.run"
-fi
+# Output diagnostic information
+echo "N1O1 Clinical Trials starting on port $PORT"
+echo "Working directory: $(pwd)"
+echo "Current user: $(whoami)"
+echo "Process ID: $$"
 
-# Create a PORT environment variable if it doesn't exist
-if [ -z "$PORT" ]; then
-    echo "Setting PORT environment variable to 5000"
-    export PORT=5000
-fi
+# Run gunicorn with the hardcoded port
+exec gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app
+EOF
 
-echo "Port configuration fix complete."
-echo "Remember to restart your application for changes to take effect."
+# Make the script executable
+chmod +x workflow_launcher.sh
+
+echo "Created workflow_launcher.sh with hardcoded port 5000"
+echo ""
+echo "IMPORTANT: Update your workflow configuration to use:"
+echo "./workflow_launcher.sh"
+echo "instead of the current gunicorn command"
+echo ""
+echo "Port configuration fix complete!"

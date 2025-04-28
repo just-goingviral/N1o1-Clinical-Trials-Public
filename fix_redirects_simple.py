@@ -75,6 +75,25 @@ def main():
     with open('main.py', 'w') as f:
         f.write('\n'.join(new_lines))
     
+    # Also update the workflow configuration
+    with open('workflow_config.txt', 'w') as f:
+        f.write("""
+# N1O1 Clinical Trials Workflow Configuration
+# This file is used by workflow_start.sh
+
+# Default port to use if PORT environment variable is not set
+DEFAULT_PORT=5000
+
+# Number of workers to use
+WORKERS=1
+
+# Timeout in seconds
+TIMEOUT=300
+
+# Keep-alive time in seconds
+KEEP_ALIVE=120
+""")
+    
     print("Redirect loop fixes applied successfully!")
     print("Please restart the application with: ./start_clean.sh")
 
