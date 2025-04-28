@@ -23,5 +23,4 @@ dependencies = [
     "requests",
     "fpdf",
     "werkzeug",
-    "uuid",
 ]
