@@ -1,37 +1,31 @@
 #!/bin/bash
-# This script terminates existing processes and starts a fresh instance
-# of the application with a clean environment
+# Complete reset and startup script
+# This script applies all fixes and starts the application cleanly
 
-echo "=== N1O1 Clinical Trials - Reset & Start Script ==="
-echo "Terminating existing processes..."
+echo "===== N1O1 Clinical Trials Reset & Start ====="
+echo "Applying comprehensive fixes for redirect issues..."
 
-# Kill all existing gunicorn processes
-pkill -9 -f gunicorn
-echo "Cleaned up gunicorn processes"
+# Run the redirect fix script
+python fix_redirects_simple.py
 
-# Kill any Python processes that might be holding the port
-pkill -9 -f "python.*5000"
-pkill -9 -f "python.*5001"
-echo "Cleaned up Python processes"
+# Kill any existing processes on port 5000
+echo "Checking for processes on port 5000..."
+fuser -k 5000/tcp 2>/dev/null || echo "No process on port 5000"
 
-# Clear session files
-rm -rf flask_session/*
-mkdir -p flask_session
-chmod 755 flask_session
-echo "Cleared session files"
+# Clear any Flask session files that might be causing issues
+echo "Clearing Flask session files..."
+rm -f flask_session/* 2>/dev/null
 
-# Set port and configuration variables
-export PORT=5001
-echo "Setting PORT=$PORT"
-
-# Disable secure cookies to prevent redirect loops
-export SESSION_COOKIE_SECURE=False
-export REPLIT_DEPLOYMENT=False
-echo "Disabled secure cookies"
-
-# Wait for ports to be fully released
+# Wait for ports to be released
+echo "Waiting for ports to be released..."
 sleep 2
-echo "Starting server on port $PORT..."
 
-# Start the application with explicit port binding
-exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 main:app
+# Set strict HTTP/cookie configuration
+echo "Setting strict HTTP configuration..."
+export FLASK_RUN_PORT=5000
+export PORT=5000
+export FLASK_DEBUG=0
+
+# Start the application with fixed settings
+echo "Starting application on port 5000..."
+exec gunicorn --bind 0.0.0.0:5000 --timeout 300 --workers 1 --keep-alive 120 main:app
