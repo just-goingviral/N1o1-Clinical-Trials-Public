@@ -206,7 +206,7 @@ def index():
 @app.route('/patient')
 def patients_redirect():
     """Redirect /patient to /patients"""
-    return redirect(url_for('patients.list_patients' _external=True))
+    return redirect(url_for('patients.list_patients', _external=True))
 
 # Initialize database and create tables if needed
 with app.app_context():

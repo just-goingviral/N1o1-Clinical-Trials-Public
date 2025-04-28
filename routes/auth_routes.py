@@ -66,7 +66,7 @@ def login():
     """Handle user login"""
     # Check if already logged in
     if current_user.is_authenticated:
-        return redirect(url_for('index', _external=True))  # Redirect to index page with absolute URL
+        return redirect('/')  # Direct redirect to root
     
     # Create demo user if it doesn't exist
     demo_user = create_demo_user()
@@ -97,12 +97,12 @@ def login():
             session[key] = value
         
         next_page = request.args.get('next')
-        # Enhanced validation to prevent redirect loops - always use _external=True
-        if not next_page or not next_page.startswith('/') or 'login' in next_page or 'logout' in next_page:
-            return redirect(url_for('index', _external=True))  # Use absolute URL
+        # Use direct paths instead of url_for to avoid potential domain issues
+        if not next_page or 'login' in next_page or 'logout' in next_page:
+            return redirect('/')
         
-        # Make sure we use an absolute URL for redirects
-        return redirect(next_page if next_page.startswith('http') else url_for('index', _external=True))
+        # Use direct path for redirects
+        return redirect(next_page if next_page.startswith('http') or next_page.startswith('/') else '/')
     
     return render_template('auth/login.html', 
                           title='Sign In', 
@@ -116,9 +116,11 @@ def login():
 def logout():
     """Handle user logout"""
     logout_user()
+    # Clear the entire session to avoid any state issues
+    session.clear()
     flash('You have been logged out.', 'info')
-    # Use absolute URL to prevent potential loop
-    return redirect(url_for('index', _external=True))
+    # Use direct path instead of url_for to avoid domain issues
+    return redirect('/')
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
