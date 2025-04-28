@@ -66,7 +66,7 @@ def login():
     """Handle user login"""
     # Check if already logged in
     if current_user.is_authenticated:
-        return redirect(url_for('index'))  # Redirect to index page
+        return redirect(url_for('index', _external=True))  # Redirect to index page with absolute URL
     
     # Create demo user if it doesn't exist
     demo_user = create_demo_user()
@@ -89,18 +89,20 @@ def login():
         user.last_login = db.func.now()
         db.session.commit()
         
-        # Clear any redirect tracking to prevent loops
-        if 'redirect_count' in session:
-            session['redirect_count'] = 0
-        if 'last_urls' in session:
-            session['last_urls'] = []
+        # Clear entire session except for auth-related items to ensure a clean state
+        session_items_to_keep = ['_user_id', '_remember', 'csrf_token']
+        session_copy = {key: value for key, value in session.items() if key in session_items_to_keep}
+        session.clear()
+        for key, value in session_copy.items():
+            session[key] = value
         
         next_page = request.args.get('next')
-        # Enhanced validation to prevent redirect loops
+        # Enhanced validation to prevent redirect loops - always use _external=True
         if not next_page or not next_page.startswith('/') or 'login' in next_page or 'logout' in next_page:
-            next_page = url_for('index')  # Default to index
+            return redirect(url_for('index', _external=True))  # Use absolute URL
         
-        return redirect(next_page)
+        # Make sure we use an absolute URL for redirects
+        return redirect(next_page if next_page.startswith('http') else url_for('index', _external=True))
     
     return render_template('auth/login.html', 
                           title='Sign In', 

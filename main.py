@@ -54,11 +54,13 @@ app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_FILE_THRESHOLD'] = 100  # Limit number of session files
 app.config['SESSION_FILE_DIR'] = os.path.join(os.path.dirname(__file__), 'flask_session')
 app.config['SESSION_FILE_MODE'] = 384  # 0600 in octal
-app.config['SESSION_COOKIE_SECURE'] = False  # Allow cookies over HTTP for development
+app.config['SESSION_COOKIE_SECURE'] = True  # Use secure cookies for HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to cookies
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Restrict cookie sending to same site
 app.config['SESSION_COOKIE_PATH'] = '/'  # Set cookie path to root
-app.config['SESSION_COOKIE_DOMAIN'] = None  # Allow the browser to set domain automatically
+app.config['SESSION_COOKIE_DOMAIN'] = None  # Will match the domain that made the request
+app.config['SESSION_REFRESH_EACH_REQUEST'] = True  # Refresh the session cookie for each request
+app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours (in seconds)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_key_for_testing')
 
 # Initialize database
@@ -126,45 +128,56 @@ def prevent_redirect_loops():
     # Skip for static files and health checks
     if request.path.startswith('/static') or request.path == '/ping' or request.path == '/system/health':
         return None
-        
-    # Initialize session if needed
+    
+    # If user is already authenticated and trying to access login, just redirect them home
+    if current_user.is_authenticated and request.path == '/auth/login':
+        return redirect(url_for('index', _external=True))
+    
+    # Initialize session if needed but don't track redirects for unauthenticated users visiting main page
+    if request.path == '/' and not current_user.is_authenticated:
+        # Reset any redirect tracking
+        if 'redirect_count' in session:
+            session['redirect_count'] = 0
+        if 'last_urls' in session:
+            session['last_urls'] = []
+        return None
+    
+    # Initialize session tracking variables
     if 'redirect_count' not in session:
         session['redirect_count'] = 0
-        
-    # Track the current URL to detect loops
     if 'last_urls' not in session:
         session['last_urls'] = []
-        
+    
+    # Only track full URLs for authentication-related pages to avoid domain issues
+    tracking_url = request.path
+    
     # Add current URL to history (keep last 5)
-    current_url = request.url
     last_urls = session.get('last_urls', [])
-    last_urls.append(current_url)
+    last_urls.append(tracking_url)
     session['last_urls'] = last_urls[-5:]
     
     # Check for repeat visits to same URL
     if len(session['last_urls']) >= 3:
         # If same URL appears 3 times in history, it's a loop
-        if session['last_urls'].count(current_url) >= 3:
-            session['redirect_count'] = 0
-            session['last_urls'] = []
+        if session['last_urls'].count(tracking_url) >= 3:
+            session.clear()  # Clear entire session to fix potential corruption
             return render_template('error.html', 
-                                  error_message="Redirect loop detected. Please try clearing your cookies.",
+                                  error_message="Redirect loop detected. We've cleared your session to fix this.",
                                   error_code=500), 500
     
-    # Regular redirect counting logic
+    # Regular redirect counting logic - reset for non-redirects
     if request.endpoint and not request.endpoint.endswith('_redirect'):
         session['redirect_count'] = 0
         return None
-        
+    
     # Count redirects
     session['redirect_count'] += 1
     
     # If redirecting too many times, stop and show error
     if session['redirect_count'] > 4:
-        session['redirect_count'] = 0
-        session['last_urls'] = []
+        session.clear()  # Clear entire session
         return render_template('error.html', 
-                              error_message="Too many redirects detected. Please try clearing your cookies.",
+                              error_message="Too many redirects detected. We've cleared your session to fix this.",
                               error_code=500), 500
 
 # Main routes
@@ -193,7 +206,7 @@ def index():
 @app.route('/patient')
 def patients_redirect():
     """Redirect /patient to /patients"""
-    return redirect(url_for('patients.list_patients'))
+    return redirect(url_for('patients.list_patients' _external=True))
 
 # Initialize database and create tables if needed
 with app.app_context():
