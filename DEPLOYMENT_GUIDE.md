@@ -1,96 +1,92 @@
 # N1O1 Clinical Trials Deployment Guide
 
-This guide explains how to successfully deploy the N1O1 Clinical Trials application.
+This guide explains how to successfully deploy the N1O1 Clinical Trials application on both Replit and custom domains.
 
-## Common Issues Fixed
+## Cross-Domain Deployment Fix
 
-This application includes several scripts to fix common deployment issues:
+The application has been updated to work correctly on both Replit's internal domain (.repl.co) and custom domains without redirect loops or URL generation issues.
 
-### 1. Redirect Loops and Cookie Issues
+Key improvements:
+- Dynamic URL scheme detection from proxy headers
+- Intelligent `safe_url_for()` helper function that respects the deployment environment
+- Proper handling of `X-Forwarded-Proto` headers for HTTPS detection
+- Avoidance of hardcoded URL schemes in redirects
+- Server name determined from request, not configuration
 
-If you encounter redirect loops or cookie-related errors:
+## Quick Start
+
+The fastest way to deploy the application is:
 
 ```bash
-# Run the redirect issues fix script
-python fix_redirects_simple.py
+# Start the application with our fixed workflow script
+chmod +x workflow_fixed.sh
+./workflow_fixed.sh
 ```
 
 This script:
-- Restores from backup if available
-- Applies critical cookie settings
-- Sets SESSION_COOKIE_SECURE=False
-- Sets PREFERRED_URL_SCHEME='http'
-- Sets SERVER_NAME=None
+- Uses a hardcoded port (5000) that won't fail
+- Properly cleans up existing processes
+- Starts gunicorn with our fixed main.py
 
-### 2. Port Configuration Issues
+## Verification
 
-If you encounter port-related errors:
+To verify your deployment is working correctly:
 
 ```bash
-# Run the port configuration fix script
-./fix_port_config.sh
+# Install verification script dependencies
+pip install requests
+
+# Run the verification script
+python verify_deployment.py
 ```
 
-This creates `workflow_launcher.sh` which:
-- Uses hardcoded port settings
-- Tries multiple ports if needed
-- Properly handles process cleanup
-
-### 3. Workflow Configuration Issues
-
-If workflow fails to start:
+For a custom domain:
 
 ```bash
-# Run the workflow fix script
-./fix_workflow.sh
+python verify_deployment.py --domain yourdomain.com
 ```
 
-This creates `reliable_workflow.sh` which:
-- Uses fixed hardcoded settings for everything
-- Avoids all environment variable references
-- Ensures proper process cleanup
+The script checks:
+1. Basic connectivity (/ping endpoint)
+2. System health (/system/health endpoint)  
+3. Redirect handling (/patient → /patients)
 
-## Deployment Scripts
+## Deploying to Production
 
-For production deployment:
+When deploying to production:
 
-```bash
-# Prepare for deployment
-./deploy.sh
+1. Ensure `PREFERRED_URL_SCHEME` environment variable is set correctly:
+   - For HTTPS sites: `export PREFERRED_URL_SCHEME=https`
+   - For HTTP sites: `export PREFERRED_URL_SCHEME=http`
 
-# Then deploy using Replit's deployment system
-```
+2. The application automatically handles secure connection detection, but you can override:
+   ```
+   export SESSION_COOKIE_SECURE=True  # For HTTPS only
+   ```
 
-This script:
-- Applies all necessary fixes
-- Creates optimal environment variables
-- Sets up the correct Procfile
-
-## Startup Options
-
-Multiple startup scripts are available:
-
-- `./fast_start.sh` - Optimized startup using environment variables
-- `./run_with_hardcoded_port.sh` - Tries multiple ports sequentially
-- `./reset_and_start.sh` - Comprehensive reset and startup
-- `./reliable_workflow.sh` - Hardcoded settings for workflow use
+3. Use `workflow_fixed.sh` for reliable starting, or add this to your Procfile:
+   ```
+   web: gunicorn --bind 0.0.0.0:$PORT --timeout 300 --workers 1 main:app
+   ```
 
 ## Troubleshooting
 
-If the application still won't start:
+If the application still has deployment issues:
 
-1. Check logs for specific errors
-2. Kill any existing processes: `fuser -k 5000/tcp`
-3. Clear session files: `rm -f flask_session/*`
-4. Try an alternate port: `export PORT=8080 && ./fast_start.sh`
-5. Use the hardcoded port script: `./run_with_hardcoded_port.sh`
+1. Check if ProxyFix is properly configured for your environment
+2. Verify the application is receiving proper forwarded headers
+3. Look for hardcoded URL schemes in route files
+4. Try running the app with `debug=True` temporarily to see detailed errors
+5. Check if cookie attributes are compatible with your deployment (SameSite, Secure flags)
 
-## Environment Variables
+## Technical Details
 
-A `.env` file has been created with optimal settings. Use `source ./load_env.sh` to load these variables.
+The deployment fixes work by:
 
-Key variables:
-- `PORT=5000`
-- `SESSION_COOKIE_SECURE=False`
-- `PREFERRED_URL_SCHEME=http`
-- `SERVER_NAME=""` (empty string)
+1. Using ProxyFix middleware to handle proxy-forwarded headers correctly
+2. Avoiding `SERVER_NAME` fixed configuration that can cause redirect issues 
+3. Injecting `safe_url_for()` into templates to ensure consistent URL generation
+4. Making `safe_redirect()` aware of the deployment context
+5. Automatically adapting URL scheme based on request headers
+
+For custom domains behind CDNs or load balancers, no additional configuration is needed as the application now correctly handles forwarded headers.

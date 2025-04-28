@@ -18,35 +18,19 @@ from routes.offline_routes import offline_bp
 # Create Flask application
 app = Flask(__name__)
 
-# === CRITICAL REDIRECT FIX ===
-# These settings are essential to prevent custom domain redirect loops
-app.config['PREFERRED_URL_SCHEME'] = 'http'  # Force URL generation to use HTTP scheme
-os.environ['WERKZEUG_RUN_MAIN'] = 'true'     # Prevent reloader from creating redirect loops
-app.config['SERVER_NAME'] = None             # Let the request determine server name
-# Fixed cookie and session settings to prevent redirect loops
-app.config['SESSION_COOKIE_SECURE'] = False  # Allow HTTP cookies
+# === DEPLOYMENT CONFIGURATION ===
+# Settings for proper URL generation and proxy handling in all environments
+app.config['PREFERRED_URL_SCHEME'] = os.environ.get('PREFERRED_URL_SCHEME', 'http')
+os.environ['WERKZEUG_RUN_MAIN'] = 'true'  # Prevent reloader from creating redirect loops
+app.config['SERVER_NAME'] = None  # Let request determine server name dynamically
+
+# Cookie and session settings
+app.config['SESSION_COOKIE_SECURE'] = False  # Allow HTTP cookies (required for Replit)
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to cookies
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Restrict cookie sending to same site
 app.config['SESSION_COOKIE_PATH'] = '/'  # Set cookie path to root
 app.config['SESSION_COOKIE_DOMAIN'] = None  # Will match the domain that made the request
 app.config['SESSION_REFRESH_EACH_REQUEST'] = False  # Don't refresh cookies on each request
-app.config['PREFERRED_URL_SCHEME'] = 'http'  # Force HTTP scheme for URL generation
-app.config['REMEMBER_COOKIE_SECURE'] = False  # Allow HTTP cookies for remember me
-
-
-# === CRITICAL REDIRECT FIX ===
-# These settings are essential to prevent custom domain redirect loops
-app.config['PREFERRED_URL_SCHEME'] = 'http'  # Force HTTP scheme for URL generation
-os.environ['WERKZEUG_RUN_MAIN'] = 'true'     # Prevent reloader from creating redirect loops
-app.config['SERVER_NAME'] = None  # Let request determine server name
-# Fixed cookie and session settings to prevent redirect loops
-app.config['SESSION_COOKIE_SECURE'] = False  # Allow HTTP cookies
-app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to cookies
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Restrict cookie sending to same site
-app.config['SESSION_COOKIE_PATH'] = '/'  # Set cookie path to root
-app.config['SESSION_COOKIE_DOMAIN'] = None  # Will match the domain that made the request
-app.config['SESSION_REFRESH_EACH_REQUEST'] = False  # Don't refresh cookies on each request
-app.config['PREFERRED_URL_SCHEME'] = 'http'  # Force HTTP scheme for URL generation
 app.config['REMEMBER_COOKIE_SECURE'] = False  # Allow HTTP cookies for remember me
 
 
@@ -225,14 +209,24 @@ def index():
 @app.route('/patient')
 def patients_redirect():
     """Redirect /patient to /patients"""
-    return redirect(url_for('patients.list_patients', _scheme='http', _external=True))
+    return safe_redirect('patients.list_patients')
 
-# Helper function for consistent URL generation with HTTP
+# Helper function for deployment-agnostic URL generation
 def safe_url_for(endpoint, **kwargs):
-    """Generate URLs consistently with HTTP scheme to prevent redirect loops"""
-    # Always force HTTP scheme
-    kwargs['_scheme'] = 'http'
-    kwargs['_external'] = True
+    """Generate URLs correctly for both Replit and custom domains"""
+    # Don't override explicitly provided scheme
+    if '_scheme' not in kwargs:
+        # Use https for external domains if X-Forwarded-Proto is https
+        if request.headers.get('X-Forwarded-Proto') == 'https':
+            kwargs['_scheme'] = 'https'
+        else:
+            # Default to the configured preferred URL scheme
+            kwargs['_scheme'] = app.config.get('PREFERRED_URL_SCHEME', 'http')
+    
+    # Make URLs external only if not already specified and not for static resources
+    if '_external' not in kwargs and not endpoint.startswith('static'):
+        kwargs['_external'] = True
+    
     return url_for(endpoint, **kwargs)
 
 # Add the helper to the global template context
@@ -303,10 +297,10 @@ def handle_exception(e):
 
 # Helper function for safe redirects that avoid redirect loops
 def safe_redirect(endpoint, **kwargs):
-    '''Generate a redirect that always uses http scheme to prevent loops'''
-    kwargs.setdefault('_scheme', 'http')
-    kwargs.setdefault('_external', True)
-    return redirect(url_for(endpoint, **kwargs))
+    '''Generate a redirect that works correctly in all deployment environments'''
+    # Use our safer URL generation that respects the deployment context
+    target = safe_url_for(endpoint, **kwargs)
+    return redirect(target)
 
 # Diagnostic route
 @app.route('/system/health')

@@ -1,168 +1,108 @@
-
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
-Verify deployment readiness for N1O1 Clinical Trials
+N1O1 Clinical Trials - Deployment Verification Script
+
+This script verifies that your deployment is correctly handling URLs and redirects
+on both Replit's internal deployment and custom domains.
 """
 import os
 import sys
-import subprocess
-from datetime import datetime
+import json
+import argparse
+from urllib.parse import urlparse
+import requests
 
-def print_header(message):
-    print(f"\n{'=' * 50}")
-    print(f" {message}")
-    print(f"{'=' * 50}")
+def print_header(text):
+    """Print formatted header"""
+    print("\n" + "=" * 70)
+    print(f" {text}")
+    print("=" * 70)
 
-def print_success(message):
-    print(f"✅ {message}")
+def print_success(text):
+    """Print a success message"""
+    print(f"✓ {text}")
 
-def print_warning(message):
-    print(f"⚠️ {message}")
+def print_warning(text):
+    """Print a warning message"""
+    print(f"⚠ {text}")
 
-def print_error(message):
-    print(f"❌ {message}")
+def print_error(text):
+    """Print an error message"""
+    print(f"✗ {text}")
 
-def print_info(message):
-    print(f"ℹ️ {message}")
-
-def check_files():
-    """Check for critical files"""
-    print_header("Checking Critical Files")
+def verify_domain(domain):
+    """Verify a domain is properly configured"""
+    if not domain.startswith(('http://', 'https://')):
+        domain = f"https://{domain}"
     
-    critical_files = [
-        "main.py", 
-        "models.py",
-        "Procfile",
-        "run_with_port.sh",
-        "requirements.txt",
-        ".replit"
-    ]
-    
-    for file in critical_files:
-        if os.path.exists(file):
-            print_success(f"Found {file}")
-        else:
-            print_error(f"Missing {file}")
-            
-    # Check recent module additions
-    module_files = [
-        "eligibility.py",
-        "patient_education.py",
-        "routes/chat_routes.py",
-        "routes/consent_routes.py",
-        "templates/consent_form.html"
-    ]
-    
-    print("\nChecking new module files:")
-    for file in module_files:
-        if os.path.exists(file):
-            print_success(f"Found {file}")
-        else:
-            print_error(f"Missing {file}")
-
-def check_database():
-    """Check database file"""
-    print_header("Checking Database")
-    
-    db_file = 'no_dynamics.db'
-    if os.path.exists(db_file):
-        print_success(f"Database file found: {db_file}")
-        # Check size
-        size_mb = os.path.getsize(db_file) / (1024 * 1024)
-        print_info(f"Database size: {size_mb:.2f} MB")
-    else:
-        print_warning("Database file not found. Will be created on first run.")
-
-def check_dependencies():
-    """Check dependencies"""
-    print_header("Checking Dependencies")
-    
-    required_packages = [
-        "flask", "gunicorn", "openai", "sqlalchemy", 
-        "flask_sqlalchemy", "matplotlib", "numpy", "python-dotenv"
-    ]
-    
-    for package in required_packages:
-        try:
-            # Try to import by removing dashes
-            import_name = package.replace("-", "_")
-            __import__(import_name)
-            print_success(f"{package} is installed")
-        except ImportError:
-            print_error(f"{package} is not installed")
-
-def check_deployment_config():
-    """Check deployment configuration"""
-    print_header("Checking Deployment Configuration")
-    
-    # Check Procfile
     try:
-        with open('Procfile', 'r') as f:
-            procfile_content = f.read()
-            if '$PORT' in procfile_content:
-                print_success("Procfile correctly uses $PORT environment variable")
-            else:
-                print_warning("Procfile may not be using $PORT environment variable")
-    except FileNotFoundError:
-        print_error("Procfile not found")
+        # Verify ping endpoint
+        ping_url = f"{domain}/ping"
+        print(f"Testing ping endpoint: {ping_url}")
+        response = requests.get(ping_url, timeout=10)
+        if response.status_code == 200 and response.text.strip() == "pong":
+            print_success(f"Ping endpoint responded correctly: {response.text}")
+        else:
+            print_error(f"Ping endpoint response issue: {response.status_code} - {response.text}")
+            return False
         
-    # Check .replit file for deployment settings
-    try:
-        with open('.replit', 'r') as f:
-            replit_content = f.read()
-            if 'deploymentTarget' in replit_content:
-                print_success("Deployment target configured in .replit")
-            else:
-                print_warning("Deployment target may not be configured in .replit")
-    except FileNotFoundError:
-        print_error(".replit file not found")
-    
-    # Check run_with_port.sh
-    if os.path.exists('run_with_port.sh'):
-        if not os.access('run_with_port.sh', os.X_OK):
-            print_warning("run_with_port.sh is not executable. Making it executable...")
-            os.chmod('run_with_port.sh', 0o755)
-            print_success("Made run_with_port.sh executable")
+        # Verify health endpoint
+        health_url = f"{domain}/system/health"
+        print(f"Testing health endpoint: {health_url}")
+        response = requests.get(health_url, timeout=10)
+        if response.status_code == 200:
+            try:
+                health_data = response.json()
+                print_success(f"Health endpoint responded with JSON: {json.dumps(health_data, indent=2)}")
+            except json.JSONDecodeError:
+                print_error(f"Health endpoint didn't return valid JSON: {response.text}")
+                return False
         else:
-            print_success("run_with_port.sh is executable")
-    else:
-        print_error("run_with_port.sh not found")
-
-def check_port():
-    """Check if port is in use"""
-    print_header("Checking Port Availability")
-    
-    port = os.environ.get('PORT', '5000')
-    print_info(f"Checking port {port}")
-    
-    try:
-        import socket
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = s.connect_ex(('localhost', int(port)))
-        if result == 0:
-            print_warning(f"Port {port} is in use. This may cause deployment issues.")
+            print_error(f"Health endpoint error: {response.status_code} - {response.text}")
+            return False
+        
+        # Verify redirect handling
+        print("Testing redirect handling (from /patient to /patients)...")
+        redirects_session = requests.Session()
+        redirect_url = f"{domain}/patient"
+        response = redirects_session.get(redirect_url, timeout=10, allow_redirects=True)
+        
+        if response.url != redirect_url:
+            print_success(f"Redirect worked: {redirect_url} → {response.url}")
         else:
-            print_success(f"Port {port} is available")
-        s.close()
+            print_error(f"Redirect failed: Still at {redirect_url}")
+            return False
+        
+        print_header("Deployment Verification SUCCESSFUL")
+        print("Your application is correctly handling URLs and redirects.")
+        print("It should work on both Replit's internal domain and custom domains.")
+        return True
+    
     except Exception as e:
-        print_error(f"Error checking port: {str(e)}")
+        print_error(f"Verification failed: {str(e)}")
+        return False
 
 def main():
     """Main function"""
-    print_header("N1O1 CLINICAL TRIALS DEPLOYMENT AUDIT")
-    print(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    parser = argparse.ArgumentParser(description="Verify N1O1 Clinical Trials deployment")
+    parser.add_argument("--domain", help="Domain to verify (e.g., 'https://example.com' or 'example.com')")
+    args = parser.parse_args()
     
-    check_files()
-    check_database()
-    check_dependencies()
-    check_deployment_config()
-    check_port()
+    if args.domain:
+        domain = args.domain
+    else:
+        # Try to auto-detect domain
+        replit_domain = os.environ.get("REPL_SLUG")
+        if replit_domain:
+            domain = f"https://{replit_domain}.repl.co"
+            print(f"Using auto-detected Replit domain: {domain}")
+        else:
+            domain = "http://localhost:5000"
+            print(f"Using default local domain: {domain}")
     
-    print_header("AUDIT COMPLETE")
-    print("To deploy your application:")
-    print("1. Make sure the 'Run Flask App (Forced)' workflow works")
-    print("2. Go to the Deployments tab")
-    print("3. Click 'Deploy' to publish your application")
+    print_header(f"Verifying N1O1 Clinical Trials deployment on: {domain}")
+    success = verify_domain(domain)
+    return 0 if success else 1
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
