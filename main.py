@@ -54,7 +54,10 @@ app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_FILE_THRESHOLD'] = 100  # Limit number of session files
 app.config['SESSION_FILE_DIR'] = os.path.join(os.path.dirname(__file__), 'flask_session')
 app.config['SESSION_FILE_MODE'] = 384  # 0600 in octal
-app.config['SESSION_COOKIE_SECURE'] = False  # Allow cookies over HTTP for development
+# Set session cookie security based on environment
+# For custom domains with HTTPS, secure cookies are required
+# But also need to work in development with HTTP
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('REPLIT_DEPLOYMENT', False) == 'True'
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to cookies
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Restrict cookie sending to same site
 app.config['SESSION_COOKIE_PATH'] = '/'  # Set cookie path to root

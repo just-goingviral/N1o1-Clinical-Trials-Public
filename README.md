@@ -1,39 +1,57 @@
-# N1O1 Clinical Trials: Personalized Nitric Oxide Therapy Platform
+# N1O1 Clinical Trials
 
-N1O1 Clinical Trials is a comprehensive research platform built in collaboration with Dr. Nathan S. Bryan to support personalized nitric oxide therapy in patients with ischemic heart disease and other cardiovascular conditions.
+A comprehensive Python application for advanced scientific research simulation, specializing in nitrite, cGMP, and vasodilation dynamics with interactive data management and visualization capabilities.
 
-### 🧠 Core Capabilities
-- Simulates plasma nitrite (NO₂⁻) levels over time after dosing with N1O1 products (e.g., Lozenges, NO Beetz)
-- Tracks individual patient responses using a PostgreSQL database
-- Supports HillTau and compartmental pharmacokinetic models
-- Includes an AI assistant (`N1O1ai`) to guide researchers and doctors through the app
-- Features advanced AI-powered clinical tools for patient management
+## Running the Application
 
-### 🔬 Use Cases
-- Model the effect of NO supplementation over time
-- Plan patient-specific dosing schedules
-- Record clinical trial data including dose, plasma response, and simulation curves
-- Generate AI-powered clinical notes, consent forms, and reports
-- Ask N1O1ai anything about nitric oxide research, trial goals, or product use
+There are multiple ways to start the N1O1 Clinical Trials application:
 
-### 🚀 Technologies Used
-- Flask + SQLAlchemy + Flask-Migrate
-- PostgreSQL database
-- Chart.js for data visualization
-- Electron (for desktop app)
-- OpenAI and Anthropic Claude AI models (branded as `N1O1ai`)
-- Responsive web design for mobile and desktop access
+### Method 1: Using the start_application.sh script (Recommended)
 
-### 🧪 AI Clinical Tools (NEW)
-The platform now includes advanced AI-powered clinical trial tools:
+```bash
+./start_application.sh
+```
 
-- **Pre-screening Analysis**: `/api/ai-tools/pre-screening` - Analyze patient eligibility for clinical trials based on inclusion/exclusion criteria
-- **Clinical Note Generator**: `/api/ai-tools/generate-note` - Generate structured SOAP notes from visit data
-- **Patient Sentiment Analysis**: `/api/ai-tools/patient-sentiment` - Analyze patient feedback for sentiment and key themes
-- **Dynamic Consent Forms**: `/api/ai-tools/dynamic-consent` - Generate personalized consent forms based on patient demographics
-- **AI Report Writer**: `/api/ai-tools/ai-report-writer` - Create detailed research reports from clinical trial data
+This script sets the PORT environment variable and runs the application with Gunicorn.
 
-### 🩺 For Clinical Researchers
-This platform visualizes how nitric oxide supplements affect NO₂⁻ levels in various patient populations. It's designed to help clinicians evaluate patient responses, optimize treatment protocols, and streamline clinical trial workflows.
+### Method 2: Directly with Gunicorn
 
-Visit `/patients`, `/simulations`, or access the AI assistant through the molecule icon in the corner of any page.
+```bash
+export PORT=5000 && gunicorn --bind 0.0.0.0:$PORT --reuse-port --reload main:app
+```
+
+### Method 3: Using the Replit Run button
+
+The application is configured to start when you click the "Run" button in Replit.
+
+## Features
+
+- Interactive plasma nitrite simulation
+- Clinical trial participant management
+- Visualization of nitrite, cGMP, and vasodilation dynamics
+- AI-powered clinical assistant (N1o1ai)
+- Clinical notes with voice recording capability
+- Patient education resources
+- Statistical analysis tools
+
+## Technical Information
+
+- **Flask**: Web application framework
+- **Electron**: Desktop interface
+- **Chart.js**: Data visualization
+- **Python Scientific Libraries**: NumPy, SciPy, Pandas, etc.
+- **Bootstrap**: Responsive design
+- **AI Integration**: OpenAI and Anthropic Claude for clinical workflows
+
+## Deployment
+
+The application is configured for deployment on Replit with automatic port configuration.
+
+## Troubleshooting
+
+If you encounter issues with the application not starting:
+
+1. Check if the PORT environment variable is set correctly
+2. Ensure that the start_application.sh script is executable (chmod +x start_application.sh)
+3. Verify that no other process is running on port 5000
+4. Check the application logs for any specific error messages

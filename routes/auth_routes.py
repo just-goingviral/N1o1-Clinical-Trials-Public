@@ -126,7 +126,7 @@ def logout():
 def register():
     """Handle user registration"""
     if current_user.is_authenticated:
-        return redirect(url_for('index' _external=True))
+        return redirect(url_for('index', _external=True))
     
     form = RegistrationForm()
     if form.validate_on_submit():
@@ -142,7 +142,7 @@ def register():
         db.session.commit()
         
         flash('Congratulations, you are now a registered user!', 'success')
-        return redirect(url_for('auth.login' _external=True))
+        return redirect(url_for('auth.login', _external=True))
     
     return render_template('auth/register.html', title='Register', form=form)
 
