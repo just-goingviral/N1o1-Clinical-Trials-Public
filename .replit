@@ -1,4 +1,3 @@
-
 modules = ["python-3.11", "postgresql-16"]
 
 [nix]
@@ -8,13 +7,13 @@ packages = ["cairo", "ffmpeg-full", "freetype", "ghostscript", "glibcLocales", "
 [deployment]
 deploymentTarget = "autoscale"
 build = ["sh", "-c", "pip install -r requirements.txt"]
-run = ["sh", "-c", "gunicorn --bind 0.0.0.0:5000 --timeout 300 --workers 1 main:app"]
+run = ["sh", "-c", "gunicorn --bind 0.0.0.0:$PORT --timeout 300 --workers 1 main:app"]
 
 [env]
 REPLIT_DISABLE_PACKAGE_LAYER = "1"
 
 [workflows]
-runButton = "Run Flask App (Forced)"
+runButton = "Start N1O1 Server"
 
 [[workflows.workflow]]
 name = "Project"
@@ -37,7 +36,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app"
+args = "gunicorn --bind 0.0.0.0:$PORT --reuse-port --reload main:app"
 waitForPort = 5000
 
 [[workflows.workflow]]
@@ -82,6 +81,31 @@ args = "# Run the Flask app"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "export PORT=5000 && gunicorn --bind 0.0.0.0:5000 --timeout 300 --workers 1 main:app"
+
+[[workflows.workflow]]
+name = "Start N1O1 Server"
+author = 36957810
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "# Kill any potential processes on port 5000 first"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "fuser -k 5000/tcp 2>/dev/null || echo \"No process on port 5000\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sleep 1"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "# Set PORT environment variable and run the server"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export PORT=5000 && gunicorn --bind 0.0.0.0:$PORT --timeout 300 --workers 1 --keep-alive 120 main:app"
 
 [[ports]]
 localPort = 5000
