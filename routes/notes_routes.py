@@ -88,7 +88,7 @@ def new_note():
                 if not title:
                     logger.warning(f"New note creation attempt without title by user {current_user.id}")
                     flash('Title is required', 'danger')
-                    return redirect(url_for('notes.new_note'))
+                    return redirect(url_for('notes.new_note' _external=True))
 
                 # Handle voice recording if provided
                 voice_recording_path = None
@@ -143,13 +143,13 @@ def new_note():
 
                 logger.info(f"Note created successfully by user {current_user.id}, note_id: {note.id}")
                 flash('Note created successfully', 'success')
-                return redirect(url_for('notes.view_note', note_id=note.id))
+                return redirect(url_for('notes.view_note', note_id=note.id, _external=True))
 
             except Exception as e:
                 db.session.rollback()
                 log_exception(logger, e, "creating new note")
                 flash(f'Error creating note: {str(e)}', 'danger')
-                return redirect(url_for('notes.new_note'))
+                return redirect(url_for('notes.new_note' _external=True))
 
         return render_template('notes/new.html', 
                               patients=patients, 
@@ -159,7 +159,7 @@ def new_note():
     except Exception as e:
         log_exception(logger, e, "loading note creation page")
         flash('An error occurred while loading the page. Please try again.', 'danger')
-        return redirect(url_for('notes.list_notes'))
+        return redirect(url_for('notes.list_notes' _external=True))
 
 @notes_bp.route('/<int:note_id>')
 @login_required
@@ -173,7 +173,7 @@ def view_note(note_id):
         if note.user_id != current_user.id and note.is_private:
             logger.warning(f"Unauthorized view attempt for private note {note_id} by user {current_user.id}")
             flash('You do not have permission to view this note', 'danger')
-            return redirect(url_for('notes.list_notes'))
+            return redirect(url_for('notes.list_notes' _external=True))
 
         logger.info(f"Note {note_id} viewed by user {current_user.id}")
 
@@ -200,7 +200,7 @@ def view_note(note_id):
     except Exception as e:
         log_exception(logger, e, f"viewing note {note_id}")
         flash('An error occurred while trying to view the note', 'danger')
-        return redirect(url_for('notes.list_notes'))
+        return redirect(url_for('notes.list_notes' _external=True))
 
 @notes_bp.route('/<int:note_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -214,7 +214,7 @@ def edit_note(note_id):
         if note.user_id != current_user.id:
             logger.warning(f"Unauthorized edit attempt for note {note_id} by user {current_user.id}")
             flash('You do not have permission to edit this note', 'danger')
-            return redirect(url_for('notes.list_notes'))
+            return redirect(url_for('notes.list_notes' _external=True))
 
         try:
             patients = Patient.query.all()
@@ -240,7 +240,7 @@ def edit_note(note_id):
                 if not title:
                     logger.warning(f"Edit note attempt without title for note {note_id} by user {current_user.id}")
                     flash('Title is required', 'danger')
-                    return redirect(url_for('notes.edit_note', note_id=note.id))
+                    return redirect(url_for('notes.edit_note', note_id=note.id, _external=True))
 
                 # Handle voice recording if provided
                 if 'voice_recording' in request.files:
@@ -278,7 +278,7 @@ def edit_note(note_id):
 
                 logger.info(f"Note {note_id} updated successfully by user {current_user.id}")
                 flash('Note updated successfully', 'success')
-                return redirect(url_for('notes.view_note', note_id=note.id))
+                return redirect(url_for('notes.view_note', note_id=note.id, _external=True))
 
             except Exception as update_error:
                 db.session.rollback()
@@ -301,7 +301,7 @@ def edit_note(note_id):
     except Exception as e:
         log_exception(logger, e, f"processing edit for note {note_id}")
         flash('An error occurred while editing the note', 'danger')
-        return redirect(url_for('notes.list_notes'))
+        return redirect(url_for('notes.list_notes' _external=True))
 
 @notes_bp.route('/<int:note_id>/delete', methods=['POST'])
 @login_required
@@ -315,7 +315,7 @@ def delete_note(note_id):
         if note.user_id != current_user.id:
             logger.warning(f"Unauthorized delete attempt for note {note_id} by user {current_user.id}")
             flash('You do not have permission to delete this note', 'danger')
-            return redirect(url_for('notes.list_notes'))
+            return redirect(url_for('notes.list_notes' _external=True))
 
         # Store information for logging
         note_info = f"note_id={note_id}, title='{note.title}'"
@@ -346,12 +346,12 @@ def delete_note(note_id):
             log_exception(logger, db_error, "deleting note from database")
             flash('Error deleting note from database', 'danger')
 
-        return redirect(url_for('notes.list_notes'))
+        return redirect(url_for('notes.list_notes' _external=True))
 
     except Exception as e:
         log_exception(logger, e, f"processing delete request for note {note_id}")
         flash('An error occurred while deleting the note', 'danger')
-        return redirect(url_for('notes.list_notes'))
+        return redirect(url_for('notes.list_notes' _external=True))
 
 @notes_bp.route('/api/transcribe', methods=['POST'])
 @login_required

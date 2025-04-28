@@ -17,13 +17,13 @@ def consent_form():
         
         if not patient_id:
             flash('Patient ID is required', 'danger')
-            return redirect(url_for('consent.consent_form'))
+            return redirect(url_for('consent.consent_form' _external=True))
             
         # Check if patient exists
         patient = Patient.query.get(patient_id)
         if not patient:
             flash('Invalid patient ID', 'danger')
-            return redirect(url_for('consent.consent_form'))
+            return redirect(url_for('consent.consent_form' _external=True))
             
         consent = Consent(
             patient_id=patient_id,
@@ -35,7 +35,7 @@ def consent_form():
         db.session.commit()
         
         flash('Consent successfully recorded', 'success')
-        return redirect(url_for('patients.view_patient', patient_id=patient_id))
+        return redirect(url_for('patients.view_patient', patient_id=patient_id, _external=True))
         
     # For GET request, get patient list for dropdown
     patients = Patient.query.all()
@@ -62,7 +62,7 @@ def patient_consent(patient_id):
         db.session.commit()
         
         flash('Consent successfully recorded', 'success')
-        return redirect(url_for('patients.view_patient', patient_id=patient_id))
+        return redirect(url_for('patients.view_patient', patient_id=patient_id, _external=True))
         
     return render_template('consent_form.html', patient=patient)
 

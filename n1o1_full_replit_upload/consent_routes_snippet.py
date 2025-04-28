@@ -19,5 +19,5 @@ def consent_form():
         )
         db.session.add(consent)
         db.session.commit()
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('dashboard' _external=True))
     return render_template('consent_form.html')
