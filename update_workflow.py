@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Update workflow launcher to fix the PORT issue for the N1O1 Clinical Trials application
+Update workflow configuration for N1O1 Clinical Trials application
+This script updates the workflow configuration to use fixed port and environment settings
 """
-import os
-import sys
 import json
+import os
 import subprocess
-from datetime import datetime
+import sys
 
 def print_header(text):
     """Print a formatted header"""
@@ -26,49 +26,49 @@ def print_error(text):
     """Print an error message"""
     print(f"✗ {text}")
 
-def main():
-    """Main function"""
-    print_header("N1O1 Clinical Trials - Fixing Workflow Configuration")
-    
-    # Create a new workflow launcher script
-    new_script = "workflow_launcher.sh"
-    script_content = """#!/bin/bash
-# N1O1 Clinical Trials - Fixed Workflow Launcher
-# This script launches the application with a properly configured environment
+def create_workflow_config():
+    """Create workflow configuration file"""
+    config_path = "workflow_config.txt"
+    config_content = """# Workflow configuration for N1O1 Clinical Trials application
+# This file is used by update_workflow.py to configure the workflow
 
-# Make sure the port is correctly set
-export PORT=5000
-
-# Use our fixed application starter
-./start_app_with_fixed_port.sh
+[workflow]
+name = Start application
+command = PORT=5000 PREFERRED_URL_SCHEME=http SESSION_COOKIE_SECURE=False SERVER_NAME= gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app
 """
     
     try:
-        with open(new_script, "w") as f:
-            f.write(script_content)
-        
-        # Make it executable
-        os.chmod(new_script, 0o755)
-        print_success(f"Created {new_script} with fixed port configuration")
-        
-        # Create a symbolic link for the workflow
-        workflow_link = "start_application.sh"
-        if os.path.exists(workflow_link):
-            os.remove(workflow_link)
-        
-        os.symlink(new_script, workflow_link)
-        print_success(f"Created symbolic link {workflow_link} -> {new_script}")
-        
-        # Print usage instructions
-        print("\nTo start the application with fixed PORT configuration:")
-        print(f"  1. ./workflow_launcher.sh")
-        print(f"  2. ./start_app_with_fixed_port.sh")
-        
-        return 0
-    
+        with open(config_path, 'w') as f:
+            f.write(config_content)
+        print_success(f"Created workflow configuration at {config_path}")
+        return True
     except Exception as e:
-        print_error(f"Error: {str(e)}")
-        return 1
+        print_error(f"Failed to create workflow configuration: {e}")
+        return False
+
+def main():
+    """Main function"""
+    print_header("Updating Workflow Configuration")
+    
+    if create_workflow_config():
+        print_success("Workflow configuration created successfully")
+        print("\nTo use this configuration, please run:")
+        print("./start_fixed_app.sh")
+        
+        # Create a message for the user
+        message = """
+IMPORTANT: To fix the "too many redirects" issue:
+
+1. Manually restart the workflow from the Replit UI
+2. Or run the fixed startup script:
+   ./start_fixed_app.sh
+   
+This script provides the correct environment variables and fixed port
+configuration to prevent redirect loops.
+"""
+        print(message)
+    else:
+        print_error("Failed to update workflow configuration")
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

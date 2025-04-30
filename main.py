@@ -20,7 +20,7 @@ app = Flask(__name__)
 
 # === DEPLOYMENT CONFIGURATION ===
 # Settings for proper URL generation and proxy handling in all environments
-app.config['PREFERRED_URL_SCHEME'] = os.environ.get('PREFERRED_URL_SCHEME', 'http')
+app.config['PREFERRED_URL_SCHEME'] = 'http'  # Force HTTP scheme for all URLs
 os.environ['WERKZEUG_RUN_MAIN'] = 'true'  # Prevent reloader from creating redirect loops
 app.config['SERVER_NAME'] = None  # Let request determine server name dynamically
 
@@ -38,11 +38,8 @@ app.config['REMEMBER_COOKIE_SECURE'] = False  # Allow HTTP cookies for remember 
 # This is important for correct URL generation with custom domains
 app.wsgi_app = ProxyFix(
     app.wsgi_app,
-    x_for=1,      # Number of trusted proxies for X-Forwarded-For
-    x_proto=1,    # Number of trusted proxies for X-Forwarded-Proto
-    x_host=1,     # Number of trusted proxies for X-Forwarded-Host
-    x_port=1,     # Number of trusted proxies for X-Forwarded-Port
-    x_prefix=1    # Number of trusted proxies for X-Forwarded-Prefix
+    x_proto=1,    # Handle X-Forwarded-Proto (minimal configuration)
+    x_host=1      # Handle X-Forwarded-Host (minimal configuration)
 )
 
 # Configure database
@@ -213,19 +210,10 @@ def patients_redirect():
 
 # Helper function for deployment-agnostic URL generation
 def safe_url_for(endpoint, **kwargs):
-    """Generate URLs correctly for both Replit and custom domains"""
-    # Don't override explicitly provided scheme
-    if '_scheme' not in kwargs:
-        # Use https for external domains if X-Forwarded-Proto is https
-        if request.headers.get('X-Forwarded-Proto') == 'https':
-            kwargs['_scheme'] = 'https'
-        else:
-            # Default to the configured preferred URL scheme
-            kwargs['_scheme'] = app.config.get('PREFERRED_URL_SCHEME', 'http')
-    
-    # Make URLs external only if not already specified and not for static resources
-    if '_external' not in kwargs and not endpoint.startswith('static'):
-        kwargs['_external'] = True
+    """Generate URLs with a consistent scheme to prevent redirect loops"""
+    # Always use HTTP for external URLs (if not explicitly specified)
+    if '_external' in kwargs and kwargs['_external'] and '_scheme' not in kwargs:
+        kwargs['_scheme'] = 'http'
     
     return url_for(endpoint, **kwargs)
 
