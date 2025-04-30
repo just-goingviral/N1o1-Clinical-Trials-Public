@@ -1,6 +1,0 @@
-[2025-04-30 14:57:21 +0000] [865] [INFO] Starting gunicorn 23.0.0
-[2025-04-30 14:57:21 +0000] [865] [INFO] Listening at: http://0.0.0.0:5000 (865)
-[2025-04-30 14:57:21 +0000] [865] [INFO] Using worker: sync
-[2025-04-30 14:57:21 +0000] [870] [INFO] Booting worker with pid: 870
-/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/fpdf/__init__.py:40: UserWarning: You have both PyFPDF & fpdf2 installed. Both packages cannot be installed at the same time as they share the same module namespace. To only keep fpdf2, run: pip uninstall --yes pypdf && pip install --upgrade fpdf2
-  warnings.warn(

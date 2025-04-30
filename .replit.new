@@ -1,0 +1,47 @@
+modules = ["python-3.11", "postgresql-16"]
+
+[nix]
+channel = "stable-24_05"
+packages = ["cairo", "ffmpeg-full", "freetype", "ghostscript", "glibcLocales", "gobject-introspection", "gtk3", "libxcrypt", "pkg-config", "qhull", "tcl", "tk", "xsimd"]
+
+[deployment]
+deploymentTarget = "autoscale"
+build = ["sh", "-c", "pip install -r requirements.txt"]
+run = ["sh", "-c", "gunicorn --bind 0.0.0.0:$PORT --timeout 300 --workers 2 --keep-alive 120 --log-level info main:app"]
+
+[env]
+REPLIT_DISABLE_PACKAGE_LAYER = "1"
+PORT = "5000"
+
+[workflows]
+runButton = "Run Flask App (Simple)"
+
+[[workflows.workflow]]
+name = "Run Flask App (Simple)"
+author = "agent"
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "fuser -k 5000/tcp 2>/dev/null || echo \"No process on port 5000\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sleep 1"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export PORT=5000 && python run_app.py"
+waitForPort = 5000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 5001
+externalPort = 3000
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
