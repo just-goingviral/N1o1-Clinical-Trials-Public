@@ -1,0 +1,576 @@
+/**
+ * N1O1 Clinical Trials - Onboarding Animation Styles
+ * Nitrous oxide themed with red/blue color scheme featuring liquid-to-gas transformation
+ */
+
+/* Variables for consistent theming */
+:root {
+  --n1o1-primary: #2063c9;      /* Blue primary */
+  --n1o1-secondary: #178bea;    /* Blue secondary */
+  --n1o1-tertiary: #aed9ff;     /* Light blue */
+  --n1o1-red: #ef476f;          /* Red for oxygen */
+  --n1o1-dark-blue: #16325c;    /* Dark blue */
+  --n1o1-blue-gradient: linear-gradient(135deg, #2063c9, #178bea);
+  --n1o1-liquid-gradient: linear-gradient(180deg, #ef476f, #2063c9);
+  --n1o1-gas-gradient: linear-gradient(135deg, rgba(239, 71, 111, 0.2), rgba(32, 99, 201, 0.2));
+}
+
+/* Overlay that covers the entire screen */
+.n1o1-onboarding-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(18, 28, 44, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+/* Main container for the onboarding animation */
+.n1o1-onboarding-container {
+  position: relative;
+  width: 800px;
+  max-width: 90%;
+  height: 500px;
+  max-height: 80vh;
+  background-color: #1c2940;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 0.5s ease;
+}
+
+.n1o1-onboarding-container.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Guide character styles */
+.n1o1-guide-character {
+  position: absolute;
+  left: 50px;
+  top: 50%;
+  transform: translateY(-50%) scale(0.8);
+  opacity: 0;
+  transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.n1o1-guide-character.active {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+/* Character animations for different steps */
+.n1o1-guide-character.welcome .n1o1-smile {
+  animation: smile-wiggle 2s infinite;
+}
+
+.n1o1-guide-character.transform {
+  animation: excited-bounce 1s infinite;
+}
+
+.n1o1-guide-character.simulate .n1o1-pupil {
+  animation: look-around 3s infinite;
+}
+
+.n1o1-guide-character.begin {
+  animation: wave 1s infinite;
+}
+
+/* Molecule container styles */
+.n1o1-molecule-container {
+  position: absolute;
+  right: 50px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 200px;
+  height: 300px;
+  border-radius: 20px;
+  background: var(--n1o1-dark-blue);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+/* Liquid container and liquid */
+.n1o1-liquid-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.n1o1-liquid {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--n1o1-liquid-gradient);
+  transition: height 5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.n1o1-liquid.boiling {
+  animation: boiling 0.5s infinite alternate;
+}
+
+.n1o1-liquid.evaporating {
+  height: 0%;
+  transition: height 3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Add vapor effect as liquid evaporates */
+.n1o1-liquid.evaporating::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background: var(--n1o1-gas-gradient);
+  filter: blur(10px);
+  opacity: 0.7;
+  animation: vapor-rise 3s ease-out;
+}
+
+/* Bubbles in liquid */
+.n1o1-liquid::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.3) 4%, transparent 5%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.3) 3%, transparent 4%),
+    radial-gradient(circle at 40% 70%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.3) 5%, transparent 6%),
+    radial-gradient(circle at 60% 50%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.3) 3%, transparent 4%);
+  animation: bubble-rise 3s infinite;
+}
+
+/* Dynamic bubbles */
+.n1o1-bubble {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  animation: bubble-float 3s ease-in infinite;
+  box-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+}
+
+/* Vapor particles */
+.n1o1-vapor-particle {
+  position: absolute;
+  background: linear-gradient(rgba(239, 71, 111, 0.3), rgba(32, 99, 201, 0.3));
+  border-radius: 50%;
+  animation: vapor-float 3s ease-out forwards;
+  opacity: 0;
+}
+
+/* Molecules container */
+.n1o1-molecules {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.n1o1-molecules.active {
+  opacity: 1;
+}
+
+/* Individual molecule styling */
+.n1o1-molecule {
+  position: absolute;
+  bottom: -50px;
+  transform: scale(0.6);
+  transition: transform 0.5s ease;
+  animation: float-up 5s linear infinite;
+  opacity: 0;
+}
+
+.n1o1-molecule.active {
+  opacity: 1;
+}
+
+/* Molecule atoms and bonds */
+.n1o1-atom {
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+  transition: transform 0.3s ease;
+}
+
+.n1o1-atom.n1o1-nitrogen {
+  animation: pulse-blue 2s infinite alternate;
+}
+
+.n1o1-atom.n1o1-oxygen {
+  animation: pulse-red 2s infinite alternate;
+}
+
+.n1o1-bond {
+  stroke-dasharray: 10;
+  stroke-dashoffset: 10;
+  transition: all 1s ease;
+}
+
+.n1o1-bond.active {
+  stroke-dashoffset: 0;
+  animation: bond-pulse 1.5s infinite alternate;
+}
+
+/* Different animation for triple bond between N atoms */
+.n1o1-bond-1-a.active, .n1o1-bond-1-b.active, .n1o1-bond-1-c.active {
+  animation: nitrogen-bond-expand 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Different animation for double bond between N and O atoms */
+.n1o1-bond-2-a.active, .n1o1-bond-2-b.active {
+  animation: oxygen-bond-expand 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Electron cloud visualization during the phase transition */
+.n1o1-electron-cloud {
+  transition: all 2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  opacity: 0;
+}
+
+.n1o1-molecule.active .n1o1-electron-cloud {
+  opacity: 0.5;
+  animation: electron-cloud-pulse 3s infinite alternate;
+}
+
+.n1o1-molecule.active .n1o1-cloud-1 {
+  rx: 10;
+  ry: 7;
+}
+
+.n1o1-molecule.active .n1o1-cloud-2 {
+  rx: 10;
+  ry: 7;
+}
+
+/* Speech bubble */
+.n1o1-speech-bubble {
+  position: absolute;
+  top: 70px;
+  left: 200px;
+  width: 30px;
+  height: 30px;
+  background-color: #fff;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.n1o1-speech-bubble.active {
+  transform: scale(1);
+}
+
+/* Content panel */
+.n1o1-content-panel {
+  position: absolute;
+  top: 80px;
+  left: 220px;
+  right: 280px;
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s ease;
+}
+
+.n1o1-content-panel.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.n1o1-content-panel h2 {
+  color: var(--n1o1-dark-blue);
+  margin-top: 0;
+  font-size: 1.6rem;
+}
+
+.n1o1-content-panel p {
+  color: #333;
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+/* Buttons */
+.n1o1-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.n1o1-button {
+  padding: 8px 16px;
+  border-radius: 50px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.n1o1-button:first-child {
+  background: var(--n1o1-blue-gradient);
+  color: white;
+}
+
+.n1o1-button:first-child:hover {
+  box-shadow: 0 5px 15px rgba(23, 139, 234, 0.4);
+  transform: translateY(-2px);
+}
+
+.n1o1-skip-button {
+  background: transparent;
+  color: #666;
+}
+
+.n1o1-skip-button:hover {
+  color: #333;
+  text-decoration: underline;
+}
+
+/* Keyframe animations */
+@keyframes float-up {
+  0% {
+    bottom: 0;
+    opacity: 1;
+  }
+  100% {
+    bottom: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes bubble-rise {
+  0% {
+    background-position: 0 0, 0 0, 0 0, 0 0;
+  }
+  100% {
+    background-position: 0 -100px, 0 -50px, 0 -80px, 0 -70px;
+  }
+}
+
+@keyframes pulse-blue {
+  0% {
+    fill: #2063c9;
+  }
+  100% {
+    fill: #178bea;
+  }
+}
+
+@keyframes pulse-red {
+  0% {
+    fill: #ef476f;
+  }
+  100% {
+    fill: #ff6b8b;
+  }
+}
+
+@keyframes bond-pulse {
+  0% {
+    stroke-width: 2px;
+  }
+  100% {
+    stroke-width: 3px;
+  }
+}
+
+@keyframes smile-wiggle {
+  0%, 100% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(1.1);
+  }
+}
+
+@keyframes excited-bounce {
+  0%, 100% {
+    transform: translateY(-50%) scale(1);
+  }
+  50% {
+    transform: translateY(-60%) scale(1.05);
+  }
+}
+
+@keyframes look-around {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(2px, -1px);
+  }
+  50% {
+    transform: translate(-1px, 1px);
+  }
+  75% {
+    transform: translate(-2px, -1px);
+  }
+}
+
+@keyframes wave {
+  0%, 100% {
+    transform: translateY(-50%) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-50%) rotate(-5deg);
+  }
+  75% {
+    transform: translateY(-50%) rotate(5deg);
+  }
+}
+
+@keyframes vapor-rise {
+  0% {
+    bottom: 0;
+    opacity: 0.9;
+    height: 20px;
+  }
+  50% {
+    opacity: 0.7;
+    height: 100px;
+  }
+  100% {
+    bottom: 100px;
+    opacity: 0;
+    height: 150px;
+  }
+}
+
+@keyframes nitrogen-bond-expand {
+  0% {
+    x1: 13;
+    x2: 23;
+    stroke-width: 1.5;
+  }
+  50% {
+    stroke-width: 2;
+  }
+  100% {
+    x1: 12;
+    x2: 24;
+    stroke-width: 1.8;
+  }
+}
+
+@keyframes oxygen-bond-expand {
+  0% {
+    x1: 29;
+    x2: 39;
+    stroke-width: 1.5;
+  }
+  50% {
+    stroke-width: 2;
+  }
+  100% {
+    x1: 28;
+    x2: 40;
+    stroke-width: 1.8;
+  }
+}
+
+@keyframes electron-cloud-pulse {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0.4;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes boiling {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes bubble-float {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-100px) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes vapor-float {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-100px) scale(2);
+    opacity: 0;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .n1o1-onboarding-container {
+    height: auto;
+    min-height: 500px;
+    flex-direction: column;
+  }
+  
+  .n1o1-guide-character {
+    left: 20px;
+    top: 90px;
+    transform: translateY(0) scale(0.7);
+  }
+  
+  .n1o1-guide-character.active {
+    transform: translateY(0) scale(0.8);
+  }
+  
+  .n1o1-molecule-container {
+    right: 20px;
+    top: 90px;
+    width: 120px;
+    height: 200px;
+  }
+  
+  .n1o1-content-panel {
+    top: 200px;
+    left: 20px;
+    right: 20px;
+  }
+  
+  .n1o1-speech-bubble {
+    display: none;
+  }
+}

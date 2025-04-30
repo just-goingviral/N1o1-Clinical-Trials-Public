@@ -1,1 +1,1 @@
-PORT=5000 PREFERRED_URL_SCHEME=http SESSION_COOKIE_SECURE=False SERVER_NAME= gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app
+gunicorn --bind 0.0.0.0:$PORT --reuse-port --reload main:app
