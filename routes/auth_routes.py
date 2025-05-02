@@ -64,53 +64,59 @@ def create_demo_user():
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     """Handle user login"""
-    # Check if already logged in
-    if current_user.is_authenticated:
-        return redirect('/')  # Direct redirect to root
-    
-    # Create demo user if it doesn't exist
-    demo_user = create_demo_user()
-    
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user is None or not user.check_password(form.password.data):
-            flash('Invalid username or password', 'danger')
-            return render_template('auth/login.html', 
-                                title='Sign In', 
-                                form=form, 
-                                demo_credentials={
-                                    'username': demo_user.username,
-                                    'password': 'nitricoxide'
-                                })
+    try:
+        # Check if already logged in
+        if current_user.is_authenticated:
+            return redirect('/')  # Direct redirect to root
         
-        login_user(user, remember=form.remember_me.data)
-        # Update last login time
-        user.last_login = db.func.now()
-        db.session.commit()
+        # Create demo user if it doesn't exist
+        demo_user = create_demo_user()
         
-        # Clear entire session except for auth-related items to ensure a clean state
-        session_items_to_keep = ['_user_id', '_remember', 'csrf_token']
-        session_copy = {key: value for key, value in session.items() if key in session_items_to_keep}
-        session.clear()
-        for key, value in session_copy.items():
-            session[key] = value
+        form = LoginForm()
+        if form.validate_on_submit():
+            user = User.query.filter_by(username=form.username.data).first()
+            if user is None or not user.check_password(form.password.data):
+                flash('Invalid username or password', 'danger')
+                return render_template('auth/login.html', 
+                                    title='Sign In', 
+                                    form=form, 
+                                    demo_credentials={
+                                        'username': demo_user.username,
+                                        'password': 'nitricoxide'
+                                    })
+            
+            login_user(user, remember=form.remember_me.data)
+            # Update last login time
+            user.last_login = db.func.now()
+            db.session.commit()
+            
+            # Clear entire session except for auth-related items to ensure a clean state
+            session_items_to_keep = ['_user_id', '_remember', 'csrf_token']
+            session_copy = {key: value for key, value in session.items() if key in session_items_to_keep}
+            session.clear()
+            for key, value in session_copy.items():
+                session[key] = value
+            
+            next_page = request.args.get('next')
+            # Use direct paths instead of url_for to avoid potential domain issues
+            if not next_page or 'login' in next_page or 'logout' in next_page:
+                return redirect('/')
+            
+            # Use direct path for redirects
+            return redirect(next_page if next_page.startswith('http') or next_page.startswith('/') else '/')
         
-        next_page = request.args.get('next')
-        # Use direct paths instead of url_for to avoid potential domain issues
-        if not next_page or 'login' in next_page or 'logout' in next_page:
-            return redirect('/')
-        
-        # Use direct path for redirects
-        return redirect(next_page if next_page.startswith('http') or next_page.startswith('/') else '/')
-    
-    return render_template('auth/login.html', 
-                          title='Sign In', 
-                          form=form, 
-                          demo_credentials={
-                              'username': demo_user.username,
-                              'password': 'nitricoxide'
-                          })
+        return render_template('auth/login.html', 
+                            title='Sign In', 
+                            form=form, 
+                            demo_credentials={
+                                'username': demo_user.username,
+                                'password': 'nitricoxide'
+                            })
+    except Exception as e:
+        app.logger.error(f"Login route error: {str(e)}")
+        return render_template('error.html', 
+                              error_message=f"Login error: {str(e)}", 
+                              error_code=500), 500
 
 @auth_bp.route('/logout')
 def logout():

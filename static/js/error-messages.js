@@ -102,10 +102,31 @@
                 if (message && (message.toString().toLowerCase().includes('error') || 
                                message.toString().toLowerCase().includes('fail'))) {
                     originalAlert(window.convertToSouthernError(message));
+                    
+                    // Also log to console for debugging
+                    console.error('Error alert:', message);
+                    
+                    // Log to server if available
+                    if (window.fetch) {
+                        fetch('/api/log-client-error', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                source: 'alert',
+                                error: message.toString(),
+                                context: window.location.href
+                            })
+                        }).catch(e => console.warn('Failed to log error alert:', e));
+                    }
                 } else {
                     originalAlert(message);
                 }
             } catch (e) {
+                // Fallback to original alert if our customization fails
+                console.error('Error in customized alert:', e);
+                originalAlert(message);
                 // Fallback to original alert if our customization fails
                 console.error('Error in custom alert:', e);
                 originalAlert(message);

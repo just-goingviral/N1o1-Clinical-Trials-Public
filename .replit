@@ -13,7 +13,7 @@ run = ["sh", "-c", "gunicorn --bind 0.0.0.0:$PORT --timeout 300 --workers 2 --ke
 REPLIT_DISABLE_PACKAGE_LAYER = "1"
 
 [workflows]
-runButton = "Run Flask App (Fixed)"
+runButton = "Run N1O1 App"
 
 [[workflows.workflow]]
 name = "Project"
@@ -131,6 +131,31 @@ args = "# Set PORT environment variable and run the server with the correct bind
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "export PORT=5000 && gunicorn --bind 0.0.0.0:$PORT --timeout 300 --workers 1 --keep-alive 120 --log-level info main:app"
+
+[[workflows.workflow]]
+name = "Run N1O1 App"
+author = 36957810
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "# Kill any potential processes on port 5000 first"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "fuser -k 5000/tcp 2>/dev/null || echo \"No process on port 5000\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sleep 1"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "# Set environment variables and run the server with proper settings"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export PORT=5000 && export FLASK_ENV=development && export FLASK_DEBUG=1 && gunicorn --bind 0.0.0.0:5000 --timeout 300 --workers 1 --keep-alive 120 --log-level info main:app"
 
 [[ports]]
 localPort = 5000

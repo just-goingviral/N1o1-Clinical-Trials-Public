@@ -1,286 +1,202 @@
+#!/usr/bin/env python3
+"""
+Event Handler Inspector
+Analyzes HTML files to check for proper event handling on interactive elements
+"""
 
 import os
 import re
+import sys
 import json
 import logging
+from bs4 import BeautifulSoup
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, 
-                   format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 logger = logging.getLogger(__name__)
 
 class EventHandlerInspector:
     def __init__(self):
-        self.handlers = {}
-        self.issues = []
-        
-    def scan_js_files(self):
-        """Scan all JavaScript files for event handlers"""
-        js_files = []
-        
-        # Find all JS files
-        for root, _, files in os.walk('static/js'):
-            for file in files:
-                if file.endswith('.js'):
-                    js_files.append(os.path.join(root, file))
-        
-        # Scan each file
-        for js_file in js_files:
-            self.scan_file(js_file)
-            
-    def scan_file(self, file_path):
-        """Scan a single file for event handlers"""
+        self.interactive_elements = [
+            'button', 'a', 'input', 'select', 'textarea', 
+            '[role="button"]', '.btn', 'form'
+        ]
+
+        self.event_attributes = [
+            'onclick', 'onsubmit', 'onchange', 'oninput', 'onkeyup', 'onkeydown',
+            'onblur', 'onfocus', 'onmouseover', 'onmouseout', 'data-action',
+            'data-bs-toggle', 'data-toggle'
+        ]
+
+        self.missing_attributes = [
+            'id', 'name', 'aria-label', 'type'
+        ]
+
+    def inspect_html_file(self, file_path):
+        """Inspect a single HTML file for event handler issues"""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-                
-            # Look for addEventListener calls
-            add_listener_pattern = r'(\w+)\.addEventListener\s*\(\s*[\'"](\w+)[\'"]\s*,\s*(\w+)'
-            matches = re.findall(add_listener_pattern, content)
-            
-            for element, event_type, handler in matches:
-                key = f"{element}:{event_type}"
-                if key not in self.handlers:
-                    self.handlers[key] = []
-                self.handlers[key].append({
-                    'file': file_path,
-                    'handler': handler,
-                    'code': self.extract_handler_code(content, handler)
-                })
-                
-            # Look for onclick and other inline event assignments
-            inline_pattern = r'(\w+)\.on(\w+)\s*=\s*(\w+|\(\s*(?:[^)(]*|\((?:[^)(]*|\([^)(]*\))*\))*\)\s*=>\s*{)'
-            inline_matches = re.findall(inline_pattern, content)
-            
-            for element, event_type, handler in inline_matches:
-                key = f"{element}:on{event_type}"
-                if key not in self.handlers:
-                    self.handlers[key] = []
-                    
-                # Handle both named functions and arrow functions
-                if handler.startswith('(') and '=>' in handler:
-                    handler_name = 'anonymous_function'
-                    handler_code = handler
-                else:
-                    handler_name = handler
-                    handler_code = self.extract_handler_code(content, handler)
-                    
-                self.handlers[key].append({
-                    'file': file_path,
-                    'handler': handler_name,
-                    'code': handler_code
-                })
-                
-            # Check for common issues
-            self.check_event_issues(file_path, content)
-            
+
+            soup = BeautifulSoup(content, 'html.parser')
+            issues = []
+
+            # Check each interactive element
+            for selector in self.interactive_elements:
+                elements = soup.select(selector)
+
+                for element in elements:
+                    element_id = element.get('id', '')
+                    element_class = element.get('class', [])
+                    if isinstance(element_class, list):
+                        element_class = ' '.join(element_class)
+
+                    element_desc = f"{element.name}"
+                    if element_id:
+                        element_desc += f"#{element_id}"
+                    elif element_class:
+                        element_desc += f".{element_class}"
+
+                    # Check for missing event handlers
+                    has_event_handler = False
+                    for attr in self.event_attributes:
+                        if element.has_attr(attr):
+                            has_event_handler = True
+                            break
+
+                    # Check for form elements with submit buttons
+                    if element.name == 'form':
+                        submit_buttons = element.select('button[type="submit"], input[type="submit"]')
+                        if not submit_buttons and not has_event_handler:
+                            issues.append(f"{element_desc} has no submit button or event handler")
+
+                    # Check for buttons without handlers (excluding submit/reset buttons)
+                    elif element.name == 'button':
+                        button_type = element.get('type', '')
+                        if not has_event_handler and button_type not in ['submit', 'reset']:
+                            if not element.find_parent('form'):  # Not in a form
+                                issues.append(f"{element_desc} has no event handler")
+
+                    # Check for links without href
+                    elif element.name == 'a' and not element.has_attr('href') and not has_event_handler:
+                        issues.append(f"{element_desc} has no href or event handler")
+
+                    # Check for missing accessibility attributes
+                    missing_attrs = []
+                    for attr in self.missing_attributes:
+                        if not element.has_attr(attr):
+                            missing_attrs.append(attr)
+
+                    if missing_attrs and element.name != 'form':  # Skip form for these checks
+                        issues.append(f"{element_desc} is missing attributes: {', '.join(missing_attrs)}")
+
+            return file_path, issues
+
         except Exception as e:
-            logger.error(f"Error scanning {file_path}: {str(e)}")
-    
-    def extract_handler_code(self, content, handler_name):
-        """Extract the code for a named handler function"""
-        # Look for function declaration
-        func_pattern = rf'function\s+{handler_name}\s*\([^)]*\)\s*{{([^}}]*)}}'
-        matches = re.search(func_pattern, content)
-        
-        if matches:
-            return f"function {handler_name}() {{ {matches.group(1)} }}"
-        
-        # Look for const/let/var assignment with function
-        assignment_pattern = rf'(?:const|let|var)\s+{handler_name}\s*=\s*function\s*\([^)]*\)\s*{{([^}}]*)}}'
-        matches = re.search(assignment_pattern, content)
-        
-        if matches:
-            return f"{handler_name} = function() {{ {matches.group(1)} }}"
-            
-        # Look for arrow function
-        arrow_pattern = rf'(?:const|let|var)\s+{handler_name}\s*=\s*\([^)]*\)\s*=>\s*{{([^}}]*)}}'
-        matches = re.search(arrow_pattern, content)
-        
-        if matches:
-            return f"{handler_name} = () => {{ {matches.group(1)} }}"
-            
-        return "// Handler code not found"
-    
-    def check_event_issues(self, file_path, content):
-        """Check for common event handler issues"""
-        # Check for event.preventDefault without try/catch
-        if 'preventDefault' in content:
-            prevent_default_count = content.count('preventDefault')
-            try_catch_count = content.count('try {')
-            
-            if prevent_default_count > try_catch_count:
-                self.issues.append({
-                    'file': file_path,
-                    'issue': 'event.preventDefault() called without try/catch',
-                    'severity': 'Medium'
-                })
-                
-        # Check for stopPropagation without try/catch
-        if 'stopPropagation' in content:
-            stop_prop_count = content.count('stopPropagation')
-            try_catch_count = content.count('try {')
-            
-            if stop_prop_count > try_catch_count:
-                self.issues.append({
-                    'file': file_path,
-                    'issue': 'event.stopPropagation() called without try/catch',
-                    'severity': 'Medium'
-                })
-                
-        # Check for double event binding
-        if content.count('addEventListener') > content.count('removeEventListener'):
-            self.issues.append({
-                'file': file_path,
-                'issue': 'More addEventListener calls than removeEventListener calls',
-                'severity': 'Low'
-            })
-            
-    def check_button_handlers(self):
-        """Check specifically for button-related event handlers"""
-        # Look for button click handlers in HTML files
-        button_handlers = {}
-        
-        for root, _, files in os.walk('templates'):
+            return file_path, [f"Error inspecting file: {str(e)}"]
+
+    def scan_template_directory(self, directory='templates'):
+        """Scan all HTML files in the templates directory"""
+        html_files = []
+
+        # Find all HTML files
+        for root, _, files in os.walk(directory):
             for file in files:
                 if file.endswith('.html'):
-                    file_path = os.path.join(root, file)
-                    try:
-                        with open(file_path, 'r', encoding='utf-8') as f:
-                            content = f.read()
-                            
-                        # Check for inline button handlers
-                        button_pattern = r'<button[^>]*\s+onclick\s*=\s*[\'"]([^\'"]*)[\'"]'
-                        matches = re.findall(button_pattern, content)
-                        
-                        for handler in matches:
-                            if handler not in button_handlers:
-                                button_handlers[handler] = []
-                            button_handlers[handler].append(file_path)
-                            
-                        # Check for button ids (for DOM event listeners)
-                        id_pattern = r'<button[^>]*\s+id\s*=\s*[\'"]([^\'"]*)[\'"]'
-                        id_matches = re.findall(id_pattern, content)
-                        
-                        if id_matches:
-                            # Check if we have handlers for these buttons
-                            for button_id in id_matches:
-                                found = False
-                                for key in self.handlers:
-                                    if button_id in key:
-                                        found = True
-                                        break
-                                        
-                                if not found:
-                                    self.issues.append({
-                                        'file': file_path,
-                                        'issue': f'Button with id "{button_id}" has no registered event handler',
-                                        'severity': 'High'
-                                    })
-                                    
-                    except Exception as e:
-                        logger.error(f"Error checking {file_path}: {str(e)}")
-        
-        return button_handlers
-    
-    def generate_report(self):
-        """Generate a report of all findings"""
-        button_handlers = self.check_button_handlers()
-        
-        report = {
-            'event_handlers': self.handlers,
-            'button_handlers': button_handlers,
-            'issues': self.issues
-        }
-        
-        return report
+                    html_files.append(os.path.join(root, file))
+
+        results = []
+        for html_file in html_files:
+            file_path, issues = self.inspect_html_file(html_file)
+            results.append((file_path, issues))
+
+        return results
+
+    def generate_fix_suggestions(self, results):
+        """Generate suggestions to fix the issues"""
+        suggestions = []
+
+        for file_path, issues in results:
+            if issues:
+                file_suggestion = {
+                    "file": file_path,
+                    "issues": issues,
+                    "suggestions": []
+                }
+
+                for issue in issues:
+                    if "has no event handler" in issue:
+                        element_type = issue.split(' ')[0]
+                        if element_type == "button":
+                            file_suggestion["suggestions"].append(
+                                "Add a click handler or data-action attribute to the button"
+                            )
+                        elif element_type == "a":
+                            file_suggestion["suggestions"].append(
+                                "Add an href attribute or click handler to the link"
+                            )
+                        elif element_type == "form":
+                            file_suggestion["suggestions"].append(
+                                "Add a submit button or onsubmit handler to the form"
+                            )
+                    elif "missing attributes" in issue:
+                        file_suggestion["suggestions"].append(
+                            "Add appropriate accessibility attributes for better usability"
+                        )
+
+                suggestions.append(file_suggestion)
+
+        return suggestions
 
 def main():
     logger.info("Starting event handler inspection...")
-    
+
     inspector = EventHandlerInspector()
-    inspector.scan_js_files()
-    
-    report = inspector.generate_report()
-    
-    # Display summary
-    logger.info("\n--- Event Handler Summary ---")
-    logger.info(f"Found {len(report['event_handlers'])} unique event handlers")
-    logger.info(f"Found {len(report['button_handlers'])} button handlers")
-    logger.info(f"Detected {len(report['issues'])} potential issues")
-    
-    # Display issues
-    if report['issues']:
-        logger.info("\n--- Potential Issues ---")
-        for issue in report['issues']:
-            logger.warning(f"⚠️ {issue['severity']} - {issue['file']}: {issue['issue']}")
-    
-    # Save detailed report to file
-    try:
-        with open('event_handler_report.json', 'w') as f:
-            json.dump(report, f, indent=2)
-        logger.info("\nDetailed report saved to 'event_handler_report.json'")
-    except Exception as e:
-        logger.error(f"Error saving report: {str(e)}")
-    
-    # Specific button functionality checks and recommendations
-    logger.info("\n--- Button Functionality Check ---")
-    
-    # Check for common button issues
-    check_card_actions()
-    check_audio_controls()
-    check_form_submissions()
-    
-    logger.info("\nEvent handler inspection complete!")
 
-def check_card_actions():
-    """Check specific card action buttons that may have issues"""
-    if os.path.exists('templates/notes/list.html'):
-        with open('templates/notes/list.html', 'r', encoding='utf-8') as f:
-            content = f.read()
-            
-        if 'card-footer' in content and 'btn-group' in content:
-            if 'data-bs-toggle="modal"' in content:
-                logger.info("✅ Note delete buttons using Bootstrap modal pattern correctly")
-            else:
-                logger.warning("⚠️ Note action buttons may have issues with modal triggering")
+    # Scan templates directory
+    results = inspector.scan_template_directory()
 
-def check_audio_controls():
-    """Check audio recording controls"""
-    if os.path.exists('templates/notes/new.html'):
-        with open('templates/notes/new.html', 'r', encoding='utf-8') as f:
-            content = f.read()
-            
-        if 'startRecording' in content and 'stopRecording' in content:
-            if 'disabled' in content:
-                logger.info("✅ Audio recording buttons using disabled state correctly")
-            else:
-                logger.warning("⚠️ Audio recording buttons may need disabled state management")
+    # Display results
+    files_with_issues = 0
+    total_issues = 0
 
-def check_form_submissions():
-    """Check form submission handlers"""
-    logger.info("Checking form submission handlers...")
-    forms_checked = 0
-    
-    for root, _, files in os.walk('templates'):
-        for file in files:
-            if file.endswith('.html'):
-                file_path = os.path.join(root, file)
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                        
-                    if '<form' in content:
-                        forms_checked += 1
-                        if 'onsubmit' in content or 'preventDefault' in content:
-                            logger.info(f"✅ Form in {file_path} has submission handling")
-                        else:
-                            logger.warning(f"⚠️ Form in {file_path} may lack client-side validation")
-                            
-                except Exception as e:
-                    logger.error(f"Error checking {file_path}: {str(e)}")
-    
-    logger.info(f"Checked {forms_checked} forms")
+    for file_path, issues in results:
+        if issues:
+            files_with_issues += 1
+            total_issues += len(issues)
+
+            logger.info(f"\nFile: {file_path}")
+            for issue in issues:
+                logger.info(f"  - {issue}")
+        else:
+            logger.info(f"✅ {file_path} - No issues found")
+
+    # Generate fix suggestions
+    if files_with_issues > 0:
+        logger.info("\n--- Fix Suggestions ---")
+        suggestions = inspector.generate_fix_suggestions(results)
+
+        for suggestion in suggestions:
+            if suggestion["suggestions"]:
+                logger.info(f"\nFor {suggestion['file']}:")
+                for fix in suggestion["suggestions"]:
+                    logger.info(f"  - {fix}")
+
+    # Summary
+    logger.info("\n--- Summary ---")
+    logger.info(f"Total files checked: {len(results)}")
+    logger.info(f"Files with issues: {files_with_issues}")
+    logger.info(f"Total issues found: {total_issues}")
+
+    if total_issues == 0:
+        logger.info("All event handlers look good!")
+
+    return total_issues == 0
 
 if __name__ == "__main__":
-    main()
+    success = main()
+    sys.exit(0 if success else 1)
