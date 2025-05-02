@@ -1,39 +1,49 @@
 /**
- * N1O1 Clinical Trials - Tooltip and Term Styling
- * Enhances scientific terms and tooltips
+ * N1O1 Clinical Trials - Tooltip Fixes
+ * Enhanced styling for scientific tooltips
  */
 
 /* Scientific term styling */
 .scientific-term {
-    position: relative;
-    color: #3b7eb9;
-    padding-bottom: 1px;
-    border-bottom: 1px dotted #3b7eb9;
+    border-bottom: 1px dotted var(--bs-info);
     cursor: help;
-    transition: all 0.2s ease;
-}
-
-.scientific-term:hover {
-    color: #ef476f;
-    border-bottom-color: #ef476f;
+    position: relative;
+    display: inline-block;
 }
 
 /* Mobile tooltip styling */
 .mobile-scientific-tooltip {
     position: absolute;
-    z-index: 1050;
-    max-width: 300px;
-    animation: tooltip-fade-in 0.2s ease-in-out;
+    z-index: 1070;
+    display: block;
+    max-width: 276px;
+    font-family: var(--bs-font-sans-serif);
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: left;
+    text-decoration: none;
+    text-shadow: none;
+    text-transform: none;
+    letter-spacing: normal;
+    word-break: normal;
+    word-spacing: normal;
+    white-space: normal;
+    line-break: auto;
+    font-size: 0.875rem;
+    word-wrap: break-word;
+    background-color: var(--bs-dark);
+    border: 1px solid var(--bs-primary);
+    border-radius: 0.25rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
+    animation: tooltipFadeIn 0.3s ease-in-out;
 }
 
-.mobile-scientific-tooltip .card {
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-@keyframes tooltip-fade-in {
+/* Animation for tooltip appearance */
+@keyframes tooltipFadeIn {
     from {
         opacity: 0;
-        transform: translateY(5px);
+        transform: translateY(-10px);
     }
     to {
         opacity: 1;
@@ -41,77 +51,45 @@
     }
 }
 
-/* Fix for Bootstrap buttons */
-.btn {
-    position: relative;
-    overflow: hidden;
+/* Enhanced scientific term appearance on hover */
+.scientific-term:hover {
+    color: var(--bs-info);
+    text-decoration: none;
+    transition: color 0.2s ease;
 }
 
-.btn:after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-    transition: width 0.3s, height 0.3s, opacity 0.3s;
+/* Bootstrap tooltip enhancements */
+.tooltip {
+    --bs-tooltip-bg: var(--bs-dark);
+    --bs-tooltip-color: var(--bs-light);
+    --bs-tooltip-opacity: 1;
+    --bs-tooltip-arrow-width: 0.8rem;
+    --bs-tooltip-arrow-height: 0.4rem;
+    opacity: 1 !important;
 }
 
-.btn:active:after {
-    width: 200px;
-    height: 200px;
-    opacity: 1;
-    transition: 0s;
+.tooltip .tooltip-inner {
+    padding: 0.75rem;
+    border: 1px solid var(--bs-primary);
+    max-width: 300px;
 }
 
-/* Fix for tab buttons */
-.nav-tabs .nav-link {
-    position: relative;
-    transition: all 0.2s ease;
+/* Dark mode enhancement for tooltips */
+[data-bs-theme=dark] .tooltip .tooltip-inner {
+    background-color: var(--bs-gray-800);
+    color: var(--bs-gray-200);
 }
 
-.nav-tabs .nav-link:before {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: #3b7eb9;
-    transition: width 0.3s ease;
-}
-
-.nav-tabs .nav-link.active:before,
-.nav-tabs .nav-link:hover:before {
-    width: 100%;
-}
-
-/* Fix for stretched links in cards */
-.card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card:has(.stretched-link):hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* Add active state for buttons */
-.btn:focus {
-    box-shadow: 0 0 0 0.25rem rgba(59, 126, 185, 0.25);
-}
-
-/* Improved accessibility for interactive elements */
-a:focus, button:focus, [role="button"]:focus, .btn:focus {
-    outline: 2px solid #3b7eb9;
-    outline-offset: 2px;
-}
-
-/* Prevent selection on buttons */
-button, .btn, [role="button"] {
-    user-select: none;
+/* Ensure tooltips are visible on mobile */
+@media (max-width: 768px) {
+    .tooltip {
+        display: none !important; /* Use our custom mobile tooltips instead */
+    }
+    
+    .mobile-scientific-tooltip {
+        width: calc(100% - 30px);
+        max-width: none;
+        left: 15px !important;
+        right: 15px !important;
+    }
 }
