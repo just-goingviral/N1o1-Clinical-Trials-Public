@@ -1,34 +1,51 @@
-# N1O1 Clinical Trials - Workflow Configuration Fix
+# How to Fix Workflow Issues in N1O1 Clinical Trials
 
-## The Issue
-The current workflow is failing with the error:
-```
-Error: '' is not a valid port number.
-```
+If you're experiencing issues with the Replit workflow, try these solutions:
 
-This happens because the workflow is trying to use the `$PORT` environment variable, but it's empty.
+## 1. Use a Direct Starter Script
 
-## How to Fix It
-
-### Option 1: Update the Workflow Command in Replit UI
-1. Click on the "Run" button at the top of the screen
-2. Click the gear icon (⚙️) next to the "Start application" workflow
-3. Replace the command with this fixed version:
-   ```
-   gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app
-   ```
-4. Click "Save changes"
-5. Click "Run" to start the application
-
-### Option 2: Run the Fixed Command Script
-If you'd rather not change the workflow configuration, you can run this script directly:
-```
-./fixed_workflow_command.sh
+```bash
+./start_gunicorn.sh
 ```
 
-## Port Assignment Explained
-- The script uses port 5000 hardcoded directly in the command
-- This bypasses the need for the PORT environment variable
-- By using a fixed port number, we ensure the application starts consistently every time
+This script bypasses all workflow configuration and starts the application directly with a hardcoded port number.
 
-Note: This fix addresses only the workflow startup issue. The "too many redirects" issue has been fixed separately by modifying the URL generation logic in main.py.
+## 2. Use the Python Direct Starter
+
+```bash
+python start_direct.py
+```
+
+This is another option that uses Python's built-in development server instead of Gunicorn.
+
+## 3. Set PORT Environment Variable Manually
+
+```bash
+export PORT=5003
+gunicorn --bind 0.0.0.0:$PORT main:app
+```
+
+## 4. Check Common Issues
+
+- The most common issue is the missing PORT environment variable
+- Another issue is route conflicts between different startup scripts
+- Browser cache can sometimes cause problems - try clearing your browser cache
+
+## 5. UI Button Issues
+
+If buttons aren't working properly:
+
+- We've added a button-fix.js script that repairs common Bootstrap button issues
+- Check the JavaScript console for any errors
+- Try clicking the area around the button if the button itself isn't responding
+- For tab navigation issues, try using the button-fix.js manual tab switcher
+
+## Using the Research Insight Generator
+
+The new Research Insight Generator feature is available at:
+
+```
+/research/insights
+```
+
+You can access it directly from the dashboard via the new Research Insights card.

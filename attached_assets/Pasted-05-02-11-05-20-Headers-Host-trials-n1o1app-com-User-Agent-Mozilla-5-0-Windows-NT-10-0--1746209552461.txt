@@ -1,0 +1,33 @@
+05-02 11:05:20
+Headers: {'Host': 'trials.n1o1app.com', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36', 'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8', 'Accept-Encoding': 'gzip, deflate, br, zstd', 'Accept-Language': 'en-US,en;q=0.9', 'Cookie': 'session=WF4O0x9Vs-QuF1AcebgPD-kwUfNNjVbYu-RR3oeQSvE', 'Priority': 'u=1, i', 'Referer': 'https://trials.n1o1app.com/docs', 'Sec-Ch-Ua': '"Chromium";v="136", "Google Chrome";v="136", "Not.A/Brand";v="99"', 'Sec-Ch-Ua-Mobile': '?0', 'Sec-Ch-Ua-Platform': '"Windows"', 'Sec-Fetch-Dest': 'image', 'Sec-Fetch-Mode': 'no-cors', 'Sec-Fetch-Site': 'same-origin', 'Server-Timing': 'depproxy;dur=1746209120084,pid1req;dur=1746209120095', 'Traceparent': '00-910b8872069891ce88d101e3ef45bb7d-7709852647834bb2-00', 'Via': '1.1 google', 'X-Cloud-Trace-Context': '910b8872069891ce88d101e3ef45bb7d/8577533364758858674', 'X-Forwarded-For': '98.97.141.141, 34.111.179.208, 35.191.10.94,34.134.141.61', 'X-Forwarded-Host': 'trials.n1o1app.com', 'X-Forwarded-Proto': 'https', 'X-Replit-User-Bio': '', 'X-Replit-User-Id': '', 'X-Replit-User-Name': '', 'X-Replit-User-Profile-Image': '', 'X-Replit-User-Roles': '', 'X-Replit-User-Teams': '', 'X-Replit-User-Url': ''}
+05-02 11:05:20
+05-02 11:05:20
+Traceback (most recent call last):
+05-02 11:05:20
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+05-02 11:05:20
+rv = self.dispatch_request()
+05-02 11:05:20
+^^^^^^^^^^^^^^^^^^^^^^^
+05-02 11:05:20
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 891, in dispatch_request
+05-02 11:05:20
+self.raise_routing_exception(req)
+05-02 11:05:20
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 500, in raise_routing_exception
+05-02 11:05:20
+raise request.routing_exception # type: ignore[misc]
+05-02 11:05:20
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+05-02 11:05:20
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/ctx.py", line 362, in match_request
+05-02 11:05:20
+result = self.url_adapter.match(return_rule=True) # type: ignore
+05-02 11:05:20
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+05-02 11:05:20
+File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/werkzeug/routing/map.py", line 629, in match
+05-02 11:05:20
+raise NotFound() from None
+05-02 11:05:20
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
