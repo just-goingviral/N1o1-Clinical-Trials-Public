@@ -1,81 +1,53 @@
 # N1O1 Clinical Trials - Summary of Deployment Fixes
 
-## Key Issues Fixed
+## Core Issue
 
-1. **URL Generation and Redirect Loops**
-   - Updated `safe_url_for()` to intelligently detect the deployment environment
-   - Added dynamic URL scheme detection based on proxy headers
-   - Removed hardcoded HTTP scheme references
+The main deployment issue was the handling of the `$PORT` environment variable in Replit's workflow system, which often results in a `Error: '' is not a valid port number` error because the variable is empty or not properly set.
 
-2. **Session and Cookie Configuration**
-   - Made cookie security settings consistent
-   - Removed duplicate configuration blocks
-   - Ensured cross-domain compatibility of cookie settings
+## Solutions Implemented
 
-3. **Proxy Handling**
-   - Properly configured ProxyFix middleware to handle forwarded headers
-   - Made the app respect X-Forwarded-Proto for protocol detection
-   - Ensured correct URL generation behind load balancers/CDNs
+1. **Standalone Server Scripts:**
+   - `simple_start.py`: Super minimal Flask server with hardcoded port 5003
+   - `start_n1o1_standalone.py`: Basic server with key routes but no complex initialization
+   - `minimal_flask_server.py`: Minimal server with health check endpoints
 
-4. **Workflow Reliability**
-   - Created fixed workflow script that uses reliable hardcoded settings
-   - Prevented empty PORT variable errors
-   - Implemented proper process cleanup before startup
+2. **Shell Scripts:**
+   - `fixed_workflow.sh`: Explicitly sets environment variables and runs the standalone server
+   - `workflow_fixed.sh`: Alternative script that just runs the standalone server
 
-## Technical Implementation Details
+3. **Configuration Files:**
+   - `new_workflow.toml`: Sample workflow configuration with hardcoded port
+   - `.replit.new`: Completely rewritten configuration file (needs to be manually copied to .replit)
+   - `WORKFLOW_FIXED_COMMAND.txt`: Recommended workflow command
 
-- **Dynamic URL Protocol:**
-  When generating URLs, the application now:
-  1. Checks X-Forwarded-Proto headers to detect HTTPS
-  2. Falls back to configured PREFERRED_URL_SCHEME if headers are missing
-  3. Ensures HTTP scheme for Replit's internal domain
+## How to Fix the Workflow
 
-- **Intelligent Redirects:**
-  All redirects now use `safe_redirect()` which:
-  1. Uses `safe_url_for()` to generate the URL
-  2. Maintains the original protocol (http/https)
-  3. Generates fully qualified URLs with the correct hostname
+Since you can't directly edit the `.replit` file, you'll need to update the workflow through Replit's UI:
 
-- **Fixed ProxyFix Configuration:**
-  The application correctly handles:
-  1. X-Forwarded-For for client IP
-  2. X-Forwarded-Proto for protocol detection
-  3. X-Forwarded-Host for hostname/domain
-  4. X-Forwarded-Port for port detection
-  5. X-Forwarded-Prefix for path prefixes
+1. Go to Tools > Workflows
+2. Edit "Start application" workflow
+3. Replace the command with `python simple_start.py`
+4. Save the workflow
 
-## Verification Tools
+Alternatively, you can try using one of the other provided solutions:
 
-- **verify_deployment.py**
-  - Tests basic connectivity
-  - Verifies correct redirect handling
-  - Works with both Replit and custom domains
+- `python start_n1o1_standalone.py` - More complete server but still minimal
+- `./fixed_workflow.sh` - Shell script with environment variables set
 
-- **workflow_fixed.sh**
-  - Ensures reliable application startup
-  - Uses hardcoded port to prevent workflow issues
-  - Handles proper process cleanup
+## Verification
 
-## Deployment Checklist
+We've verified that all the alternative server implementations work when run directly, but the workflow system still has issues with environment variables.
 
-✓ **Code Updates**
-  - [x] Updated `safe_url_for()` function
-  - [x] Improved `safe_redirect()` function
-  - [x] Removed duplicate configuration
-  - [x] Configured ProxyFix correctly
+## Post-Deployment Steps
 
-✓ **Environment Settings**
-  - [x] `PREFERRED_URL_SCHEME` set appropriately
-  - [x] `SERVER_NAME` set to None (dynamic)
-  - [x] Cookie settings made cross-domain compatible
-  - [x] Fixed port handling in workflow script
+Once deployed, verify the application is running by visiting:
 
-✓ **Testing Tools**
-  - [x] Created deployment verification tool
-  - [x] Created reliable startup script
-  - [x] Updated deployment documentation
+- Replit URL + `/ping` - Should return `{"status": "ok"}`
+- Replit URL + `/system/health` - Should return system status information
 
-✓ **Documentation**
-  - [x] Updated deployment guide
-  - [x] Added technical details
-  - [x] Included troubleshooting steps
+## Documentation
+
+Additional documentation files have been created:
+
+- `FINAL_DEPLOYMENT_FIX.md` - Comprehensive fix documentation
+- `setup_instructions.md` - Detailed setup instructions

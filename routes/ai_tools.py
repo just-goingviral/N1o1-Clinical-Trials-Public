@@ -512,6 +512,177 @@ def ai_report_writer():
         logger.exception("Error in ai-report-writer endpoint")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# Endpoint for research insight generator
+@ai_tools_bp.route('/research-insight', methods=['POST'])
+def research_insight_generator():
+    """
+    Generate research insights, connections, and hypotheses based on existing research data
+    and simulation results.
+    
+    Expected JSON input:
+    {
+        "research_data": {
+            "trial_results": list or object,  # Summary of trial results or findings
+            "simulation_data": list or object,  # Data from nitrite dynamics simulations
+            "related_research": list,  # Relevant research papers or findings to consider
+            "observed_effects": list  # Clinical or physiological effects observed
+        },
+        "focus_areas": list,  # Specific research questions or areas to focus on
+        "insight_type": str  # "connections", "hypotheses", "mechanism", "clinical", or "comprehensive"
+    }
+    """
+    try:
+        data = request.get_json()
+        valid, error_msg = validate_request(data, ["research_data", "insight_type"])
+        if not valid:
+            return jsonify({"status": "error", "message": error_msg}), 400
+            
+        # Default focus areas if none provided
+        focus_areas = data.get("focus_areas", ["general mechanisms", "therapeutic potential", "future research"])
+        
+        # Prepare prompt for Claude
+        prompt = f"""
+        Generate research insights based on the following nitric oxide research data:
+        
+        RESEARCH DATA:
+        {json.dumps(data['research_data'], indent=2)}
+        
+        FOCUS AREAS:
+        {json.dumps(focus_areas, indent=2)}
+        
+        INSIGHT TYPE: {data['insight_type']}
+        
+        As N1O1ai, provide sophisticated analysis and insights about the nitric oxide pathway findings. 
+        """
+        
+        # Add specific instructions based on insight type
+        if data['insight_type'] == "connections":
+            prompt += """
+            Focus on identifying non-obvious connections between:
+            - Different data points in the research
+            - The nitric oxide pathway and other biological mechanisms
+            - Patient response patterns and physiological markers
+            - Simulation predictions and actual outcomes
+            
+            For each connection identified:
+            1. Describe the connection
+            2. Explain the scientific basis
+            3. Note the strength of evidence (strong, moderate, speculative)
+            4. Suggest verification approaches
+            """
+        elif data['insight_type'] == "hypotheses":
+            prompt += """
+            Generate novel but scientifically grounded hypotheses that:
+            - Explain observed phenomena in the data
+            - Predict potential effects not yet measured
+            - Suggest new therapeutic applications
+            - Address gaps or inconsistencies in the current understanding
+            
+            For each hypothesis:
+            1. State the hypothesis clearly
+            2. Explain the scientific reasoning
+            3. Connect to existing nitric oxide pathway knowledge
+            4. Suggest experiments or tests to validate
+            """
+        elif data['insight_type'] == "mechanism":
+            prompt += """
+            Provide detailed analysis of the nitric oxide mechanisms at work:
+            - Molecular pathways and interactions
+            - Pharmacokinetic and pharmacodynamic aspects
+            - Cellular and physiological effects
+            - Temporal dynamics and dose-response relationships
+            
+            Create a mechanistic model explaining how the observed effects occur,
+            highlighting where the model is well-supported vs. speculative.
+            """
+        elif data['insight_type'] == "clinical":
+            prompt += """
+            Focus on clinical and therapeutic implications:
+            - Patient subgroups who may respond differently
+            - Potential therapeutic applications beyond current uses
+            - Optimizing dosing regimens based on the data
+            - Safety considerations and monitoring needs
+            - Translation from simulation/lab to clinical practice
+            
+            Provide practical recommendations for clinical research or practice.
+            """
+        else:  # comprehensive
+            prompt += """
+            Provide a comprehensive analysis covering:
+            1. Key findings and their significance
+            2. Unexpected or non-obvious patterns
+            3. Mechanistic insights about nitric oxide pathways
+            4. Clinical and therapeutic implications
+            5. Research limitations and gaps
+            6. Recommended next steps for investigation
+            
+            Balance scientific rigor with creative insight, noting the
+            distinction between established facts and speculative connections.
+            """
+        
+        # Add visualization suggestion if appropriate
+        if 'simulation_data' in data['research_data']:
+            prompt += """
+            Also suggest one specific visualization that would best illustrate the key insight,
+            describing what the visualization would show and why it would be valuable.
+            """
+            
+        # Call Claude
+        claude_response = claude_completion(prompt, temperature=0.5, max_tokens=3500)
+        
+        # Generate a visualization if simulation data is provided
+        visualization_data = None
+        if 'simulation_data' in data['research_data'] and isinstance(data['research_data']['simulation_data'], list) and len(data['research_data']['simulation_data']) > 0:
+            try:
+                # Create a simple visualization based on the data
+                plt.figure(figsize=(10, 6))
+                
+                # Configure plot style for scientific presentation
+                configure_mpl_style()
+                
+                # Extract simulation data (assuming it has the right format)
+                sim_data = data['research_data']['simulation_data']
+                
+                # Create a basic plot (adapt this based on your actual data structure)
+                if isinstance(sim_data[0], dict) and 'time' in sim_data[0] and 'value' in sim_data[0]:
+                    times = [point['time'] for point in sim_data]
+                    values = [point['value'] for point in sim_data]
+                    plt.plot(times, values, 'b-', linewidth=2)
+                    plt.title('Nitric Oxide Pathway Simulation Results')
+                    plt.xlabel('Time (minutes)')
+                    plt.ylabel('Concentration')
+                elif len(sim_data) > 0 and isinstance(sim_data[0], (int, float)):
+                    plt.plot(range(len(sim_data)), sim_data, 'b-', linewidth=2)
+                    plt.title('Nitric Oxide Pathway Analysis')
+                    plt.xlabel('Time Point')
+                    plt.ylabel('Value')
+                
+                # Save the plot to a BytesIO object
+                img_buf = BytesIO()
+                plt.savefig(img_buf, format='png', dpi=100, bbox_inches='tight')
+                img_buf.seek(0)
+                plt.close()
+                
+                # Convert to base64 for sending in JSON response
+                visualization_data = base64.b64encode(img_buf.read()).decode('utf-8')
+            except Exception as viz_error:
+                logger.error(f"Error generating visualization: {str(viz_error)}")
+        
+        # Prepare response
+        response = {
+            "status": "success",
+            "insights": claude_response
+        }
+        
+        if visualization_data:
+            response["visualization"] = visualization_data
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        logger.exception("Error in research-insight endpoint")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 def create_plot(x_data, y_data, title="NO Dynamics", x_label="Time", y_label="Concentration"):
     """Create a matplotlib plot and return as base64 encoded string"""
     # Use our enhanced styling

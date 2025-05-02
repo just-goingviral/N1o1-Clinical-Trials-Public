@@ -14,6 +14,7 @@ from routes.ai_tools import ai_tools_bp
 from routes.chat_routes import chat_bp
 from routes.consent_routes import consent_bp
 from routes.offline_routes import offline_bp
+from routes.research_routes import research_bp
 
 # Create Flask application
 app = Flask(__name__)
@@ -139,6 +140,7 @@ app.register_blueprint(ai_tools_bp)
 app.register_blueprint(chat_bp)
 app.register_blueprint(consent_bp)
 app.register_blueprint(offline_bp)
+app.register_blueprint(research_bp)
 
 # Improved redirect loop prevention
 @app.before_request

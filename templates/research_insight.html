@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+
+{% block title %}Research Insight Generator - N1O1 Clinical Trials{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 mb-3">AI-Powered Research Insight Generator</h1>
+            <p class="lead">
+                Generate novel research insights, connections, and hypotheses from your nitric oxide pathway data.
+                This tool analyzes trial results, simulation data, and research findings to identify patterns and suggest
+                new research directions.
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card bg-dark border-primary mb-4">
+                <div class="card-header bg-dark border-primary">
+                    <h3 class="h5 mb-0">Research Data Input</h3>
+                </div>
+                <div class="card-body">
+                    <form id="research-insight-form">
+                        <div class="mb-3">
+                            <label for="insight-type" class="form-label">Insight Type</label>
+                            <select class="form-select" id="insight-type" required>
+                                <option value="" disabled selected>Select insight type...</option>
+                                <option value="connections">Research Connections</option>
+                                <option value="hypotheses">Novel Hypotheses</option>
+                                <option value="mechanism">Mechanism Analysis</option>
+                                <option value="clinical">Clinical Applications</option>
+                                <option value="comprehensive">Comprehensive Analysis</option>
+                            </select>
+                            <div class="form-text text-muted">
+                                The type of research insight to generate.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="trial-results" class="form-label">Trial Results</label>
+                            <textarea class="form-control" id="trial-results" rows="3" placeholder="Enter summary of trial results..."></textarea>
+                            <div class="form-text text-muted">
+                                Key findings from clinical trials related to nitric oxide pathways.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="simulation-data" class="form-label">Simulation Data (JSON)</label>
+                            <textarea class="form-control" id="simulation-data" rows="4" placeholder="[{"time": 0, "value": 0.5}, {"time": 30, "value": 2.5}, ...] or simple array of values"></textarea>
+                            <div class="form-text text-muted">
+                                JSON array of simulation time points and values, or simply a list of values.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="related-research" class="form-label">Related Research</label>
+                            <textarea class="form-control" id="related-research" rows="3" placeholder="Enter relevant research papers or findings..."></textarea>
+                            <div class="form-text text-muted">
+                                Existing studies or literature that should be considered.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="observed-effects" class="form-label">Observed Effects</label>
+                            <textarea class="form-control" id="observed-effects" rows="3" placeholder="Enter clinical or physiological effects observed..."></textarea>
+                            <div class="form-text text-muted">
+                                Clinical or physiological effects that have been observed in subjects.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="focus-areas" class="form-label">Focus Areas (comma-separated)</label>
+                            <input type="text" class="form-control" id="focus-areas" placeholder="mechanism, application, safety" />
+                            <div class="form-text text-muted">
+                                Specific areas to focus the analysis on, separated by commas.
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" id="generate-insights-btn">
+                                <i class="fas fa-lightbulb me-2"></i>Generate Insights
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div id="results-card" class="card bg-dark border-secondary mb-4" style="display:none;">
+                <div class="card-header bg-dark border-secondary d-flex justify-content-between align-items-center">
+                    <h3 class="h5 mb-0">Research Insights</h3>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary" id="copy-insights-btn" title="Copy to clipboard">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" id="download-insights-btn" title="Download as PDF">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="insights-container" class="insights-container mb-4">
+                        <div class="text-center p-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Generating research insights...</p>
+                        </div>
+                    </div>
+
+                    <div id="visualization-container" class="text-center mb-3" style="display:none;">
+                        <h4 class="h6 mb-3">Data Visualization</h4>
+                        <img id="insight-visualization" class="img-fluid rounded" alt="Research data visualization" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-dark border-info mb-4">
+                <div class="card-header bg-dark border-info">
+                    <h3 class="h5 mb-0">How It Works</h3>
+                </div>
+                <div class="card-body">
+                    <p>The Research Insight Generator uses advanced AI to analyze your nitric oxide pathway data and generate valuable insights:</p>
+                    <ul class="list-group list-group-flush bg-transparent mb-3">
+                        <li class="list-group-item bg-transparent">1. <strong>Research Connections</strong>: Identifies non-obvious connections between different data points and mechanisms.</li>
+                        <li class="list-group-item bg-transparent">2. <strong>Novel Hypotheses</strong>: Generates scientifically-grounded hypotheses based on your data.</li>
+                        <li class="list-group-item bg-transparent">3. <strong>Mechanism Analysis</strong>: Provides detailed analysis of the nitric oxide mechanisms at work.</li>
+                        <li class="list-group-item bg-transparent">4. <strong>Clinical Applications</strong>: Suggests therapeutic applications and patient considerations.</li>
+                        <li class="list-group-item bg-transparent">5. <strong>Comprehensive Analysis</strong>: Delivers an all-encompassing analysis with next steps.</li>
+                    </ul>
+                    <p class="mb-0">For best results, provide detailed information in each field. The generator will provide rich analysis with visualization when simulation data is available.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('research-insight-form');
+        const generateBtn = document.getElementById('generate-insights-btn');
+        const resultsCard = document.getElementById('results-card');
+        const insightsContainer = document.getElementById('insights-container');
+        const visualizationContainer = document.getElementById('visualization-container');
+        const insightVisualization = document.getElementById('insight-visualization');
+        const copyBtn = document.getElementById('copy-insights-btn');
+        const downloadBtn = document.getElementById('download-insights-btn');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            generateInsights();
+        });
+
+        copyBtn.addEventListener('click', function() {
+            const insightText = insightsContainer.innerText;
+            navigator.clipboard.writeText(insightText).then(() => {
+                showToast('Insights copied to clipboard');
+            });
+        });
+
+        downloadBtn.addEventListener('click', function() {
+            downloadAsPDF();
+        });
+
+        function generateInsights() {
+            // Show loading state
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
+            resultsCard.style.display = 'block';
+            insightsContainer.innerHTML = `
+                <div class="text-center p-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Generating research insights...</p>
+                </div>
+            `;
+            visualizationContainer.style.display = 'none';
+
+            // Parse focus areas
+            const focusAreasInput = document.getElementById('focus-areas').value;
+            const focusAreas = focusAreasInput ? focusAreasInput.split(',').map(area => area.trim()) : [];
+
+            // Parse simulation data (safely)
+            let simulationData = [];
+            try {
+                const simDataInput = document.getElementById('simulation-data').value;
+                if (simDataInput) {
+                    simulationData = JSON.parse(simDataInput);
+                }
+            } catch (e) {
+                console.error('Error parsing simulation data:', e);
+                // Will continue with empty array
+            }
+
+            // Prepare request data
+            const requestData = {
+                research_data: {
+                    trial_results: document.getElementById('trial-results').value,
+                    simulation_data: simulationData,
+                    related_research: document.getElementById('related-research').value,
+                    observed_effects: document.getElementById('observed-effects').value
+                },
+                focus_areas: focusAreas,
+                insight_type: document.getElementById('insight-type').value
+            };
+
+            // Make API request
+            fetch('/api/ai-tools/research-insight', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Reset button state
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<i class="fas fa-lightbulb me-2"></i>Generate Insights';
+
+                if (data.status === 'success') {
+                    // Format and display insights with nice markdown-like formatting
+                    const formattedInsights = formatInsights(data.insights);
+                    insightsContainer.innerHTML = formattedInsights;
+
+                    // Display visualization if available
+                    if (data.visualization) {
+                        insightVisualization.src = 'data:image/png;base64,' + data.visualization;
+                        visualizationContainer.style.display = 'block';
+                    } else {
+                        visualizationContainer.style.display = 'none';
+                    }
+                } else {
+                    insightsContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h4 class="alert-heading">Error</h4>
+                            <p>${data.message || 'An error occurred while generating insights.'}</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<i class="fas fa-lightbulb me-2"></i>Generate Insights';
+                insightsContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h4 class="alert-heading">Error</h4>
+                        <p>Failed to generate insights. Please try again later.</p>
+                    </div>
+                `;
+            });
+        }
+
+        function formatInsights(insights) {
+            // Simple formatting to make the text more readable
+            let formatted = insights
+                // Headers
+                .replace(/#{3}\s+(.+)/g, '<h5 class="mt-4 mb-2">$1</h5>')
+                .replace(/#{2}\s+(.+)/g, '<h4 class="mt-4 mb-3">$1</h4>')
+                .replace(/#{1}\s+(.+)/g, '<h3 class="mt-4 mb-3">$1</h3>')
+                // Lists
+                .replace(/^\s*[-*]\s+(.+)/gm, '<li>$1</li>')
+                .replace(/<\/li>\n<li>/g, '</li><li>')
+                .replace(/(<li>.+<\/li>)/gs, '<ul class="mb-3">$1</ul>')
+                // Numbered lists
+                .replace(/^\s*\d+\.\s+(.+)/gm, '<li>$1</li>')
+                .replace(/(<li>\d+\..+<\/li>)/gs, '<ol class="mb-3">$1</ol>')
+                // Bold
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                // Italic
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                // Paragraphs
+                .replace(/\n\n/g, '</p><p>')
+                // Highlight scientific terms
+                .replace(/(nitric oxide|NO|cGMP|vasodilation|endothelial|bioavailability)/gi, 
+                         '<span class="text-info">$1</span>');
+
+            return `<div class="markdown-content"><p>${formatted}</p></div>`;
+        }
+
+        function downloadAsPDF() {
+            const insightType = document.getElementById('insight-type').options[document.getElementById('insight-type').selectedIndex].text;
+            const fileName = `N1O1_Research_Insight_${insightType.replace(/\s+/g, '_')}.pdf`;
+
+            // Show loading toast
+            showToast('Preparing PDF download...');
+
+            // This would typically call a server endpoint to generate the PDF
+            // For now, we're just showing a toast
+            setTimeout(() => {
+                showToast('PDF download feature coming soon!');
+            }, 1500);
+        }
+
+        function showToast(message) {
+            // Create toast container if it doesn't exist
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+                document.body.appendChild(toastContainer);
+            }
+
+            // Create toast
+            const toastId = 'toast-' + Date.now();
+            const toastEl = document.createElement('div');
+            toastEl.id = toastId;
+            toastEl.className = 'toast bg-dark border-primary';
+            toastEl.setAttribute('role', 'alert');
+            toastEl.setAttribute('aria-live', 'assertive');
+            toastEl.setAttribute('aria-atomic', 'true');
+            toastEl.innerHTML = `
+                <div class="toast-header bg-dark text-light">
+                    <strong class="me-auto">N1O1 Clinical Trials</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            `;
+
+            // Add toast to container
+            toastContainer.appendChild(toastEl);
+
+            // Initialize Bootstrap toast and show it
+            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            toast.show();
+
+            // Remove toast after hiding
+            toastEl.addEventListener('hidden.bs.toast', function () {
+                toastEl.remove();
+            });
+        }
+    });
+</script>
+
+<style>
+    .insights-container {
+        background-color: rgba(22, 50, 92, 0.4);
+        border-radius: 6px;
+        padding: 1.5rem;
+        overflow-y: auto;
+        max-height: 500px;
+    }
+    
+    .markdown-content h3 {
+        color: #3b7eb9;
+        border-bottom: 1px solid #3b7eb9;
+        padding-bottom: 0.5rem;
+    }
+    
+    .markdown-content h4 {
+        color: #e05a47;
+    }
+    
+    .markdown-content h5 {
+        color: #9b59b6;
+    }
+    
+    .markdown-content ul, .markdown-content ol {
+        padding-left: 1.5rem;
+    }
+    
+    .markdown-content strong {
+        color: #2ecc71;
+    }
+    
+    #insight-visualization {
+        max-height: 400px;
+        box-shadow: 0 0 15px rgba(59, 126, 185, 0.5);
+    }
+</style>
+{% endblock %}

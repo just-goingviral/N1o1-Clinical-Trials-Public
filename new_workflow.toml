@@ -1,0 +1,9 @@
+[[workflows.workflow]]
+name = "Start N1O1 Standalone"
+author = "agent"
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python start_n1o1_standalone.py"
+waitForPort = 5003

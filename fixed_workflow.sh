@@ -1,17 +1,13 @@
 #!/bin/bash
-# Fixed workflow starter script with hardcoded port
-# This avoids the empty PORT variable issue
 
-# Set environment variables
-export PORT=5000
-export PREFERRED_URL_SCHEME=http
-export SESSION_COOKIE_SECURE=False
+# Fixed workflow shell script for N1O1 Clinical Trials application
+# This script explicitly sets the port to 5003 and doesn't rely on environment variables
 
-# Output debugging information
-echo "Starting N1O1 Clinical Trials application with fixed configuration:"
-echo "PORT: $PORT"
-echo "PREFERRED_URL_SCHEME: $PREFERRED_URL_SCHEME"
-echo "SESSION_COOKIE_SECURE: $SESSION_COOKIE_SECURE"
+export PORT=5003
+export FLASK_APP=main.py
+export FLASK_ENV=production
 
-# Start the application using gunicorn with fixed port
-exec gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app
+echo "Starting N1O1 Clinical Trials with fixed port: $PORT"
+
+# Run using python directly - the simplest and most reliable approach
+python start_n1o1_standalone.py

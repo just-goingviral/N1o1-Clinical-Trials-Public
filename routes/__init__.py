@@ -9,5 +9,6 @@ from routes.analyzer_routes import analyzer_bp
 from routes.auth_routes import auth_bp
 from routes.notes_routes import notes_bp
 from routes.ai_tools import ai_tools_bp
+from routes.research_routes import research_bp
 
-__all__ = ['api_bp', 'patient_bp', 'simulation_bp', 'analyzer_bp', 'auth_bp', 'notes_bp', 'ai_tools_bp']
+__all__ = ['api_bp', 'patient_bp', 'simulation_bp', 'analyzer_bp', 'auth_bp', 'notes_bp', 'ai_tools_bp', 'research_bp']

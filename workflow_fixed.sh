@@ -1,14 +1,12 @@
 #!/bin/bash
+
 # Fixed workflow script for N1O1 Clinical Trials application
-# This script uses a hardcoded port to prevent empty PORT variable issues
+# This script uses a hardcoded port value to avoid environment variable issues
 
-# Set a fixed port
-export PORT=5000
+PORT=5003
+HOST="0.0.0.0"
 
-# Set environment variables for URL handling
-export PREFERRED_URL_SCHEME=http
-export SESSION_COOKIE_SECURE=False
-export SERVER_NAME=""
+echo "Starting N1O1 Clinical Trials application on ${HOST}:${PORT}"
 
-# Start the application with the fixed port
-exec gunicorn --bind 0.0.0.0:$PORT --reuse-port --reload main:app
+# Run the application using the standalone server script
+python start_n1o1_standalone.py
