@@ -1,1 +1,1 @@
-python start_server.py
+gunicorn --bind 0.0.0.0:5003 --reuse-port --reload main:app

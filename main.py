@@ -204,6 +204,13 @@ def index():
         return render_template('index.html', title="Welcome to N1O1 Clinical Trials", 
                               error="An error occurred loading the dashboard.")
 
+# Helper function for safe redirects that avoid redirect loops
+def safe_redirect(endpoint, **kwargs):
+    '''Generate a redirect that works correctly in all deployment environments'''
+    # Use our safer URL generation that respects the deployment context
+    target = safe_url_for(endpoint, **kwargs)
+    return redirect(target)
+
 # Redirect /patient to /patients for convenience
 @app.route('/patient')
 def patients_redirect():
@@ -284,13 +291,6 @@ def handle_exception(e):
         # Last resort fallback if error handler itself fails
         print(f"CRITICAL: Error handler failed: {str(handler_error)}")
         return "Critical application error. Please contact support.", 500
-
-# Helper function for safe redirects that avoid redirect loops
-def safe_redirect(endpoint, **kwargs):
-    '''Generate a redirect that works correctly in all deployment environments'''
-    # Use our safer URL generation that respects the deployment context
-    target = safe_url_for(endpoint, **kwargs)
-    return redirect(target)
 
 # Diagnostic route
 @app.route('/system/health')
