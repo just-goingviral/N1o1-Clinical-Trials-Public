@@ -63,7 +63,7 @@ Anthropic API Key (for AI features)
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/N1o1-Clinical-Trial-AI.git
+git clone https://github.com/just-goingviral/N1o1-Clinical-Trials
 cd N1o1-Clinical-Trial-AI
 
 # Install dependencies
