@@ -1,12 +1,8 @@
 #!/bin/bash
+# Fixed workflow script with explicit port setting
+export PORT=5000
+export PREFERRED_URL_SCHEME=http
+export SESSION_COOKIE_SECURE=False
 
-# Fixed workflow script for N1O1 Clinical Trials application
-# This script uses a hardcoded port value to avoid environment variable issues
-
-PORT=5003
-HOST="0.0.0.0"
-
-echo "Starting N1O1 Clinical Trials application on ${HOST}:${PORT}"
-
-# Run the application using the standalone server script
-python start_n1o1_standalone.py
+# Start the server on port 5000
+exec gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app

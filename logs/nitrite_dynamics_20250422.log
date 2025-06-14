@@ -1,0 +1,22 @@
+2025-04-22 09:12:01,209 - nitrite_dynamics.notes_routes - WARNING - Transcription request with invalid file type: blob
+2025-04-22 09:12:01,209 - nitrite_dynamics.notes_routes - WARNING - Transcription request with invalid file type: blob
+2025-04-22 09:50:44,833 - nitrite_dynamics.notes_routes - INFO - User 1 requesting notes list
+2025-04-22 09:50:44,833 - nitrite_dynamics.notes_routes - INFO - User 1 requesting notes list
+2025-04-22 09:51:14,331 - nitrite_dynamics.notes_routes - INFO - Saving temporary audio file for transcription: temp_74ee5693-0de2-4312-8a87-3cf4cb910f04.webm
+2025-04-22 09:51:14,331 - nitrite_dynamics.notes_routes - INFO - Saving temporary audio file for transcription: temp_74ee5693-0de2-4312-8a87-3cf4cb910f04.webm
+2025-04-22 09:51:14,344 - nitrite_dynamics.notes_routes - INFO - Sending audio for transcription
+2025-04-22 09:51:14,344 - nitrite_dynamics.notes_routes - INFO - Sending audio for transcription
+2025-04-22 09:51:15,559 - nitrite_dynamics.notes_routes - INFO - Transcription successful
+2025-04-22 09:51:15,559 - nitrite_dynamics.notes_routes - INFO - Transcription successful
+2025-04-22 09:51:25,037 - nitrite_dynamics.notes_routes - INFO - Processing voice recording for new note by user 1
+2025-04-22 09:51:25,037 - nitrite_dynamics.notes_routes - INFO - Processing voice recording for new note by user 1
+2025-04-22 09:51:25,038 - nitrite_dynamics.notes_routes - INFO - Voice recording saved: 2bcb3dd4-c2dc-4919-a84d-e787714f14fb_voice_recording.webm
+2025-04-22 09:51:25,038 - nitrite_dynamics.notes_routes - INFO - Voice recording saved: 2bcb3dd4-c2dc-4919-a84d-e787714f14fb_voice_recording.webm
+2025-04-22 09:51:25,150 - nitrite_dynamics.notes_routes - INFO - Note created successfully by user 1, note_id: 1
+2025-04-22 09:51:25,150 - nitrite_dynamics.notes_routes - INFO - Note created successfully by user 1, note_id: 1
+2025-04-22 09:51:25,337 - nitrite_dynamics.notes_routes - INFO - Note 1 viewed by user 1
+2025-04-22 09:51:25,337 - nitrite_dynamics.notes_routes - INFO - Note 1 viewed by user 1
+2025-04-22 09:51:43,825 - nitrite_dynamics.notes_routes - INFO - Note 1 updated successfully by user 1
+2025-04-22 09:51:43,825 - nitrite_dynamics.notes_routes - INFO - Note 1 updated successfully by user 1
+2025-04-22 09:51:43,975 - nitrite_dynamics.notes_routes - INFO - Note 1 viewed by user 1
+2025-04-22 09:51:43,975 - nitrite_dynamics.notes_routes - INFO - Note 1 viewed by user 1
