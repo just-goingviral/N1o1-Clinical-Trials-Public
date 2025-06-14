@@ -3,7 +3,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Version-2.0-blue" alt="Version">
   <img src="https://img.shields.io/badge/AI_Powered-Claude_3.5-purple" alt="AI">
-  <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
+  <img src="https://img.shields.io/badge/License-GPL--3.0-yellow" alt="License">
+  <img src="https://img.shields.io/badge/Commercial_Use-Restricted-orange" alt="Commercial">
   <img src="https://img.shields.io/badge/Status-Production_Ready-brightgreen" alt="Status">
   <img src="https://img.shields.io/badge/Research-Nitric_Oxide-red" alt="Research">
 </p>
@@ -240,7 +241,20 @@ This platform represents a breakthrough in clinical trial management, combining:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under a **Custom GPL-3.0 License with Commercial Restrictions**.
+
+### Key License Terms:
+- ✅ **Free for academic and research use**
+- ✅ **Open source with full code access**
+- ❌ **Commercial use prohibited without separate license**
+- ❌ **Cannot be used in for-profit clinical trials without permission**
+- 📝 **Attribution required in publications**
+
+**IMPORTANT**: This software is for RESEARCH PURPOSES ONLY. Any commercial use requires a separate commercial license from the N1O1 Clinical Research Group.
+
+For commercial licensing inquiries: licensing@n1o1trials.com
+
+See the [LICENSE](LICENSE) file for complete terms and conditions.
 
 ## 🙏 Acknowledgments
 
