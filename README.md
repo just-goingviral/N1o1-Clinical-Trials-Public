@@ -21,7 +21,6 @@
 - **Extended-release formulation** support with customizable drug delivery profiles
 
 ### 🤖 **AI-Powered Clinical Intelligence (N1O1ai)**
-- **Claude 3.5 Sonnet integration** for cutting-edge AI assistance
 - **Automated patient pre-screening** with eligibility assessment
 - **Dynamic consent generation** tailored to patient demographics
 - **Research insight generation** with pattern recognition
@@ -60,8 +59,7 @@ Anthropic API Key (for AI features)
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/N1o1-Clinical-Trial-AI.git
-cd N1o1-Clinical-Trial-AI
+git clone https://github.com/just-goingviral/N1o1-Clinical-Trials/)cd N1o1-Clinical-Trial-AI
 
 # Install dependencies
 pip install -r requirements.txt
