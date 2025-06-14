@@ -2,8 +2,6 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Version-2.0-blue" alt="Version">
-  <img src="https://img.shields.io/badge/AI_Powered-Claude_3.5-purple" alt="AI">
-  <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
   <img src="https://img.shields.io/badge/Status-Production_Ready-brightgreen" alt="Status">
   <img src="https://img.shields.io/badge/Research-Nitric_Oxide-red" alt="Research">
 </p>
