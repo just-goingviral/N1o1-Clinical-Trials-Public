@@ -1,1 +1,0 @@
-web: REPLIT_DEPLOYMENT=True ./start_application.sh

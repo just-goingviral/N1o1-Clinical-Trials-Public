@@ -79,7 +79,16 @@ app.config['SESSION_REFRESH_EACH_REQUEST'] = False  # Don't refresh cookies on e
 app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours (in seconds)
 app.config['REMEMBER_COOKIE_SECURE'] = False  # Allow HTTP cookies for remember me functionality
 app.config['REMEMBER_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to remember cookies
-app.secret_key = os.environ.get('SECRET_KEY', 'dev_key_for_testing')
+
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
+# Ensure secret key is set properly
+secret_key = os.environ.get('SECRET_KEY')
+if not secret_key:
+    raise ValueError("No SECRET_KEY set for Flask application. Please set the SECRET_KEY environment variable.")
+app.secret_key = secret_key
 
 # Initialize database
 db.init_app(app)

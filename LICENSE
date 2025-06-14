@@ -1,0 +1,72 @@
+N1O1 Clinical Trials Software License
+Based on GNU General Public License v3.0 with Additional Terms
+
+Copyright (C) 2025 N1O1 Clinical Research Group
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+ADDITIONAL TERMS AND CONDITIONS:
+
+1. PERMITTED USE:
+   This software is licensed EXCLUSIVELY for:
+   a) Academic and scientific research purposes
+   b) Personal use for educational or learning purposes
+   c) Non-commercial evaluation and testing
+
+2. COMMERCIAL USE RESTRICTION:
+   ANY COMMERCIAL USE OF THIS SOFTWARE IS STRICTLY PROHIBITED unless
+   you have obtained a separate commercial license from the N1O1 
+   Clinical Research Group. Commercial use includes, but is not limited to:
+   a) Use in any revenue-generating activity
+   b) Use in clinical trials conducted by for-profit entities
+   c) Integration into commercial products or services
+   d) Offering the software as a service (SaaS) for profit
+   e) Use by pharmaceutical or biotechnology companies without a license
+
+3. ATTRIBUTION REQUIREMENT:
+   Any research publications, presentations, or academic works that
+   utilize this software must include appropriate citation and
+   acknowledgment of the N1O1 Clinical Research Group.
+
+4. DATA PRIVACY:
+   Users must comply with all applicable data protection regulations
+   (including HIPAA, GDPR) when using this software with patient data.
+
+5. CLINICAL USE DISCLAIMER:
+   This software is for RESEARCH PURPOSES ONLY and has not been
+   validated for clinical decision-making. It should not be used
+   for actual patient care without proper validation and regulatory
+   approval.
+
+6. MODIFICATIONS:
+   Any modifications to this software must:
+   a) Be clearly marked as modifications
+   b) Include the date of modification
+   c) Retain all original copyright and license notices
+   d) Be subject to the same license terms
+
+7. TERMINATION:
+   Any violation of these additional terms will automatically terminate
+   your rights under this license.
+
+For commercial licensing inquiries, please contact:
+N1O1 Clinical Research Group
+Email: licensing@n1o1trials.com
+
+By using this software, you acknowledge that you have read, understood,
+and agree to be bound by these terms and conditions.
+
+---
+
+For the full GPL-3.0 license text, see: https://www.gnu.org/licenses/gpl-3.0.txt
